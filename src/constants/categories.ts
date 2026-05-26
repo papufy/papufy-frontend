@@ -17,11 +17,26 @@ export const PRODUCT_CATEGORIES = [
   "Outros",
 ] as const;
 
+export const PROFESSIONAL_CATEGORIES = [
+  "Eletricista",
+  "Encanador",
+  "Pintor",
+  "Diarista",
+  "Designer",
+  "Professor Particular",
+  "Outros Serviços",
+] as const;
+
 export const JOB_CATEGORIES = BICO_CATEGORIES;
 
 export type JobCategory = (typeof BICO_CATEGORIES)[number];
 export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
-export type ListingTypeFilter = "BICO" | "PRODUTO" | null;
+export type ListingTypeFilter =
+  | "JOB_VACANCY"
+  | "PROFESSIONAL_PROFILE"
+  | "BICO"
+  | "PRODUTO"
+  | null;
 
 export const BRAZIL_STATES = [
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
@@ -102,20 +117,30 @@ export const CATEGORY_META: Record<
 
 export const SCROLL_CATEGORIES = [
   { id: "all", label: "Todos", icon: "✨", tipo: null as ListingTypeFilter },
-  { id: "bico", label: "Bicos", icon: "🛠️", tipo: "BICO" as const },
-  { id: "produto", label: "Produtos", icon: "🛍️", tipo: "PRODUTO" as const },
+  {
+    id: "bico",
+    label: "Pedidos",
+    icon: "🛠️",
+    tipo: "JOB_VACANCY" as const,
+  },
+  {
+    id: "pro",
+    label: "Profissionais",
+    icon: "👷",
+    tipo: "PROFESSIONAL_PROFILE" as const,
+  },
   ...BICO_CATEGORIES.map((c) => ({
     id: `bico-${c}`,
     label: c.split(" ")[0],
     icon: CATEGORY_META[c]?.icon ?? "📌",
-    tipo: "BICO" as const,
+    tipo: "JOB_VACANCY" as const,
     category: c,
   })),
-  ...PRODUCT_CATEGORIES.slice(0, 4).map((c) => ({
-    id: `prod-${c}`,
+  ...PROFESSIONAL_CATEGORIES.slice(0, 4).map((c) => ({
+    id: `pro-${c}`,
     label: c.split(" ")[0],
-    icon: CATEGORY_META[c]?.icon ?? "📦",
-    tipo: "PRODUTO" as const,
+    icon: CATEGORY_META[c]?.icon ?? "👷",
+    tipo: "PROFESSIONAL_PROFILE" as const,
     category: c,
   })),
 ];

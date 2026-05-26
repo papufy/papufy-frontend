@@ -161,7 +161,7 @@ export const api = {
     list: (params?: {
       search?: string;
       category?: string;
-      tipo?: "BICO" | "PRODUTO";
+      tipo?: "BICO" | "PRODUTO" | "JOB_VACANCY" | "PROFESSIONAL_PROFILE";
       location?: string;
       uf?: string;
       cidade?: string;
@@ -173,7 +173,16 @@ export const api = {
       const query = new URLSearchParams();
       if (params?.search) query.set("search", params.search);
       if (params?.category) query.set("category", params.category);
-      if (params?.tipo) query.set("tipo", params.tipo);
+      if (params?.tipo === "BICO" || params?.tipo === "JOB_VACANCY") {
+        query.set("tipo", "BICO");
+        query.set("listingType", "JOB_VACANCY");
+      } else if (
+        params?.tipo === "PRODUTO" ||
+        params?.tipo === "PROFESSIONAL_PROFILE"
+      ) {
+        query.set("tipo", "PRODUTO");
+        query.set("listingType", "PROFESSIONAL_PROFILE");
+      }
       if (params?.location) query.set("location", params.location);
       if (params?.uf) query.set("uf", params.uf);
       if (params?.cidade) query.set("cidade", params.cidade);
@@ -281,11 +290,26 @@ export const api = {
   },
 
   chat: {
-    conversations: () =>
-      request<{
-        conversations: ConversationSummary[];
+    conversations: async () => {
+      const data = await request<{
+        conversations: Array<
+          ConversationSummary & {
+            jobTitulo?: string;
+            jobCategoria?: string;
+          }
+        >;
         unreadTotal: number;
-      }>("/chat/conversations"),
+      }>("/chat/conversations");
+      return {
+        ...data,
+        conversations: data.conversations.map((c) => ({
+          ...c,
+          contextTitulo: c.contextTitulo ?? c.jobTitulo ?? "Conversa",
+          contextCategoria: c.contextCategoria ?? c.jobCategoria ?? "Geral",
+          contextType: c.contextType ?? (c.listingId ? "listing" : "job"),
+        })),
+      };
+    },
 
     messages: (conversationId: string) =>
       request<{ messages: ChatMessage[] }>(

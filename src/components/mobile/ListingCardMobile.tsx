@@ -26,7 +26,8 @@ interface ListingCardMobileProps {
 
 export function ListingCardMobile({ listing }: ListingCardMobileProps) {
   const meta = CATEGORY_META[listing.categoria] ?? CATEGORY_META.Outros;
-  const isBico = listing.tipo === "BICO";
+  const isBico =
+    listing.listingType === "JOB_VACANCY" || listing.tipo === "BICO";
   const cover = listing.imagemCapa;
   const showImage = Boolean(cover && !cover.includes("placeholders/"));
 

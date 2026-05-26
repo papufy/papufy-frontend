@@ -7,7 +7,7 @@ const PAGE_SIZE = 20;
 export interface ListingsQuery {
   search?: string;
   category?: string;
-  tipo?: "BICO" | "PRODUTO";
+  tipo?: "BICO" | "PRODUTO" | "JOB_VACANCY" | "PROFESSIONAL_PROFILE";
   location?: string;
   uf?: string;
   cidade?: string;

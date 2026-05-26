@@ -188,7 +188,7 @@ export function ChatPage() {
                     )}
                   </div>
                   <p className="line-clamp-1 text-xs text-papufy-muted">
-                    {c.jobTitulo}
+                    {c.contextTitulo}
                   </p>
                   {c.lastMessage && (
                     <p className="mt-1 line-clamp-1 text-xs text-papufy-muted">
@@ -242,7 +242,7 @@ export function ChatPage() {
                     {activeConversation?.otherUser.nome ?? "Conversa"}
                   </p>
                   <p className="truncate text-xs text-papufy-muted">
-                    {activeConversation?.jobTitulo}
+                    {activeConversation?.contextTitulo}
                   </p>
                 </div>
               </div>

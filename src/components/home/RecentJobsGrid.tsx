@@ -86,8 +86,7 @@ export function RecentJobsGrid({
                   {job.price}
                 </p>
                 <div className="mt-0.5 flex items-center justify-between gap-1 text-[10px] text-papufy-muted">
-                  <span className="line-clamp-1">{job.location}</span>
-                  <span className="shrink-0">{job.dateLabel}</span>
+                  <span className="line-clamp-1">{job.locationLine}</span>
                 </div>
               </div>
             </Link>

@@ -26,7 +26,9 @@ export interface ListingImage {
 export interface Listing {
   id: string;
   userId: string;
-  listingType: ListingType;
+  listingType?: ListingType;
+  /** Campo legado da API Supabase */
+  tipo?: "BICO" | "PRODUTO";
   titulo: string;
   descricao: string;
   preco: number | null;
