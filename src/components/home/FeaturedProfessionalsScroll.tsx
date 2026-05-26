@@ -54,7 +54,7 @@ export function FeaturedProfessionalsScroll({
               {pro.verified && <VerifiedBadge />}
             </div>
 
-            <p className="mt-1 text-center text-[9px] font-bold uppercase tracking-wide text-papufy-orange">
+            <p className="mt-1 text-center text-[9px] font-bold uppercase tracking-wide text-sky-600">
               {pro.badge}
             </p>
 
@@ -64,7 +64,7 @@ export function FeaturedProfessionalsScroll({
 
             <button
               type="button"
-              className="mt-2 w-full rounded-full border-2 border-papufy-orange py-1.5 text-[10px] font-bold text-papufy-orange active:scale-95"
+              className="mt-2 w-full rounded-full border-2 border-papufy-orange py-1.5 text-[10px] font-bold text-sky-600 active:scale-95"
             >
               Ver perfil
             </button>

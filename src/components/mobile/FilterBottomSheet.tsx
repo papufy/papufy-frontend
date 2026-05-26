@@ -103,7 +103,7 @@ export function FilterBottomSheet({
                 onClick={() => setTipoLocal(opt.v)}
                 className={`h-11 flex-1 rounded-xl border text-sm font-semibold active:scale-95 ${
                   tipoLocal === opt.v
-                    ? "border-papufy-orange bg-sky-50 text-papufy-orange"
+                    ? "border-sky-400 bg-sky-50 text-sky-600"
                     : "border-papufy-border text-papufy-muted"
                 }`}
               >
@@ -141,7 +141,7 @@ export function FilterBottomSheet({
               onClick={() => setCatLocal(null)}
               className={`rounded-full px-3 py-2 text-xs font-semibold active:scale-95 ${
                 !catLocal
-                  ? "bg-papufy-orange text-white"
+                  ? "bg-sky-500 text-white"
                   : "bg-gray-100 text-papufy-muted"
               }`}
             >
@@ -154,7 +154,7 @@ export function FilterBottomSheet({
                 onClick={() => setCatLocal(c)}
                 className={`rounded-full px-3 py-2 text-xs font-semibold active:scale-95 ${
                   catLocal === c
-                    ? "bg-papufy-orange text-white"
+                    ? "bg-sky-500 text-white"
                     : "bg-gray-100 text-papufy-muted"
                 }`}
               >
@@ -183,7 +183,7 @@ export function FilterBottomSheet({
           <button
             type="button"
             onClick={apply}
-            className="h-12 flex-[2] rounded-xl bg-papufy-orange text-sm font-bold text-white active:scale-95"
+            className="h-12 flex-[2] rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 text-sm font-bold text-white active:scale-95"
           >
             Aplicar filtros
           </button>

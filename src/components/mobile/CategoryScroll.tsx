@@ -2,7 +2,7 @@ import { SCROLL_CATEGORIES } from "../../constants/categories";
 import { useFilters } from "../../context/FilterContext";
 
 const ICON_BG: Record<string, string> = {
-  all: "bg-gradient-to-br from-papufy-orange to-orange-600 text-white shadow-md shadow-orange-200",
+  all: "bg-gradient-to-br from-sky-400 to-blue-500 text-white shadow-md shadow-sky-200/60",
   vacancy: "bg-gradient-to-br from-sky-400 to-blue-600 text-white",
   produto: "bg-gradient-to-br from-violet-400 to-purple-700 text-white",
   default: "bg-gradient-to-br from-gray-50 to-gray-100 text-2xl",
@@ -10,7 +10,7 @@ const ICON_BG: Record<string, string> = {
 
 function iconBg(id: string, isActive: boolean): string {
   if (isActive && id === "all") return ICON_BG.all;
-  if (isActive) return "bg-papufy-purple text-white ring-2 ring-papufy-purple/30 shadow-md";
+  if (isActive) return "bg-sky-500 text-white ring-2 ring-sky-200 shadow-md";
   if (id === "all") return "bg-gradient-to-br from-sky-500 to-blue-600 text-white";
   if (id === "vacancy") return ICON_BG.vacancy;
   if (id === "produto") return ICON_BG.produto;
@@ -57,7 +57,7 @@ export function CategoryScroll({ onChange }: CategoryScrollProps) {
               </span>
               <span
                 className={`line-clamp-2 w-full text-center text-[11px] font-semibold leading-tight ${
-                  isActive ? "text-papufy-orange" : "text-papufy-text"
+                  isActive ? "text-sky-600" : "text-papufy-text"
                 }`}
               >
                 {item.label}

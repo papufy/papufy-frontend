@@ -26,7 +26,7 @@ export function BottomNav() {
 
   const itemClass = (active: boolean) =>
     `touch-target flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 select-none px-1 py-1 text-[10px] font-semibold transition active:scale-95 ${
-      active ? "text-papufy-orange" : "text-papufy-muted"
+      active ? "text-sky-500" : "text-papufy-muted"
     }`;
 
   const handleAnunciar = () => {
@@ -65,10 +65,10 @@ export function BottomNav() {
           className="touch-target -mt-5 flex flex-col items-center gap-0.5 px-2 active:scale-95"
           aria-label="Anunciar"
         >
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-papufy-orange text-white shadow-lg ring-4 ring-[#f5f5f5]">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-500 text-white shadow-lg shadow-sky-200/60 ring-4 ring-[#f5f5f5]">
             <IconPlus className="h-7 w-7" />
           </span>
-          <span className="text-[10px] font-bold text-papufy-orange">
+          <span className="text-[10px] font-bold text-sky-600">
             Anunciar
           </span>
         </button>
@@ -82,7 +82,7 @@ export function BottomNav() {
         >
           <IconChat className="h-6 w-6" />
           {isAuthenticated && unreadCount > 0 && (
-            <span className="absolute right-2 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-papufy-orange px-1 text-[9px] font-bold text-white">
+            <span className="absolute right-2 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-sky-500 px-1 text-[9px] font-bold text-white">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
