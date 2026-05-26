@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useChat } from "../../context/ChatContext";
 import { PapufyLogo } from "../PapufyLogo";
-import { IconChat } from "../icons/NavIcons";
+import { IconBell } from "../icons/NavIcons";
 import { MenuSearchBar } from "./MenuSearchBar";
 
 const GUEST_CTA_LABELS = ["Anunciar grátis", "Encontrar Serviço"] as const;
 const CTA_ROTATE_MS = 4000;
+/** Largura fixa para os dois textos do CTA não cortarem em telas estreitas. */
+const GUEST_CTA_CLASS =
+  "header-cta-guest relative flex h-9 w-[5.85rem] shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-sky-500 to-blue-500 px-2 text-[10px] font-bold leading-[1.15] text-white shadow-md shadow-sky-200/60 transition active:scale-95";
 
 function IconChevronDown({ className = "h-4 w-4" }: { className?: string }) {
   return (
@@ -31,6 +34,7 @@ function displayFirstName(fullName: string | undefined): string {
 }
 
 export function HeaderMobile() {
+  const { pathname } = useLocation();
   const { isAuthenticated, user } = useAuth();
   const { unreadCount } = useChat();
   const navigate = useNavigate();
@@ -57,12 +61,12 @@ export function HeaderMobile() {
     navigate("/");
   };
 
-  const openChat = () => {
+  const openNotifications = () => {
     if (isAuthenticated) {
-      navigate("/chat");
+      navigate("/notificacoes");
       return;
     }
-    navigate("/entrar", { state: { redirect: "/chat" } });
+    navigate("/entrar", { state: { redirect: "/notificacoes" } });
   };
 
   return (
@@ -76,20 +80,26 @@ export function HeaderMobile() {
           <PapufyLogo className="h-7 w-auto max-w-[7.5rem] object-contain object-left sm:h-8 sm:max-w-[8.5rem]" />
         </Link>
 
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        {pathname.startsWith("/entrar") ? null : (
+          <div className="min-w-0 flex-1 px-1">
+            <MenuSearchBar compact />
+          </div>
+        )}
+
+        <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
-            onClick={openChat}
-            className="relative flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition active:scale-95 active:bg-slate-50"
+            onClick={openNotifications}
+            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-600 transition active:scale-95 active:bg-slate-50"
             aria-label={
               unreadCount > 0
-                ? `Chat, ${unreadCount} mensagens não lidas`
-                : "Chat"
+                ? `Notificações, ${unreadCount} não lidas`
+                : "Notificações"
             }
           >
-            <IconChat className="h-5 w-5 text-sky-600" />
+            <IconBell className="h-5 w-5 text-sky-600" />
             {isAuthenticated && unreadCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-sky-500 px-1 text-[9px] font-bold leading-none text-white ring-2 ring-white">
+              <span className="absolute -right-0.5 -top-0.5 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-sky-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
@@ -113,19 +123,19 @@ export function HeaderMobile() {
             <>
               <Link
                 to="/entrar"
-                className="rounded-full border border-sky-500 bg-white px-2.5 py-1.5 text-[11px] font-bold text-sky-600 transition active:scale-95 sm:px-4 sm:py-2 sm:text-sm"
+                className="shrink-0 rounded-full border border-sky-500 bg-white px-3 py-2 text-[11px] font-bold text-sky-600 transition active:scale-95 sm:text-sm"
               >
                 Entrar
               </Link>
               <button
                 type="button"
                 onClick={handleGuestCta}
-                className="relative max-w-[6.75rem] overflow-hidden rounded-full bg-gradient-to-r from-sky-500 to-blue-500 px-2.5 py-1.5 text-[11px] font-bold text-white shadow-md shadow-sky-200/60 transition active:scale-95 sm:max-w-[8.5rem] sm:px-4 sm:py-2 sm:text-sm"
+                className={GUEST_CTA_CLASS}
                 aria-label={guestCtaLabel}
               >
                 <span
                   key={guestCtaLabel}
-                  className="header-cta-fade block truncate text-center"
+                  className="header-cta-fade block max-w-full text-center whitespace-normal"
                 >
                   {guestCtaLabel}
                 </span>
@@ -133,10 +143,6 @@ export function HeaderMobile() {
             </>
           )}
         </div>
-      </div>
-
-      <div className="border-t border-slate-100/80 bg-white px-4 pb-3 pt-2">
-        <MenuSearchBar compact />
       </div>
     </header>
   );

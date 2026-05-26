@@ -42,7 +42,7 @@ export function MobileShell({
         className={
           hideBottom
             ? ""
-            : "pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0"
+            : "pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] lg:pb-0"
         }
       >
         {children}

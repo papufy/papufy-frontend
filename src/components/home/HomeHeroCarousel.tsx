@@ -5,10 +5,16 @@ import {
   useState,
   type TouchEvent,
 } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useFilters } from "../../context/FilterContext";
-import { HERO_SLIDES, type HeroSlide } from "../../data/homeMocks";
+import {
+  HERO_BANNER_HEIGHT,
+  HERO_BANNER_WIDTH,
+  HERO_SLIDES,
+  type HeroSlide,
+  type HeroSlideAction,
+} from "../../data/homeMocks";
 
 const AUTO_MS = 5500;
 const SWIPE_THRESHOLD = 48;
@@ -21,6 +27,7 @@ function IconChevron({ direction }: { direction: "left" | "right" }) {
       fill="none"
       stroke="currentColor"
       strokeWidth="2.5"
+      aria-hidden
     >
       {direction === "left" ? (
         <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
@@ -31,103 +38,84 @@ function IconChevron({ direction }: { direction: "left" | "right" }) {
   );
 }
 
-function FindServiceSlide() {
+function HeroBannerImage({
+  slide,
+  priority,
+}: {
+  slide: HeroSlide;
+  priority?: boolean;
+}) {
+  return (
+    <img
+      src={slide.src}
+      alt={slide.alt}
+      width={HERO_BANNER_WIDTH}
+      height={HERO_BANNER_HEIGHT}
+      className="h-full w-full object-cover object-center"
+      loading={priority ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : "auto"}
+      decoding="async"
+      draggable={false}
+    />
+  );
+}
+
+function useSlideAction() {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const { setCategory, setTipo } = useFilters();
 
-  const openReformas = () => {
-    setTipo(null);
-    setCategory("Reformas e Reparos");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  return useCallback(
+    (action: HeroSlideAction) => {
+      if (action.type === "filter") {
+        setTipo(null);
+        setCategory(action.category);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
 
-  return (
-    <div className="relative flex h-full min-h-[180px] flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-sky-100 via-sky-200 to-blue-300 px-4 py-5 sm:min-h-[200px]">
-      <div>
-        <p className="text-xs font-bold uppercase tracking-wide text-sky-700">
-          Encontrar serviço
-        </p>
-        <h3 className="mt-1 text-lg font-extrabold leading-tight text-slate-800 sm:text-xl">
-          Profissionais perto de você
-        </h3>
-        <p className="mt-2 text-xs text-slate-600">
-          Busque na barra do menu ou filtre por categoria.
-        </p>
-      </div>
-      <button
-        type="button"
-        onClick={openReformas}
-        className="mt-3 w-fit rounded-full bg-white px-4 py-2 text-xs font-bold text-sky-700 shadow-sm active:scale-95"
-      >
-        Ver reformas na região
-      </button>
-    </div>
+      const listingType = action.listingType;
+      if (isAuthenticated) {
+        navigate("/anunciar/tipo", { state: { listingType } });
+        return;
+      }
+      navigate("/entrar", {
+        state: { redirect: "/anunciar/tipo", listingType },
+      });
+    },
+    [isAuthenticated, navigate, setCategory, setTipo]
   );
 }
 
-function PostServiceSlide() {
-  const { isAuthenticated } = useAuth();
-
-  return (
-    <div className="relative flex h-full min-h-[180px] flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-r from-sky-400 to-blue-500 px-4 py-5 sm:min-h-[200px]">
-      <div>
-        <p className="text-xs font-bold uppercase tracking-wide text-sky-50">
-          Anunciar grátis
-        </p>
-        <h3 className="mt-1 text-lg font-extrabold leading-tight text-white sm:text-xl">
-          Precisa de ajuda? Publique um pedido
-        </h3>
-        <p className="mt-2 text-xs leading-relaxed text-sky-50/95">
-          Descreva o serviço e receba contato de profissionais da sua cidade.
-        </p>
-      </div>
-      <Link
-        to={isAuthenticated ? "/anunciar" : "/entrar"}
-        state={{
-          listingType: "JOB_VACANCY",
-          ...(isAuthenticated ? {} : { redirect: "/anunciar" }),
-        }}
-        className="mt-3 inline-flex w-fit rounded-full bg-white px-4 py-2 text-xs font-bold text-sky-700 shadow-md active:scale-95"
-      >
-        Publicar pedido de serviço
-      </Link>
+function HeroSlidePanel({
+  slide,
+  priority,
+  onAction,
+}: {
+  slide: HeroSlide;
+  priority?: boolean;
+  onAction: (action: HeroSlideAction) => void;
+}) {
+  const frame = (
+    <div className="relative aspect-[1576/300] w-full overflow-hidden rounded-2xl bg-slate-100">
+      <HeroBannerImage slide={slide} priority={priority} />
     </div>
   );
-}
 
-function PostProfileSlide() {
-  const { isAuthenticated } = useAuth();
+  if (!slide.action) {
+    return frame;
+  }
 
   return (
-    <div className="relative flex h-full min-h-[180px] flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-sky-300 via-sky-400 to-blue-500 px-4 py-5 sm:min-h-[200px]">
-      <div>
-        <p className="text-xs font-bold uppercase tracking-wide text-sky-50">
-          Trabalhar no Papufy
-        </p>
-        <h3 className="mt-1 text-lg font-extrabold leading-tight text-white sm:text-xl">
-          Anuncie seu perfil profissional
-        </h3>
-        <p className="mt-2 text-xs leading-relaxed text-sky-50/95">
-          Mostre suas habilidades e seja encontrado por quem precisa do seu serviço.
-        </p>
-      </div>
-      <Link
-        to={isAuthenticated ? "/anunciar" : "/entrar"}
-        state={{
-          listingType: "PROFESSIONAL_PROFILE",
-          ...(isAuthenticated ? {} : { redirect: "/anunciar" }),
-        }}
-        className="mt-3 inline-flex w-fit rounded-full bg-white px-4 py-2 text-xs font-bold text-sky-700 shadow-md active:scale-95"
-      >
-        Criar perfil profissional
-      </Link>
-    </div>
+    <button
+      type="button"
+      onClick={() => onAction(slide.action!)}
+      className="block w-full text-left active:scale-[0.99] active:opacity-95"
+      aria-label={slide.alt}
+    >
+      {frame}
+    </button>
   );
-}
-
-function SlideContent({ variant }: { variant: HeroSlide["variant"] }) {
-  if (variant === "find-service") return <FindServiceSlide />;
-  if (variant === "post-service") return <PostServiceSlide />;
-  return <PostProfileSlide />;
 }
 
 export function HomeHeroCarousel() {
@@ -135,6 +123,7 @@ export function HomeHeroCarousel() {
   const touchStartX = useRef<number | null>(null);
   const paused = useRef(false);
   const total = HERO_SLIDES.length;
+  const runSlideAction = useSlideAction();
 
   const goTo = useCallback(
     (next: number) => {
@@ -173,7 +162,7 @@ export function HomeHeroCarousel() {
     <section
       className="relative w-full select-none"
       aria-roledescription="carousel"
-      aria-label="Ações no Papufy"
+      aria-label="Destaques Papufy"
       onMouseEnter={() => {
         paused.current = true;
       }}
@@ -188,9 +177,13 @@ export function HomeHeroCarousel() {
           className="flex transition-transform duration-500 ease-out"
           style={{ transform: `translateX(-${index * 100}%)` }}
         >
-          {HERO_SLIDES.map((slide) => (
+          {HERO_SLIDES.map((slide, i) => (
             <div key={slide.id} className="w-full shrink-0">
-              <SlideContent variant={slide.variant} />
+              <HeroSlidePanel
+                slide={slide}
+                priority={i === 0}
+                onAction={runSlideAction}
+              />
             </div>
           ))}
         </div>
@@ -199,31 +192,31 @@ export function HomeHeroCarousel() {
       <button
         type="button"
         onClick={prev}
-        className="absolute left-1 top-[42%] z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-sky-600 shadow-md active:scale-95 sm:left-2 sm:h-9 sm:w-9"
-        aria-label="Slide anterior"
+        className="absolute left-1 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-sky-600 shadow-md active:scale-95 sm:left-2 sm:h-9 sm:w-9"
+        aria-label="Banner anterior"
       >
         <IconChevron direction="left" />
       </button>
       <button
         type="button"
         onClick={next}
-        className="absolute right-1 top-[42%] z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-sky-600 shadow-md active:scale-95 sm:right-2 sm:h-9 sm:w-9"
-        aria-label="Próximo slide"
+        className="absolute right-1 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-sky-600 shadow-md active:scale-95 sm:right-2 sm:h-9 sm:w-9"
+        aria-label="Próximo banner"
       >
         <IconChevron direction="right" />
       </button>
 
-      <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5">
+      <div className="pointer-events-none absolute bottom-2 left-0 right-0 flex justify-center gap-1.5">
         {HERO_SLIDES.map((slide, i) => (
           <button
             key={slide.id}
             type="button"
             onClick={() => goTo(i)}
-            aria-label={`Ir para slide ${i + 1}`}
-            className={`rounded-full transition-all ${
+            aria-label={`Ir para banner ${i + 1}`}
+            className={`pointer-events-auto rounded-full shadow-sm ring-1 ring-black/10 transition-all ${
               i === index
-                ? "h-2 w-5 bg-sky-500 shadow-sm"
-                : "h-2 w-2 bg-white/90"
+                ? "h-2 w-5 bg-sky-500"
+                : "h-2 w-2 bg-white/95"
             }`}
           />
         ))}
