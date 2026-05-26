@@ -39,7 +39,7 @@ export function SearchPage() {
   const hasQuery = debouncedSearch.trim().length > 0;
 
   return (
-    <MobileShell showSearch={false}>
+    <MobileShell>
       <SearchBar autoFocusFullscreen />
 
       <div className="mobile-gutter space-y-4 py-4">

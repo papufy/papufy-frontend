@@ -6,7 +6,7 @@ function AnunciarTipoContent() {
   const navigate = useNavigate();
 
   return (
-    <MobileShell showSearch={false}>
+    <MobileShell>
       <div className="page-container space-y-4 py-6">
         <h1 className="text-xl font-extrabold text-papufy-text">
           Anunciar Grátis

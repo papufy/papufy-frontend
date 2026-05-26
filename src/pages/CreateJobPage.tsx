@@ -128,7 +128,7 @@ export function CreateJobPage() {
   };
 
   return (
-    <MobileShell showSearch={false} showCategories={false}>
+    <MobileShell showCategories={false}>
       <div className="page-container mx-auto max-w-2xl py-5">
         <h1 className="text-2xl font-extrabold text-papufy-text">
           {labels.pageTitle}

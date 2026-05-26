@@ -48,8 +48,14 @@ export function BottomNav() {
           <span>Home</span>
         </Link>
 
-        <Link to="/buscar" className={itemClass(isActive("/buscar"))}>
-          <IconSearch className="h-6 w-6" />
+        <Link
+          to="/buscar"
+          className={itemClass(isActive("/buscar"))}
+          aria-label="Abrir busca"
+        >
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100">
+            <IconSearch className="h-5 w-5" />
+          </span>
           <span>Buscar</span>
         </Link>
 

@@ -37,7 +37,7 @@ export function ListingDetailPage() {
 
   if (loading) {
     return (
-      <MobileShell showSearch={false}>
+      <MobileShell>
         <div className="mobile-gutter animate-pulse space-y-4 py-4">
           <div className="aspect-square rounded-2xl bg-slate-200" />
           <div className="h-8 w-2/3 rounded bg-slate-200" />
@@ -49,7 +49,7 @@ export function ListingDetailPage() {
 
   if (error || !listing) {
     return (
-      <MobileShell showSearch={false}>
+      <MobileShell>
         <div className="mobile-gutter py-12 text-center">
           <p className="text-red-600">{error}</p>
           <Link
@@ -70,7 +70,7 @@ export function ListingDetailPage() {
   const showImage = Boolean(cover && !cover.includes("placeholders/"));
 
   return (
-    <MobileShell showSearch={false}>
+    <MobileShell>
       <article className="mobile-gutter space-y-4 py-3 pb-28">
         <div className="relative aspect-square overflow-hidden rounded-2xl bg-slate-100">
           {showImage ? (
