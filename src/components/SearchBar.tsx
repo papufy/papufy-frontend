@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BRAZIL_STATES } from "../constants/categories";
 import { useFilters } from "../context/FilterContext";
@@ -11,16 +11,29 @@ interface SearchBarProps {
 
 export function SearchBar({ onSearch, variant = "full" }: SearchBarProps) {
   const navigate = useNavigate();
-  const { filters, setSearch, applySearch, setLocation, locationLabel } =
-    useFilters();
+  const {
+    filters,
+    setSearch,
+    applySearch,
+    setLocation,
+    locationLabel,
+    locationDetecting,
+  } = useFilters();
   const [localSearch, setLocalSearch] = useState(filters.search);
   const [cidade, setCidade] = useState(filters.cidade);
   const [uf, setUf] = useState(filters.uf);
 
+  useEffect(() => {
+    setCidade(filters.cidade);
+    setUf(filters.uf);
+  }, [filters.cidade, filters.uf]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const nextCidade = cidade.trim() || filters.cidade;
+    const nextUf = uf || filters.uf;
+    setLocation(nextCidade, nextUf);
     applySearch(localSearch.trim());
-    setLocation(cidade.trim(), uf);
     if (variant === "header") {
       navigate("/");
       setTimeout(() => onSearch?.(), 0);
@@ -39,7 +52,11 @@ export function SearchBar({ onSearch, variant = "full" }: SearchBarProps) {
             setLocalSearch(e.target.value);
             setSearch(e.target.value);
           }}
-          placeholder="Buscar serviços, profissionais..."
+          placeholder={
+            locationDetecting
+              ? "Detectando localização..."
+              : `Buscar em ${locationLabel}...`
+          }
           className="w-full rounded-full border border-papufy-border bg-white py-3 pl-5 pr-12 text-base text-papufy-text shadow-sm outline-none transition focus:border-papufy-orange focus:ring-2 focus:ring-papufy-orange/20 sm:py-2.5 sm:text-sm"
           aria-label="Buscar"
         />

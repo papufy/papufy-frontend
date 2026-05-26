@@ -71,9 +71,19 @@ export function AppPageHome() {
 
   const featuredListings = listings.slice(0, FEATURED_COUNT);
   const moreListings = listings.slice(FEATURED_COUNT);
+  const searchTerm = debouncedSearch.trim();
+  const hasSearch = searchTerm.length > 0;
+  const featuredTitle = hasSearch ? "Resultados da busca" : "Procurados por você";
+  const featuredSubtitle = hasSearch
+    ? locationDetecting
+      ? "Detectando sua localização..."
+      : `"${searchTerm}" em ${locationLabel}`
+    : undefined;
   const regionSubtitle = locationDetecting
     ? "Detectando sua localização..."
-    : `Em ${locationLabel}`;
+    : hasSearch
+      ? `"${searchTerm}" em ${locationLabel}`
+      : `Em ${locationLabel}`;
   const showMoreSection =
     Boolean(error) || loading || moreListings.length > 0 || hasMore;
 
@@ -100,6 +110,8 @@ export function AppPageHome() {
           loading={loading}
           locationLabel={locationLabel}
           locationDetecting={locationDetecting}
+          title={featuredTitle}
+          subtitle={featuredSubtitle}
         />
 
         <FeaturedProfessionalsScroll />

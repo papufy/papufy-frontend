@@ -9,6 +9,7 @@ interface RecentJobsGridProps {
   locationLabel: string;
   locationDetecting?: boolean;
   title?: string;
+  subtitle?: string;
 }
 
 export function RecentJobsGrid({
@@ -17,10 +18,13 @@ export function RecentJobsGrid({
   locationLabel,
   locationDetecting = false,
   title = "Procurados por você",
+  subtitle: subtitleProp,
 }: RecentJobsGridProps) {
-  const subtitle = locationDetecting
-    ? "Detectando sua localização..."
-    : `Perto de ${locationLabel}`;
+  const subtitle =
+    subtitleProp ??
+    (locationDetecting
+      ? "Detectando sua localização..."
+      : `Perto de ${locationLabel}`);
 
   return (
     <section className="w-full">

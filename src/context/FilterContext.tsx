@@ -8,7 +8,12 @@ import {
   type ReactNode,
 } from "react";
 import type { ListingTypeFilter } from "../constants/categories";
-import { detectUserCity, isLocationManual, markLocationManual } from "../lib/geolocation";
+import {
+  clearLocationManual,
+  detectUserCity,
+  isLocationManual,
+  markLocationManual,
+} from "../lib/geolocation";
 
 export interface JobFilters {
   search: string;
@@ -25,6 +30,8 @@ interface FilterContextValue {
   locationLabel: string;
   /** true enquanto tenta GPS (só na 1ª carga, se o usuário não escolheu cidade manualmente). */
   locationDetecting: boolean;
+  /** Atualiza cidade/UF pelo GPS (ex.: botão na busca). */
+  detectLocation: () => Promise<void>;
   setSearch: (search: string) => void;
   setCategory: (category: string | null) => void;
   setTipo: (tipo: ListingTypeFilter) => void;
@@ -154,11 +161,29 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     setFilters((prev) => ({ ...prev, cidade, uf }));
   }, []);
 
+  const detectLocation = useCallback(async () => {
+    setLocationDetecting(true);
+    try {
+      const loc = await detectUserCity();
+      if (loc) {
+        clearLocationManual();
+        setFilters((prev) => ({
+          ...prev,
+          cidade: loc.cidade,
+          uf: loc.uf,
+        }));
+      }
+    } finally {
+      setLocationDetecting(false);
+    }
+  }, []);
+
   const value = useMemo(
     () => ({
       filters,
       locationLabel,
       locationDetecting,
+      detectLocation,
       setSearch,
       setCategory,
       setTipo,
@@ -172,6 +197,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
       filters,
       locationLabel,
       locationDetecting,
+      detectLocation,
       setSearch,
       setCategory,
       setTipo,
