@@ -5,6 +5,7 @@ import {
   useState,
   type TouchEvent,
 } from "react";
+import { PapufyLogo } from "../PapufyLogo";
 import { HERO_SLIDES, type HeroSlide } from "../../data/homeMocks";
 import { QrCodePlaceholder } from "./QrCodePlaceholder";
 
@@ -39,9 +40,9 @@ function SkyPromoSlide() {
 
       <div className="relative mt-2 flex flex-1 items-stretch gap-1 sm:mt-3">
         <div className="flex w-[28%] shrink-0 flex-col justify-between py-1">
-          <span className="text-lg font-black tracking-tight text-white sm:text-xl">
-            Papufy
-          </span>
+          <div className="w-fit rounded-lg bg-white/95 px-2 py-1 shadow-sm">
+            <PapufyLogo className="h-6 w-auto max-w-full sm:h-7" />
+          </div>
           <p className="text-[9px] font-bold uppercase text-sky-100 sm:text-[10px]">
             Sua marca
           </p>
@@ -81,7 +82,9 @@ function SkyPromoSlide() {
             </p>
           </div>
           <div className="flex flex-col items-center">
-            <p className="mb-0.5 text-[10px] font-black text-white">Papufy</p>
+            <div className="mb-1 w-fit rounded-md bg-white/90 px-1.5 py-0.5">
+              <PapufyLogo className="h-4 w-auto max-w-full" />
+            </div>
             <QrCodePlaceholder className="scale-90 sm:scale-100" />
             <p className="mt-1 text-[8px] font-bold uppercase tracking-wide text-white sm:text-[9px]">
               Baixe o App

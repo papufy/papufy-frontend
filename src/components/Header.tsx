@@ -9,6 +9,7 @@ import {
   IconPlus,
 } from "./icons/NavIcons";
 import { HeaderNavItem } from "./HeaderNavItem";
+import { PapufyLogo } from "./PapufyLogo";
 import { SearchBar } from "./SearchBar";
 import { UserMenu } from "./UserMenu";
 
@@ -53,11 +54,8 @@ export function Header({ onSearch }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 border-b border-papufy-border bg-white shadow-sm">
       <div className="page-container flex items-center gap-2 py-2.5 sm:gap-3 lg:gap-4">
-        <Link
-          to="/"
-          className="shrink-0 text-xl font-extrabold tracking-tight text-papufy-orange sm:text-2xl"
-        >
-          Papufy
+        <Link to="/" className="shrink-0" aria-label="Papufy — início">
+          <PapufyLogo className="h-8 w-auto max-w-[10rem] object-contain sm:h-9" />
         </Link>
 
         <div className="hidden min-w-0 flex-1 lg:flex lg:justify-center">

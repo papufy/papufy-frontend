@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Layout } from "../components/Layout";
+import { PapufyLogo } from "../components/PapufyLogo";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { BRAZIL_STATES } from "../constants/categories";
@@ -61,6 +62,9 @@ export function LoginPage() {
   return (
     <Layout showCategories={false}>
       <div className="page-container mx-auto max-w-md py-6 sm:py-12">
+        <div className="mb-6 flex justify-center sm:mb-8">
+          <PapufyLogo className="h-12 w-auto max-w-[14rem] object-contain sm:h-14" />
+        </div>
         <div className="rounded-2xl border border-papufy-border bg-white p-5 shadow-sm sm:p-8">
           <h1 className="text-2xl font-extrabold text-papufy-text">
             {mode === "login" ? "Entrar no Papufy" : "Criar conta rápida"}

@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useChat } from "../../context/ChatContext";
+import { PapufyLogo } from "../PapufyLogo";
 import { IconChat } from "../icons/NavIcons";
 
 export function HeaderMobile() {
@@ -15,23 +16,10 @@ export function HeaderMobile() {
       <div className="mobile-gutter flex h-[3.25rem] items-center justify-between gap-3 sm:h-14">
         <Link
           to="/"
-          className="group flex min-w-0 shrink-0 items-center gap-1.5 py-1 pr-2 active:scale-[0.98]"
+          className="group flex min-w-0 shrink-0 items-center py-1 pr-2 active:scale-[0.98]"
           aria-label="Papufy — início"
         >
-          <span
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-blue-500 text-sm font-black text-white shadow-md shadow-sky-200/60"
-            aria-hidden
-          >
-            P
-          </span>
-          <span className="flex min-w-0 flex-col leading-none">
-            <span className="bg-gradient-to-r from-sky-500 via-sky-400 to-blue-500 bg-clip-text font-display text-[1.35rem] font-extrabold tracking-tight text-transparent sm:text-2xl">
-              Papufy
-            </span>
-            <span className="mt-0.5 hidden text-[9px] font-semibold uppercase tracking-[0.2em] text-sky-500/80 sm:block">
-              Serviços perto de você
-            </span>
-          </span>
+          <PapufyLogo className="h-8 w-auto max-w-[9.5rem] object-contain object-left sm:h-9 sm:max-w-[10.5rem]" />
         </Link>
 
         <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
