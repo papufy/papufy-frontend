@@ -8,15 +8,16 @@ import {
   IconSearch,
 } from "../icons/NavIcons";
 
-export function MenuSearchBar() {
+interface MenuSearchBarProps {
+  /** Remove padding externo quando embutido no shell fixo */
+  compact?: boolean;
+}
+
+export function MenuSearchBar({ compact = false }: MenuSearchBarProps) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const {
-    filters,
-    applySearch,
-    setLocation,
-    locationDetecting,
-  } = useFilters();
+  const { filters, applySearch, setLocation, locationDetecting } =
+    useFilters();
   const [query, setQuery] = useState(filters.search);
 
   useEffect(() => {
@@ -44,10 +45,14 @@ export function MenuSearchBar() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="border-b border-slate-100/80 px-3 py-2.5"
+      className={
+        compact
+          ? "w-full"
+          : "border-b border-slate-100/80 bg-white px-3 py-2.5"
+      }
       aria-label="Buscar no Papufy"
     >
-      <div className="flex h-11 items-stretch overflow-hidden rounded-full bg-[#f0f2f5] shadow-sm ring-1 ring-slate-200/60">
+      <div className="flex h-11 w-full items-stretch overflow-hidden rounded-full bg-[#f0f2f5] shadow-sm ring-1 ring-slate-200/60">
         <label className="sr-only" htmlFor="menu-search-input">
           Termo de busca
         </label>
@@ -59,7 +64,7 @@ export function MenuSearchBar() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={placeholder}
-            className="w-full border-0 bg-transparent text-sm font-medium text-slate-700 outline-none placeholder:font-normal placeholder:text-slate-500"
+            className="w-full min-w-0 border-0 bg-transparent text-sm font-medium text-slate-700 outline-none placeholder:font-normal placeholder:text-slate-500"
           />
         </div>
 
@@ -96,7 +101,7 @@ export function MenuSearchBar() {
           className="flex w-11 shrink-0 items-center justify-center text-slate-600 transition active:bg-slate-200/80"
           aria-label="Buscar"
         >
-          <IconSearch className="h-5 w-5 stroke-[1.75]" />
+          <IconSearch className="h-5 w-5" />
         </button>
       </div>
     </form>

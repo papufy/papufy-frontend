@@ -13,7 +13,7 @@ export function ToastContainer() {
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-4 bottom-[calc(8.75rem+env(safe-area-inset-bottom,0px))] z-[200] flex flex-col gap-2 sm:inset-x-auto sm:right-4 sm:bottom-4 sm:max-w-sm"
+      className="pointer-events-none fixed inset-x-4 bottom-[calc(12rem+env(safe-area-inset-bottom,0px))] z-[200] flex flex-col gap-2 sm:inset-x-auto sm:right-4 sm:bottom-4 sm:max-w-sm"
       aria-live="polite"
     >
       {toasts.map((t) => (

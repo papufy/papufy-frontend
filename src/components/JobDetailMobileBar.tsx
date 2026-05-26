@@ -18,7 +18,7 @@ export function JobDetailMobileBar({
   const price = formatPrice(job.preco ?? null, job.aCombinar);
 
   return (
-    <div className="fixed inset-x-0 bottom-[calc(8.25rem+env(safe-area-inset-bottom,0px))] z-40 border-t border-papufy-border bg-white/95 px-4 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] backdrop-blur-md lg:hidden">
+    <div className="fixed inset-x-0 bottom-[calc(11.5rem+env(safe-area-inset-bottom,0px))] z-40 border-t border-papufy-border bg-white/95 px-4 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] backdrop-blur-md">
       <div className="mx-auto flex max-w-lg items-center gap-3">
         <div className="min-w-0 flex-1">
           <p className="truncate text-lg font-extrabold text-papufy-text">{price}</p>
