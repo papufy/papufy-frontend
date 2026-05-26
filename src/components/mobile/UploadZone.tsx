@@ -1,5 +1,23 @@
 import { useRef, useState } from "react";
 
+function IconUpload({ className = "h-8 w-8" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    >
+      <path
+        d="M12 16V6m0 0l-4 4m4-4l4 4M5 20h14"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 interface UploadZoneProps {
   label: string;
   hint: string;
@@ -27,6 +45,9 @@ export function UploadZone({
     onFiles(Array.from(list));
   };
 
+  const isUploading =
+    progress != null && progress > 0 && progress < 100;
+
   return (
     <div className="space-y-2">
       <p className="text-sm font-semibold text-papufy-text">{label}</p>
@@ -43,17 +64,21 @@ export function UploadZone({
           setDragOver(false);
           handleFiles(e.dataTransfer.files);
         }}
-        className={`flex min-h-[120px] w-full select-none flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-4 py-6 transition active:scale-[0.99] ${
+        className={`flex min-h-[140px] w-full select-none flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-4 py-6 transition active:scale-[0.99] ${
           dragOver
-            ? "border-papufy-orange bg-sky-50"
-            : "border-papufy-border bg-gray-50"
+            ? "border-sky-400 bg-sky-100/80"
+            : "border-sky-300 bg-sky-50/50"
         }`}
       >
-        <span className="text-3xl">📎</span>
-        <span className="text-center text-sm font-medium text-papufy-text">
-          Toque para selecionar
+        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 text-sky-600">
+          <IconUpload />
         </span>
-        <span className="text-center text-xs text-papufy-muted">{hint}</span>
+        <span className="text-center text-sm font-semibold leading-snug text-slate-800">
+          {hint}
+        </span>
+        <span className="text-center text-xs text-slate-500">
+          PDF ou imagens · até o limite do seu plano
+        </span>
       </button>
 
       <input
@@ -66,12 +91,18 @@ export function UploadZone({
         onChange={(e) => handleFiles(e.target.files)}
       />
 
-      {progress != null && progress > 0 && progress < 100 && (
-        <div className="h-2 overflow-hidden rounded-full bg-gray-200">
-          <div
-            className="h-full rounded-full bg-papufy-orange transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
+      {(isUploading || progress === 100) && (
+        <div className="space-y-1">
+          <div className="flex justify-between text-xs text-slate-500">
+            <span>{progress === 100 ? "Concluído" : "Enviando..."}</span>
+            <span>{Math.round(progress ?? 0)}%</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-sky-100">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-sky-400 to-blue-500 transition-all duration-300"
+              style={{ width: `${progress ?? 0}%` }}
+            />
+          </div>
         </div>
       )}
     </div>

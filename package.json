@@ -2,19 +2,23 @@
   "name": "papufy-frontend",
   "version": "1.0.0",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kleidsonadesign/papufy-frontend.git"
+  },
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "build": "tsc -b && vite build"
   },
   "dependencies": {
+    "dompurify": "^3.4.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.8",
+    "@types/dompurify": "^3.0.5",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",
     "@vitejs/plugin-react": "^4.5.0",

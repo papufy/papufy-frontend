@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FilterBottomSheet } from "../mobile/FilterBottomSheet";
 import { ListingCardMobile } from "../mobile/ListingCardMobile";
 import { useFilters } from "../../context/FilterContext";
@@ -15,16 +15,28 @@ export function AppPageHome() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const query = {
-    search: debouncedSearch || undefined,
-    category: filters.category || undefined,
-    listingType: filters.tipo || undefined,
-    location: locationLabel,
-    uf: filters.uf,
-    cidade: filters.cidade,
-    minPrice: filters.minPrice ?? undefined,
-    maxPrice: filters.maxPrice ?? undefined,
-  };
+  const query = useMemo(
+    () => ({
+      search: debouncedSearch || undefined,
+      category: filters.category || undefined,
+      tipo: filters.tipo || undefined,
+      location: locationLabel,
+      uf: filters.uf,
+      cidade: filters.cidade,
+      minPrice: filters.minPrice ?? undefined,
+      maxPrice: filters.maxPrice ?? undefined,
+    }),
+    [
+      debouncedSearch,
+      filters.category,
+      filters.tipo,
+      locationLabel,
+      filters.uf,
+      filters.cidade,
+      filters.minPrice,
+      filters.maxPrice,
+    ]
+  );
 
   const {
     listings,
@@ -38,7 +50,7 @@ export function AppPageHome() {
 
   useEffect(() => {
     const el = sentinelRef.current;
-    if (!el) return;
+    if (!el || !hasMore) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -56,28 +68,19 @@ export function AppPageHome() {
   }, [refresh]);
 
   return (
-    <div className="section-stack-lg pb-6 pt-5">
-      <section className="page-container">
+    <div className="flex flex-col space-y-6 pb-4">
+      <div className="mobile-gutter pt-2">
         <HomeHeroCarousel />
-      </section>
+      </div>
 
-      <div className="page-container section-stack">
-        <div className="flex items-center justify-end">
+      <div className="mobile-gutter space-y-6">
+        <div className="flex items-center justify-between gap-2">
+          <span className="sr-only">Filtros de listagem</span>
           <button
             type="button"
             onClick={() => setFiltersOpen(true)}
-            className="inline-flex h-10 items-center gap-1.5 rounded-full border border-papufy-border bg-white px-4 text-xs font-bold text-papufy-text shadow-sm active:scale-95"
+            className="ml-auto h-10 shrink-0 rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 shadow-sm active:scale-95"
           >
-            <svg
-              className="h-4 w-4 text-papufy-muted"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              aria-hidden
-            >
-              <path d="M4 6h16M7 12h10M10 18h4" strokeLinecap="round" />
-            </svg>
             Filtros
           </button>
         </div>
@@ -88,12 +91,12 @@ export function AppPageHome() {
 
         {(loading || listings.length > 0 || error) && (
           <section>
-            <header className="mb-4">
-              <h2 className="text-2xl font-bold tracking-tight text-papufy-text">
+            <header className="mb-3">
+              <h2 className="text-base font-extrabold text-slate-900">
                 Mais anúncios na região
               </h2>
-              <p className="mt-1 text-sm text-papufy-muted">
-                Serviços e profissionais do marketplace Papufy
+              <p className="text-xs text-slate-500">
+                Bicos e produtos do marketplace Papufy
               </p>
             </header>
 
@@ -102,7 +105,7 @@ export function AppPageHome() {
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div
                     key={i}
-                    className="aspect-[4/5] animate-pulse rounded-xl bg-gray-200"
+                    className="aspect-[4/5] animate-pulse rounded-xl bg-slate-200"
                   />
                 ))}
               </div>
@@ -118,7 +121,7 @@ export function AppPageHome() {
                 <button
                   type="button"
                   onClick={handleRefresh}
-                  className="mt-3 h-11 rounded-xl bg-papufy-orange px-4 text-sm font-bold text-white active:scale-95"
+                  className="mt-3 h-11 rounded-xl bg-gradient-to-r from-sky-500 to-blue-500 px-4 text-sm font-bold text-white active:scale-95"
                 >
                   Tentar novamente
                 </button>
@@ -134,12 +137,12 @@ export function AppPageHome() {
                 </div>
                 <div ref={sentinelRef} className="h-4" aria-hidden />
                 {loadingMore && (
-                  <p className="py-4 text-center text-xs text-papufy-muted">
+                  <p className="py-4 text-center text-xs text-slate-500">
                     Carregando mais...
                   </p>
                 )}
                 {!hasMore && (
-                  <p className="py-4 text-center text-xs text-papufy-muted">
+                  <p className="py-4 text-center text-xs text-slate-500">
                     Você viu todos os anúncios
                   </p>
                 )}

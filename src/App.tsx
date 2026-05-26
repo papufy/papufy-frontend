@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ToastContainer } from "./components/ToastContainer";
 import { AuthProvider } from "./context/AuthContext";
@@ -19,11 +20,12 @@ import { SearchPage } from "./pages/SearchPage";
 
 export default function App() {
   return (
-    <ToastProvider>
-      <AuthProvider>
-        <ChatProvider>
-          <FilterProvider>
-            <BrowserRouter>
+    <ErrorBoundary>
+      <ToastProvider>
+        <AuthProvider>
+          <ChatProvider>
+            <FilterProvider>
+              <BrowserRouter>
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/buscar" element={<SearchPage />} />
@@ -42,7 +44,7 @@ export default function App() {
                   }
                 />
                 <Route path="/trabalho/:id" element={<JobDetailPage />} />
-                <Route path="/trabalho-vaga/:id" element={<RedirectTrabalho />} />
+                <Route path="/bico/:id" element={<RedirectTrabalho />} />
                 <Route
                   path="/chat"
                   element={
@@ -78,11 +80,12 @@ export default function App() {
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
               <ToastContainer />
-            </BrowserRouter>
-          </FilterProvider>
-        </ChatProvider>
-      </AuthProvider>
-    </ToastProvider>
+              </BrowserRouter>
+            </FilterProvider>
+          </ChatProvider>
+        </AuthProvider>
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }
 

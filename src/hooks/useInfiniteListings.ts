@@ -7,7 +7,7 @@ const PAGE_SIZE = 20;
 export interface ListingsQuery {
   search?: string;
   category?: string;
-  listingType?: "JOB_VACANCY" | "PROFESSIONAL_PROFILE";
+  tipo?: "BICO" | "PRODUTO";
   location?: string;
   uf?: string;
   cidade?: string;
@@ -22,11 +22,14 @@ export function useInfiniteListings(query: ListingsQuery) {
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const offsetRef = useRef(0);
+  const queryRef = useRef(query);
 
+  queryRef.current = query;
   const queryKey = JSON.stringify(query);
 
   const fetchPage = useCallback(
     async (reset: boolean) => {
+      const q = queryRef.current;
       const offset = reset ? 0 : offsetRef.current;
       if (reset) {
         setLoading(true);
@@ -37,7 +40,7 @@ export function useInfiniteListings(query: ListingsQuery) {
 
       try {
         const data = await api.listings.list({
-          ...query,
+          ...q,
           limit: PAGE_SIZE,
           offset,
         });
@@ -57,7 +60,7 @@ export function useInfiniteListings(query: ListingsQuery) {
         setLoadingMore(false);
       }
     },
-    [query]
+    [queryKey]
   );
 
   useEffect(() => {

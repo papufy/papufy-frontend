@@ -1,3 +1,4 @@
+import { SafeText } from "../components/SafeText";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { JobDetailMobileBar } from "../components/JobDetailMobileBar";
@@ -59,7 +60,7 @@ export function JobDetailPage() {
     setError(null);
     loadJob()
       .catch((err) =>
-        setError(err instanceof Error ? err.message : "Serviço não encontrado.")
+        setError(err instanceof Error ? err.message : "Trabalho não encontrado.")
       )
       .finally(() => setLoading(false));
   }, [id, loadJob, isAuthenticated]);
@@ -80,7 +81,7 @@ export function JobDetailPage() {
     }
 
     if (job.status === "CLOSED") {
-      showToast("Este serviço já foi encerrado.", "info");
+      showToast("Este trabalho já foi encerrado.", "info");
       return;
     }
 
@@ -274,9 +275,12 @@ export function JobDetailPage() {
               <h2 className="text-base font-bold text-papufy-text sm:text-lg">
                 Descrição
               </h2>
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-papufy-text sm:mt-4 sm:text-base">
+              <SafeText
+                as="p"
+                className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-papufy-text sm:mt-4 sm:text-base"
+              >
                 {job.descricao}
-              </p>
+              </SafeText>
               {job.cep && (
                 <p className="mt-4 text-sm text-papufy-muted">CEP: {job.cep}</p>
               )}

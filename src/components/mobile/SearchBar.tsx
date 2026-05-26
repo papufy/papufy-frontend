@@ -25,19 +25,6 @@ function saveRecent(term: string) {
   localStorage.setItem(RECENT_KEY, JSON.stringify(list));
 }
 
-function IconPin({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden
-    >
-      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z" />
-    </svg>
-  );
-}
-
 interface SearchBarProps {
   onSearch?: () => void;
   autoFocusFullscreen?: boolean;
@@ -90,34 +77,20 @@ export function SearchBar({
 
   return (
     <>
-      <div className="page-container pt-3">
+      <div className="mobile-gutter py-2">
         <button
           type="button"
           onClick={() => setFullscreen(true)}
-          className="flex w-full select-none items-stretch overflow-hidden rounded-xl border border-papufy-border bg-white text-left shadow-md transition active:scale-[0.99]"
+          className="flex w-full select-none items-center gap-3 rounded-2xl border border-papufy-border bg-white px-4 py-3 text-left shadow-sm transition active:scale-[0.99]"
         >
-          <div className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3.5">
-            <IconSearch className="h-5 w-5 shrink-0 text-papufy-muted" />
-            <span className="truncate text-sm text-papufy-muted">
-              {filters.search || "Buscar serviços, profissionais..."}
-            </span>
-          </div>
-
-          <div className="flex w-[42%] max-w-[160px] shrink-0 items-center gap-1.5 border-l border-papufy-border bg-gray-50/80 px-3 py-3.5">
-            <IconPin className="h-4 w-4 shrink-0 text-papufy-orange" />
-            <span className="min-w-0 flex-1 truncate text-xs font-semibold text-papufy-text">
-              {locationLabel}
-            </span>
-            <svg
-              className="h-3.5 w-3.5 shrink-0 text-papufy-muted"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              aria-hidden
-            >
-              <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+          <IconSearch className="h-5 w-5 shrink-0 text-papufy-muted" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm text-papufy-muted">
+              {filters.search || "Buscar bicos, produtos, serviços..."}
+            </p>
+            <p className="truncate text-xs font-semibold text-sky-600">
+              {locationLabel} 📍
+            </p>
           </div>
         </button>
       </div>
@@ -126,18 +99,17 @@ export function SearchBar({
         <div className="fixed inset-0 z-[100] flex flex-col bg-white">
           <form
             onSubmit={handleSubmit}
-            className="border-b border-papufy-border px-5 pb-4 pt-[max(0.75rem,env(safe-area-inset-top))]"
+            className="border-b border-papufy-border px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]"
           >
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setFullscreen(false)}
-                className="touch-target shrink-0 text-sm font-semibold text-papufy-orange"
+                className="touch-target shrink-0 text-sm font-semibold text-sky-600"
               >
                 Cancelar
               </button>
               <div className="relative min-w-0 flex-1">
-                <IconSearch className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-papufy-muted" />
                 <input
                   ref={inputRef}
                   type="search"
@@ -147,24 +119,24 @@ export function SearchBar({
                     setLocalSearch(e.target.value);
                     setSearch(e.target.value);
                   }}
-                  placeholder="Buscar serviços, profissionais..."
-                  className="w-full rounded-xl border border-papufy-border py-3.5 pl-11 pr-12 text-base shadow-sm outline-none focus:border-papufy-orange focus:ring-2 focus:ring-papufy-orange/20"
+                  placeholder="O que você procura?"
+                  className="w-full rounded-full border border-papufy-border py-3 pl-4 pr-11 text-base outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/25"
                 />
                 <button
                   type="submit"
-                  className="touch-target absolute right-1 top-1/2 -translate-y-1/2 rounded-lg bg-papufy-orange px-3 py-1.5 text-xs font-bold text-white"
+                  className="touch-target absolute right-1 top-1/2 -translate-y-1/2 rounded-full p-2 text-sky-600"
                   aria-label="Buscar"
                 >
-                  OK
+                  <IconSearch />
                 </button>
               </div>
             </div>
 
-            <div className="mt-4 flex gap-2">
+            <div className="mt-3 flex gap-2">
               <select
                 value={uf}
                 onChange={(e) => setUf(e.target.value)}
-                className="h-11 shrink-0 rounded-xl border border-papufy-border bg-gray-50 px-3 text-sm font-semibold outline-none"
+                className="h-11 shrink-0 rounded-xl border border-papufy-border bg-gray-50 px-2 text-sm font-semibold outline-none"
               >
                 {BRAZIL_STATES.map((s) => (
                   <option key={s} value={s}>
@@ -182,7 +154,7 @@ export function SearchBar({
             </div>
           </form>
 
-          <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4">
+          <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4">
             {recent.length > 0 && (
               <section>
                 <h3 className="text-xs font-bold uppercase tracking-wide text-papufy-muted">
@@ -197,7 +169,7 @@ export function SearchBar({
                           setLocalSearch(term);
                           commitSearch(term);
                         }}
-                        className="w-full rounded-xl px-3 py-3 text-left text-sm font-medium text-papufy-text active:bg-papufy-tint"
+                        className="w-full rounded-lg px-3 py-3 text-left text-sm font-medium text-papufy-text active:bg-sky-50"
                       >
                         {term}
                       </button>

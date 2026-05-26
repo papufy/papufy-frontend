@@ -88,8 +88,15 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
     void refreshUnread();
 
-    const ws = new WebSocket(getWebSocketUrl(token));
+    let ws: WebSocket;
+    try {
+      ws = new WebSocket(getWebSocketUrl(token));
+    } catch {
+      return;
+    }
     wsRef.current = ws;
+
+    ws.onerror = () => setConnected(false);
 
     ws.onopen = () => {
       setConnected(true);

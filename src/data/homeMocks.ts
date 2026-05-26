@@ -1,6 +1,6 @@
 export interface HeroSlide {
   id: string;
-  variant: "purple-promo" | "blue-pro" | "lime-category";
+  variant: "sky-promo" | "blue-pro" | "sky-category";
 }
 
 export interface MockRecentJob {
@@ -11,8 +11,7 @@ export interface MockRecentJob {
   tagClassName: string;
   title: string;
   price: string;
-  location: string;
-  dateLabel: string;
+  locationLine: string;
 }
 
 export interface MockFeaturedProfessional {
@@ -26,55 +25,51 @@ export interface MockFeaturedProfessional {
 }
 
 export const HERO_SLIDES: HeroSlide[] = [
-  { id: "slide-1", variant: "purple-promo" },
+  { id: "slide-1", variant: "sky-promo" },
   { id: "slide-2", variant: "blue-pro" },
-  { id: "slide-3", variant: "lime-category" },
+  { id: "slide-3", variant: "sky-category" },
 ];
 
 export const MOCK_RECENT_JOBS: MockRecentJob[] = [
   {
     id: "job-1",
     imageEmoji: "🔧",
-    imageGradient: "from-slate-600 via-slate-700 to-slate-900",
+    imageGradient: "from-sky-500 to-blue-700",
     categoryTag: "REFORMAS",
     tagClassName: "bg-amber-500 text-white",
     title: "Conserto de Vazamento de Pia",
     price: "R$ 150",
-    location: "Campina Grande, PB",
-    dateLabel: "Há 10 min",
+    locationLine: "Campina Grande, PB · Há 10 min",
   },
   {
     id: "job-2",
     imageEmoji: "💻",
-    imageGradient: "from-indigo-500 via-violet-600 to-purple-900",
+    imageGradient: "from-sky-400 to-blue-600",
     categoryTag: "TECH",
-    tagClassName: "bg-violet-600 text-white",
+    tagClassName: "bg-sky-600 text-white",
     title: "Criação de Logo Simples",
     price: "A combinar",
-    location: "Campina Grande, PB",
-    dateLabel: "Há 25 min",
+    locationLine: "Campina Grande, PB · Há 25 min",
   },
   {
     id: "job-3",
     imageEmoji: "🎨",
-    imageGradient: "from-orange-400 via-red-500 to-red-800",
+    imageGradient: "from-orange-400 to-red-600",
     categoryTag: "REFORMAS",
     tagClassName: "bg-amber-500 text-white",
     title: "Pintura de Quarto 12m²",
     price: "R$ 320",
-    location: "Malvinas, PB",
-    dateLabel: "Há 1 h",
+    locationLine: "Malvinas, PB · Há 1 h",
   },
   {
     id: "job-4",
     imageEmoji: "🧹",
-    imageGradient: "from-emerald-500 via-teal-600 to-teal-900",
+    imageGradient: "from-emerald-500 to-teal-700",
     categoryTag: "DOMÉSTICOS",
     tagClassName: "bg-emerald-600 text-white",
     title: "Limpeza Pesada Pós-Obra",
     price: "R$ 280",
-    location: "Centro, PB",
-    dateLabel: "Há 2 h",
+    locationLine: "Centro, PB · Há 2 h",
   },
 ];
 
@@ -82,7 +77,7 @@ export const MOCK_FEATURED_PROFESSIONALS: MockFeaturedProfessional[] = [
   {
     id: "pro-1",
     name: "João E.",
-    avatarGradient: "from-sky-300 to-papufy-blue",
+    avatarGradient: "from-sky-300 to-papufy-orange",
     avatarEmoji: "👨‍🔧",
     badge: "MELHOR AVALIADO ⭐",
     specialty: "Eletricista Residencial",
@@ -91,7 +86,7 @@ export const MOCK_FEATURED_PROFESSIONALS: MockFeaturedProfessional[] = [
   {
     id: "pro-2",
     name: "Ana M.",
-    avatarGradient: "from-pink-300 to-violet-500",
+    avatarGradient: "from-sky-300 to-blue-500",
     avatarEmoji: "👩‍💻",
     badge: "DESTAQUE TECH",
     specialty: "Designer & Social Media",

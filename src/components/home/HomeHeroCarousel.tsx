@@ -14,7 +14,7 @@ const SWIPE_THRESHOLD = 48;
 function IconChevron({ direction }: { direction: "left" | "right" }) {
   return (
     <svg
-      className="h-4 w-4"
+      className="h-4 w-4 sm:h-5 sm:w-5"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -29,89 +29,61 @@ function IconChevron({ direction }: { direction: "left" | "right" }) {
   );
 }
 
-function PurplePromoSlide() {
+/** Slide 1 — gradiente azul claro vibrante (identidade Papufy) */
+function SkyPromoSlide() {
   return (
-    <div className="relative flex min-h-[228px] flex-col overflow-hidden rounded-2xl bg-gradient-to-br from-[#7c12e8] via-[#6e0ad6] to-[#4a05a8] px-4 pb-11 pt-4 shadow-lg">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-30"
-        aria-hidden
-        style={{
-          background:
-            "radial-gradient(circle at 80% 20%, rgba(255,255,255,0.35) 0%, transparent 45%)",
-        }}
-      />
-
-      <h3 className="relative z-10 text-center text-[15px] font-extrabold leading-snug tracking-tight text-white sm:text-base">
+    <div className="relative flex h-full min-h-[200px] flex-col overflow-hidden rounded-2xl bg-gradient-to-r from-sky-400 to-blue-500 px-3 pb-10 pt-3 shadow-lg shadow-sky-200/50 sm:min-h-[220px] sm:px-4">
+      <p className="text-center text-sm font-extrabold leading-tight text-white sm:text-base">
         Papufy: Sua grana extra rápida.
-      </h3>
+      </p>
 
-      <div className="relative z-10 mt-3 flex flex-1 items-stretch gap-2">
-        <div className="flex w-[22%] shrink-0 flex-col justify-start pt-1">
-          <img
-            src="/nome.png"
-            alt="Papufy"
-            className="h-auto w-full max-w-[72px] object-contain brightness-0 invert drop-shadow-md"
-          />
+      <div className="relative mt-2 flex flex-1 items-stretch gap-1 sm:mt-3">
+        <div className="flex w-[28%] shrink-0 flex-col justify-between py-1">
+          <span className="text-lg font-black tracking-tight text-white sm:text-xl">
+            Papufy
+          </span>
+          <p className="text-[9px] font-bold uppercase text-sky-100 sm:text-[10px]">
+            Sua marca
+          </p>
         </div>
 
-        <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
-          <div className="flex min-w-0 flex-1 flex-col rounded-xl bg-white px-2.5 py-2.5 shadow-md">
-            <p className="text-[8px] font-bold uppercase tracking-wide text-papufy-purple">
+        <div className="flex min-w-0 flex-1 items-center justify-center gap-1 sm:gap-1.5">
+          <div className="flex max-w-[32%] flex-1 flex-col rounded-xl bg-white px-2 py-2 shadow-md sm:px-2.5 sm:py-2.5">
+            <p className="text-[8px] font-bold uppercase text-sky-600 sm:text-[9px]">
               Crie 3 anúncios
             </p>
-            <p className="mt-1 text-[11px] font-extrabold leading-tight text-papufy-purple">
-              Faça 1 serviço hoje.
+            <p className="mt-1 text-[10px] font-extrabold leading-tight text-slate-800 sm:text-xs">
+              Faça 1 bico hoje.
             </p>
           </div>
 
-          <span className="shrink-0 text-xl font-black text-white/95" aria-hidden>
-            →
-          </span>
+          <div className="flex shrink-0 flex-col items-center justify-center text-white">
+            <span className="text-xl font-black sm:text-2xl">→</span>
+          </div>
 
-          <div className="flex min-w-0 flex-1 flex-col rounded-xl bg-white px-2.5 py-2.5 shadow-md">
-            <p className="text-[8px] font-bold uppercase tracking-wide text-papufy-purple">
+          <div className="flex max-w-[32%] flex-1 flex-col rounded-xl bg-white px-2 py-2 shadow-md sm:px-2.5 sm:py-2.5">
+            <p className="text-[8px] font-bold uppercase text-sky-600 sm:text-[9px]">
               Ganhe 3 destaques
             </p>
-            <p className="mt-1 text-[11px] font-extrabold leading-tight text-papufy-purple">
+            <p className="mt-1 text-[10px] font-extrabold leading-tight text-slate-800 sm:text-xs">
               Receba seu Pix na hora.
             </p>
           </div>
         </div>
 
-        <div className="relative flex w-[24%] shrink-0 flex-col items-center justify-between">
-          <div className="relative w-full text-center">
-            <span
-              className="absolute -left-1 top-0 text-2xl drop-shadow-lg"
-              aria-hidden
-            >
+        <div className="flex w-[26%] shrink-0 flex-col items-center justify-between py-0.5">
+          <div className="relative text-center">
+            <span className="text-2xl sm:text-3xl" aria-hidden>
               🪙
             </span>
-            <span
-              className="absolute right-0 top-2 text-xl drop-shadow-lg"
-              aria-hidden
-            >
-              💰
-            </span>
-            <span
-              className="absolute left-1/2 top-6 -translate-x-1/2 text-lg"
-              aria-hidden
-            >
-              ✨
-            </span>
-            <p className="relative z-10 mt-10 text-[10px] font-extrabold text-yellow-300 drop-shadow">
+            <p className="mt-0.5 text-[9px] font-bold text-amber-200 sm:text-[10px]">
               Aproveite!
             </p>
           </div>
-
           <div className="flex flex-col items-center">
-            <img
-              src="/nome.png"
-              alt=""
-              aria-hidden
-              className="mb-1 h-4 w-auto object-contain brightness-0 invert"
-            />
-            <QrCodePlaceholder />
-            <p className="mt-1.5 text-[8px] font-bold uppercase tracking-wider text-white">
+            <p className="mb-0.5 text-[10px] font-black text-white">Papufy</p>
+            <QrCodePlaceholder className="scale-90 sm:scale-100" />
+            <p className="mt-1 text-[8px] font-bold uppercase tracking-wide text-white sm:text-[9px]">
               Baixe o App
             </p>
           </div>
@@ -123,27 +95,28 @@ function PurplePromoSlide() {
 
 function BlueProSlide() {
   return (
-    <div className="relative flex min-h-[228px] flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-[#5b9bd5] to-[#2d6a9f] px-5 py-5 shadow-lg">
-      <div className="flex items-start justify-between gap-3">
+    <div className="relative flex h-full min-h-[200px] flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-sky-300 via-sky-400 to-blue-500 px-4 py-5 shadow-lg shadow-sky-200/40 sm:min-h-[220px]">
+      <div className="flex items-start justify-between">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/75">
+          <p className="text-xs font-bold uppercase tracking-wide text-sky-50">
             Papufy Pro
           </p>
-          <h3 className="mt-1 text-lg font-extrabold leading-tight text-white">
+          <h3 className="mt-1 text-lg font-extrabold leading-tight text-white sm:text-xl">
             Torne-se um Profissional Destaque
           </h3>
-          <p className="mt-2 max-w-[210px] text-xs leading-relaxed text-white/90">
+          <p className="mt-2 max-w-[200px] text-xs leading-relaxed text-sky-50/95">
             Mais visibilidade, mais contatos e avaliações que geram confiança.
           </p>
         </div>
-        <div className="flex shrink-0 gap-1 text-2xl" aria-hidden>
+        <div className="flex gap-1 text-2xl sm:text-3xl" aria-hidden>
           <span>🔨</span>
           <span>⚡</span>
+          <span>🧰</span>
         </div>
       </div>
       <button
         type="button"
-        className="mt-3 w-fit rounded-full bg-white px-5 py-2.5 text-xs font-bold text-[#2d6a9f] shadow-md active:scale-95"
+        className="mt-3 w-fit rounded-full bg-white px-4 py-2 text-xs font-bold text-sky-700 active:scale-95"
       >
         Quero ser destaque
       </button>
@@ -151,27 +124,27 @@ function BlueProSlide() {
   );
 }
 
-function LimeCategorySlide() {
+function SkyCategorySlide() {
   return (
-    <div className="relative flex min-h-[228px] flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-[#c5e86c] to-[#6b9f1e] px-5 py-5 shadow-lg">
+    <div className="relative flex h-full min-h-[200px] flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-sky-100 via-sky-200 to-blue-300 px-4 py-5 sm:min-h-[220px]">
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-wider text-[#2d5016]/80">
+        <p className="text-xs font-bold uppercase tracking-wide text-sky-700">
           Categorias mais buscadas
         </p>
-        <h3 className="mt-1 text-lg font-extrabold leading-tight text-[#1a3309]">
+        <h3 className="mt-1 text-lg font-extrabold leading-tight text-slate-800 sm:text-xl">
           Reformas perto de você
         </h3>
-        <p className="mt-2 text-xs text-[#2d5016]/90">
+        <p className="mt-2 text-xs text-slate-600">
           Encanadores, pintores e pedreiros disponíveis agora.
         </p>
       </div>
-      <div className="flex items-end justify-between gap-2">
-        <div className="flex gap-2 text-3xl" aria-hidden>
+      <div className="mt-2 flex items-end justify-between gap-2">
+        <div className="flex gap-2 text-3xl sm:text-4xl" aria-hidden>
           <span>🏠</span>
           <span>🪣</span>
           <span>🖌️</span>
         </div>
-        <span className="rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-bold text-[#2d5016] shadow-sm">
+        <span className="rounded-lg bg-white/90 px-2 py-1 text-[10px] font-bold text-sky-700 shadow-sm">
           Ver reformas
         </span>
       </div>
@@ -180,9 +153,9 @@ function LimeCategorySlide() {
 }
 
 function SlideContent({ variant }: { variant: HeroSlide["variant"] }) {
-  if (variant === "purple-promo") return <PurplePromoSlide />;
+  if (variant === "sky-promo") return <SkyPromoSlide />;
   if (variant === "blue-pro") return <BlueProSlide />;
-  return <LimeCategorySlide />;
+  return <SkyCategorySlide />;
 }
 
 export function HomeHeroCarousel() {
@@ -254,7 +227,7 @@ export function HomeHeroCarousel() {
       <button
         type="button"
         onClick={prev}
-        className="absolute left-0 top-[45%] z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-papufy-purple shadow-lg active:scale-95"
+        className="absolute left-1 top-[42%] z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-sky-600 shadow-md active:scale-95 sm:left-2 sm:h-9 sm:w-9"
         aria-label="Slide anterior"
       >
         <IconChevron direction="left" />
@@ -262,25 +235,24 @@ export function HomeHeroCarousel() {
       <button
         type="button"
         onClick={next}
-        className="absolute right-0 top-[45%] z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-papufy-purple shadow-lg active:scale-95"
+        className="absolute right-1 top-[42%] z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-sky-600 shadow-md active:scale-95 sm:right-2 sm:h-9 sm:w-9"
         aria-label="Próximo slide"
       >
         <IconChevron direction="right" />
       </button>
 
-      <div className="absolute bottom-3 left-0 right-0 flex justify-center">
-        <div className="flex items-center gap-2">
+      <div className="absolute bottom-2 left-0 right-0 flex flex-col items-center gap-1">
+        <div className="flex items-center justify-center gap-1.5">
           {HERO_SLIDES.map((slide, i) => (
             <button
               key={slide.id}
               type="button"
               onClick={() => goTo(i)}
               aria-label={`Ir para slide ${i + 1}`}
-              aria-current={i === index ? "true" : undefined}
               className={`rounded-full transition-all ${
                 i === index
-                  ? "h-2.5 w-2.5 bg-papufy-orange shadow-sm ring-2 ring-white/50"
-                  : "h-2 w-2 bg-white/85"
+                  ? "h-2 w-5 bg-sky-500 shadow-sm"
+                  : "h-2 w-2 bg-white/90"
               }`}
             />
           ))}

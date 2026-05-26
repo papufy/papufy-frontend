@@ -1,202 +1,108 @@
-import { useEffect, useMemo, useState } from "react";
-import { api } from "../../lib/api";
-import type { BillingType, Listing, Transaction } from "../../types";
+import { useCallback, useEffect, useState } from "react";
+import { QrCodePlaceholder } from "../home/QrCodePlaceholder";
 
 interface PaymentCheckoutSheetProps {
   open: boolean;
-  listing: Listing;
   onClose: () => void;
-  onPaid: (transaction: Transaction) => void;
+  title: string;
+  amountLabel: string;
+  /** Código copia-e-cola Pix (mock ou API) */
+  pixCopyPaste: string;
 }
 
 export function PaymentCheckoutSheet({
   open,
-  listing,
   onClose,
-  onPaid,
+  title,
+  amountLabel,
+  pixCopyPaste,
 }: PaymentCheckoutSheetProps) {
-  const [billingType, setBillingType] = useState<BillingType>("PIX");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [transaction, setTransaction] = useState<Transaction | null>(null);
-  const [pixImage, setPixImage] = useState<string | null>(null);
-  const [pixPayload, setPixPayload] = useState<string | null>(null);
-
-  const canCheckout = useMemo(
-    () => !listing.aCombinar && !!listing.preco && listing.preco > 0,
-    [listing.aCombinar, listing.preco]
-  );
+  const [visible, setVisible] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (!open || !transaction) return;
-    if (transaction.status === "PAID") {
-      onPaid(transaction);
-      return;
+    if (open) {
+      setVisible(true);
+      document.body.style.overflow = "hidden";
+    } else {
+      const t = setTimeout(() => setVisible(false), 300);
+      document.body.style.overflow = "";
+      return () => clearTimeout(t);
     }
-    const timer = setInterval(async () => {
-      try {
-        const { transaction: fresh } = await api.payments.getTransactionStatus(
-          transaction.id
-        );
-        setTransaction(fresh);
-        if (fresh.status === "PAID") {
-          clearInterval(timer);
-          onPaid(fresh);
-        }
-      } catch {
-        // mantém polling silencioso para UX mobile
-      }
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [open, transaction, onPaid]);
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
-  const handleCheckout = async () => {
-    if (!canCheckout) return;
-    setLoading(true);
-    setError(null);
+  const copyPix = useCallback(async () => {
     try {
-      const result = await api.payments.checkout({
-        listingId: listing.id,
-        billingType,
-      });
-      setTransaction(result.transaction);
-      setPixImage(result.pix?.encodedImage ?? null);
-      setPixPayload(result.pix?.payload ?? null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao iniciar pagamento.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const copyPix = async () => {
-    if (!pixPayload) return;
-    try {
-      await navigator.clipboard.writeText(pixPayload);
+      await navigator.clipboard.writeText(pixCopyPaste);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
     } catch {
-      // ignore
+      /* fallback silencioso em browsers antigos */
     }
-  };
+  }, [pixCopyPaste]);
 
-  if (!open) return null;
+  if (!open && !visible) return null;
 
   return (
-    <div className="fixed inset-0 z-[120] flex flex-col justify-end">
+    <div
+      className="fixed inset-0 z-[100] flex flex-col justify-end"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Pagamento Pix"
+    >
       <button
         type="button"
-        className="absolute inset-0 bg-black/50"
+        className={`absolute inset-0 bg-slate-900/50 transition-opacity duration-300 ${
+          open ? "opacity-100" : "opacity-0"
+        }`}
         onClick={onClose}
-        aria-label="Fechar checkout"
+        aria-label="Fechar"
       />
-      <div className="relative rounded-t-3xl bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl">
-        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-gray-300" />
-        <h3 className="text-lg font-bold text-papufy-text">Checkout do serviço</h3>
-        <p className="mt-1 text-sm text-papufy-muted">
-          {listing.titulo} ·{" "}
-          {listing.aCombinar ? "A combinar" : `R$ ${listing.preco?.toFixed(2)}`}
-        </p>
 
-        {!canCheckout && (
-          <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">
-            Este serviço está com valor a combinar. Não há checkout disponível.
+      <div
+        className={`relative max-h-[92dvh] w-full overflow-y-auto rounded-t-3xl bg-white px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 shadow-2xl transition-transform duration-300 ease-out ${
+          open ? "translate-y-0" : "translate-y-full"
+        }`}
+      >
+        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-slate-200" />
+
+        <header className="mb-4 text-center">
+          <h2 className="text-lg font-extrabold text-slate-900">{title}</h2>
+          <p className="mt-1 text-2xl font-black text-sky-600">{amountLabel}</p>
+          <p className="mt-1 text-xs text-slate-500">
+            Escaneie o QR Code ou copie o código Pix
           </p>
-        )}
+        </header>
 
-        {!transaction && (
-          <>
-            <div className="mt-4 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setBillingType("PIX")}
-                className={`flex-1 rounded-xl border px-3 py-3 text-sm font-semibold ${
-                  billingType === "PIX"
-                    ? "border-papufy-orange bg-papufy-tint text-papufy-orange"
-                    : "border-papufy-border text-papufy-muted"
-                }`}
-              >
-                Pix
-              </button>
-              <button
-                type="button"
-                onClick={() => setBillingType("CREDIT_CARD")}
-                className={`flex-1 rounded-xl border px-3 py-3 text-sm font-semibold ${
-                  billingType === "CREDIT_CARD"
-                    ? "border-papufy-orange bg-papufy-tint text-papufy-orange"
-                    : "border-papufy-border text-papufy-muted"
-                }`}
-              >
-                Cartão
-              </button>
-            </div>
-
-            {billingType === "CREDIT_CARD" && (
-              <p className="mt-3 text-xs text-papufy-muted">
-                Cartão disponível no backend. Neste fluxo mobile, recomendamos Pix
-                para aprovação imediata.
-              </p>
-            )}
-
-            {error && (
-              <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-                {error}
-              </p>
-            )}
-
-            <button
-              type="button"
-              onClick={handleCheckout}
-              disabled={!canCheckout || loading}
-              className="mt-4 h-12 w-full rounded-xl bg-papufy-orange text-sm font-bold text-white disabled:opacity-50"
-            >
-              {loading ? "Gerando cobrança..." : "Continuar para pagamento"}
-            </button>
-          </>
-        )}
-
-        {transaction && (
-          <div className="mt-4 space-y-3">
-            <div className="rounded-xl border border-papufy-border p-3">
-              <p className="text-xs font-semibold uppercase text-papufy-muted">
-                Status
-              </p>
-              <p className="mt-1 text-sm font-bold text-papufy-text">
-                {transaction.status === "PAID"
-                  ? "Pagamento confirmado"
-                  : "Aguardando pagamento"}
-              </p>
-            </div>
-
-            {pixImage && (
-              <div className="rounded-xl border border-papufy-border p-3">
-                <img
-                  src={`data:image/png;base64,${pixImage}`}
-                  alt="QR Code Pix"
-                  className="mx-auto h-48 w-48"
-                />
-                <button
-                  type="button"
-                  onClick={copyPix}
-                  className="mt-3 h-10 w-full rounded-lg border border-papufy-border text-sm font-semibold text-papufy-text"
-                >
-                  Copiar código Pix
-                </button>
-              </div>
-            )}
-
-            {transaction.invoiceUrl && (
-              <a
-                href={transaction.invoiceUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="block text-center text-sm font-semibold text-papufy-orange underline"
-              >
-                Abrir link de pagamento
-              </a>
-            )}
+        <div className="mx-auto flex max-w-xs flex-col items-center gap-4">
+          <div className="rounded-2xl border border-sky-100 bg-sky-50/50 p-4 shadow-inner">
+            <QrCodePlaceholder className="mx-auto scale-110" />
           </div>
-        )}
+
+          <p className="break-all rounded-xl bg-slate-50 px-3 py-2 text-center font-mono text-[10px] leading-relaxed text-slate-600">
+            {pixCopyPaste}
+          </p>
+
+          <button
+            type="button"
+            onClick={copyPix}
+            className="touch-target h-14 w-full max-w-sm rounded-2xl bg-gradient-to-r from-sky-500 to-blue-500 text-base font-bold text-white shadow-lg shadow-sky-200/60 transition active:scale-[0.98]"
+          >
+            {copied ? "Código copiado!" : "Copiar Código Pix"}
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-11 w-full text-sm font-semibold text-slate-500 active:scale-95"
+          >
+            Fechar
+          </button>
+        </div>
       </div>
     </div>
   );
 }
-

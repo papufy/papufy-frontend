@@ -28,19 +28,12 @@ export function MobileShell({
   return (
     <div className="min-h-[100dvh] bg-papufy-bg">
       <HeaderMobile />
-
       {showSearch && !hideSearch && (
-        <div className="bg-white pb-4">
-          <SearchBar onSearch={onRefreshListings} />
-        </div>
+        <SearchBar onSearch={onRefreshListings} />
       )}
-
       {showCategories && (
-        <div className="bg-white pb-5">
-          <CategoryScroll onChange={onRefreshListings} />
-        </div>
+        <CategoryScroll onChange={onRefreshListings} />
       )}
-
       <main
         className={
           hideBottom

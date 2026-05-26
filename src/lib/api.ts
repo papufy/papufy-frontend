@@ -4,7 +4,6 @@ import type {
   ChatMessage,
   ConversationSummary,
   CreateJobPayload,
-  Transaction,
   InterestResponse,
   Job,
   JobInterestItem,
@@ -12,36 +11,56 @@ import type {
   ListingsPage,
   User,
 } from "../types";
+import { getApiBaseUrl } from "./env";
 
-function requireApiBase(): string {
-  const url = import.meta.env.VITE_API_URL;
-  if (!url || typeof url !== "string" || !url.startsWith("http")) {
-    throw new Error(
-      "VITE_API_URL não configurada. Defina a URL do backend Render na Vercel."
-    );
-  }
-  return url.replace(/\/$/, "");
+const API_BASE = getApiBaseUrl();
+const TOKEN_KEY = "papufy_token";
+
+type UnauthorizedHandler = () => void;
+
+let unauthorizedHandler: UnauthorizedHandler | null = null;
+
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null) {
+  unauthorizedHandler = handler;
 }
 
-const API_BASE = requireApiBase();
+export function getToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
 
-function getToken(): string | null {
-  return localStorage.getItem("papufy_token");
+function clearSessionStorage() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem("papufy_user");
+}
+
+function handleAuthFailure(status: number) {
+  if (status === 401 || status === 403) {
+    clearSessionStorage();
+    unauthorizedHandler?.();
+  }
+}
+
+function buildAuthHeaders(extra?: HeadersInit): HeadersInit {
+  const headers: Record<string, string> = {
+    ...(extra as Record<string, string>),
+  };
+
+  const token = getToken();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  return headers;
 }
 
 async function request<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token = getToken();
-  const headers: HeadersInit = {
+  const headers = buildAuthHeaders({
     "Content-Type": "application/json",
-    ...(options.headers || {}),
-  };
-
-  if (token) {
-    (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
-  }
+    ...(options.headers as Record<string, string>),
+  });
 
   const url = `${API_BASE}${path}`;
 
@@ -55,17 +74,23 @@ async function request<T>(
   }
 
   if (response.status === 204) {
+    if (!response.ok) {
+      handleAuthFailure(response.status);
+    }
     return undefined as T;
   }
 
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
+    handleAuthFailure(response.status);
     const message =
       typeof data.error === "string"
         ? data.error
         : "Erro na requisição. Tente novamente.";
-    throw new Error(message);
+    const err = new Error(message) as Error & { statusCode?: number };
+    err.statusCode = response.status;
+    throw err;
   }
 
   return data as T;
@@ -75,12 +100,7 @@ async function uploadRequest<T>(
   path: string,
   formData: FormData
 ): Promise<T> {
-  const token = getToken();
-  const headers: HeadersInit = {};
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
+  const headers = buildAuthHeaders();
   const url = `${API_BASE}${path}`;
   const response = await fetch(url, {
     method: "POST",
@@ -90,6 +110,7 @@ async function uploadRequest<T>(
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
+    handleAuthFailure(response.status);
     throw new Error(
       typeof data.error === "string"
         ? data.error
@@ -140,7 +161,7 @@ export const api = {
     list: (params?: {
       search?: string;
       category?: string;
-      listingType?: "JOB_VACANCY" | "PROFESSIONAL_PROFILE";
+      tipo?: "BICO" | "PRODUTO";
       location?: string;
       uf?: string;
       cidade?: string;
@@ -152,7 +173,7 @@ export const api = {
       const query = new URLSearchParams();
       if (params?.search) query.set("search", params.search);
       if (params?.category) query.set("category", params.category);
-      if (params?.listingType) query.set("listingType", params.listingType);
+      if (params?.tipo) query.set("tipo", params.tipo);
       if (params?.location) query.set("location", params.location);
       if (params?.uf) query.set("uf", params.uf);
       if (params?.cidade) query.set("cidade", params.cidade);
@@ -200,56 +221,6 @@ export const api = {
 
     listCertificates: () =>
       request<{ certificates: Certificate[] }>("/user/certificados"),
-  },
-
-  payments: {
-    onboardAccount: (body: {
-      name: string;
-      cpfCnpj: string;
-      email: string;
-      mobilePhone: string;
-      incomeValue?: number;
-      address?: string;
-      addressNumber?: string;
-      province?: string;
-      postalCode?: string;
-    }) =>
-      request<{ walletId: string; accountId: string; user: User }>(
-        "/payments/onboarding-account",
-        { method: "POST", body: JSON.stringify(body) }
-      ),
-
-    checkout: (body: {
-      listingId: string;
-      billingType: "PIX" | "CREDIT_CARD";
-      creditCard?: {
-        holderName: string;
-        number: string;
-        expiryMonth: string;
-        expiryYear: string;
-        ccv: string;
-      };
-      creditCardHolderInfo?: {
-        name: string;
-        email: string;
-        cpfCnpj: string;
-        postalCode: string;
-        addressNumber: string;
-        phone: string;
-      };
-    }) =>
-      request<{
-        transaction: Transaction;
-        pix?: { encodedImage?: string; payload?: string };
-      }>("/payments/checkout", {
-        method: "POST",
-        body: JSON.stringify(body),
-      }),
-
-    getTransactionStatus: (transactionId: string) =>
-      request<{ transaction: Transaction }>(
-        `/payments/transactions/${transactionId}/status`
-      ),
   },
 
   jobs: {
@@ -326,11 +297,6 @@ export const api = {
         `/chat/conversations/${conversationId}/messages`,
         { method: "POST", body: JSON.stringify({ content }) }
       ),
-
-    startListingConversation: (listingId: string) =>
-      request<{ conversationId: string }>(`/chat/listings/${listingId}/start`, {
-        method: "POST",
-      }),
 
     unread: () => request<{ count: number }>("/chat/unread"),
   },

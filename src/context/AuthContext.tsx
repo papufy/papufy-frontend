@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api } from "../lib/api";
+import { api, setUnauthorizedHandler } from "../lib/api";
 import type { User } from "../types";
 
 interface AuthContextValue {
@@ -32,15 +32,32 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 const TOKEN_KEY = "papufy_token";
 const USER_KEY = "papufy_user";
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
+function loadStoredUser(): User | null {
+  try {
     const stored = localStorage.getItem(USER_KEY);
     return stored ? (JSON.parse(stored) as User) : null;
-  });
+  } catch {
+    localStorage.removeItem(USER_KEY);
+    return null;
+  }
+}
+
+function getErrorStatus(err: unknown): number | undefined {
+  if (err && typeof err === "object" && "statusCode" in err) {
+    const code = (err as { statusCode?: number }).statusCode;
+    return typeof code === "number" ? code : undefined;
+  }
+  return undefined;
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(loadStoredUser);
   const [token, setToken] = useState<string | null>(() =>
     localStorage.getItem(TOKEN_KEY)
   );
-  const [isLoading, setIsLoading] = useState(!!localStorage.getItem(TOKEN_KEY));
+  const [isLoading, setIsLoading] = useState(
+    () => !!localStorage.getItem(TOKEN_KEY)
+  );
 
   const persist = useCallback((nextUser: User, nextToken: string) => {
     setUser(nextUser);
@@ -57,6 +74,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    setUnauthorizedHandler(() => {
+      logout();
+    });
+    return () => setUnauthorizedHandler(null);
+  }, [logout]);
+
+  useEffect(() => {
     if (!token) {
       setIsLoading(false);
       return;
@@ -68,7 +92,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(freshUser);
         localStorage.setItem(USER_KEY, JSON.stringify(freshUser));
       })
-      .catch(() => logout())
+      .catch((err) => {
+        const status = getErrorStatus(err);
+        if (status === 401 || status === 403) {
+          logout();
+        }
+      })
       .finally(() => setIsLoading(false));
   }, [token, logout]);
 

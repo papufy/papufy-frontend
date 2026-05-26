@@ -1,9 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Layout } from "../components/Layout";
+import { SafeText } from "../components/SafeText";
 import { IconChevronLeft } from "../components/icons/NavIcons";
 import { useChat } from "../context/ChatContext";
 import { api } from "../lib/api";
+import {
+  CONTACT_VIOLATION_MESSAGE,
+  containsContactLeak,
+} from "../lib/contactPolicy";
 import type { ChatMessage, ConversationSummary } from "../types";
 
 export function ChatPage() {
@@ -21,10 +26,16 @@ export function ChatPage() {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
+  const [policyWarning, setPolicyWarning] = useState<string | null>(null);
   const [loadingList, setLoadingList] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  const draftHasContactLeak = useMemo(
+    () => draft.trim().length > 0 && containsContactLeak(draft),
+    [draft]
+  );
 
   const loadConversations = useCallback(async () => {
     setLoadingList(true);
@@ -87,12 +98,27 @@ export function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const handleDraftChange = (value: string) => {
+    setDraft(value);
+    if (value.trim() && containsContactLeak(value)) {
+      setPolicyWarning(CONTACT_VIOLATION_MESSAGE);
+    } else {
+      setPolicyWarning(null);
+    }
+  };
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeId || !draft.trim()) return;
 
+    if (containsContactLeak(draft)) {
+      setPolicyWarning(CONTACT_VIOLATION_MESSAGE);
+      return;
+    }
+
     const content = draft.trim();
     setDraft("");
+    setPolicyWarning(null);
 
     if (connected) {
       sendMessage(activeId, content);
@@ -103,7 +129,11 @@ export function ChatPage() {
       const { message } = await api.chat.send(activeId, content);
       setMessages((prev) => [...prev, message]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao enviar.");
+      const msg = err instanceof Error ? err.message : "Erro ao enviar.";
+      setError(msg);
+      if (msg.toLowerCase().includes("telefone") || msg.toLowerCase().includes("redes sociais")) {
+        setPolicyWarning(msg);
+      }
     }
   };
 
@@ -121,7 +151,7 @@ export function ChatPage() {
           <div className="border-b border-papufy-border px-4 py-3">
             <h1 className="font-bold text-papufy-text">Mensagens</h1>
             <p className="text-xs text-papufy-muted">
-              Conversas dos seus serviços
+              Conversas dos seus trabalhos
               {connected ? " · online" : " · reconectando..."}
               {unreadCount > 0 && (
                 <span className="ml-2 font-semibold text-papufy-orange">
@@ -158,12 +188,12 @@ export function ChatPage() {
                     )}
                   </div>
                   <p className="line-clamp-1 text-xs text-papufy-muted">
-                    {c.contextTitulo}
+                    {c.jobTitulo}
                   </p>
                   {c.lastMessage && (
                     <p className="mt-1 line-clamp-1 text-xs text-papufy-muted">
                       {c.lastMessage.isMine ? "Você: " : ""}
-                      {c.lastMessage.content}
+                      <SafeText as="span">{c.lastMessage.content}</SafeText>
                     </p>
                   )}
                 </Link>
@@ -174,13 +204,13 @@ export function ChatPage() {
                   Nenhuma conversa ainda
                 </p>
                 <p className="mt-2">
-                  Abra um serviço e toque em <strong>Chat</strong> para iniciar.
+                  Abra um trabalho e toque em <strong>Chat</strong> para iniciar.
                 </p>
                 <Link
                   to="/"
                   className="mt-4 inline-block font-semibold text-papufy-orange hover:underline"
                 >
-                  Ver serviços
+                  Ver trabalhos
                 </Link>
               </div>
             )}
@@ -212,7 +242,7 @@ export function ChatPage() {
                     {activeConversation?.otherUser.nome ?? "Conversa"}
                   </p>
                   <p className="truncate text-xs text-papufy-muted">
-                    {activeConversation?.contextTitulo}
+                    {activeConversation?.jobTitulo}
                   </p>
                 </div>
               </div>
@@ -238,30 +268,46 @@ export function ChatPage() {
                           {m.senderNome}
                         </p>
                       )}
-                      {m.content}
+                      <SafeText as="span">{m.content}</SafeText>
                     </div>
                   </div>
                 ))}
                 <div ref={bottomRef} />
               </div>
 
+              {policyWarning && (
+                <div
+                  role="alert"
+                  className="mx-3 mb-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900"
+                >
+                  {policyWarning}
+                </div>
+              )}
+
               <form
                 onSubmit={handleSend}
-                className="flex gap-2 border-t border-papufy-border p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4"
+                className="flex flex-col gap-2 border-t border-papufy-border p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4"
               >
-                <input
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  placeholder="Digite sua mensagem..."
-                  className="input-field min-h-11 flex-1 rounded-xl border border-papufy-border py-3 text-base outline-none focus:border-papufy-orange sm:text-sm"
-                />
-                <button
-                  type="submit"
-                  disabled={!draft.trim()}
-                  className="touch-target shrink-0 rounded-xl bg-papufy-orange px-4 text-sm font-bold text-white disabled:opacity-50"
-                >
-                  Enviar
-                </button>
+                <div className="flex gap-2">
+                  <input
+                    value={draft}
+                    onChange={(e) => handleDraftChange(e.target.value)}
+                    placeholder="Digite sua mensagem..."
+                    aria-invalid={draftHasContactLeak}
+                    className={`input-field min-h-11 flex-1 rounded-xl border py-3 text-base outline-none sm:text-sm ${
+                      draftHasContactLeak
+                        ? "border-amber-400 focus:border-amber-500 focus:ring-amber-200"
+                        : "border-papufy-border focus:border-sky-400"
+                    }`}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!draft.trim() || draftHasContactLeak}
+                    className="touch-target shrink-0 rounded-xl bg-gradient-to-r from-sky-500 to-blue-500 px-4 text-sm font-bold text-white disabled:opacity-50"
+                  >
+                    Enviar
+                  </button>
+                </div>
               </form>
             </>
           )}
