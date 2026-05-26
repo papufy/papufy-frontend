@@ -64,7 +64,7 @@ export function FeaturedProfessionalsScroll({
 
             <button
               type="button"
-              className="mt-2 w-full rounded-full border-2 border-papufy-orange py-1.5 text-[10px] font-bold text-sky-600 active:scale-95"
+              className="mt-2 w-full rounded-full border-2 border-sky-400 py-1.5 text-[10px] font-bold text-sky-600 active:scale-95"
             >
               Ver perfil
             </button>
