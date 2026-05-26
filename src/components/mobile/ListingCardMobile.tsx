@@ -22,7 +22,7 @@ function saveFavorites(ids: Set<string>) {
 
 interface ListingCardMobileProps {
   listing: Listing;
-  /** Grid “Procurados por você” e listagem compacta na home */
+  /** Grid “Serviços em Destaque” e listagem compacta na home */
   compact?: boolean;
 }
 

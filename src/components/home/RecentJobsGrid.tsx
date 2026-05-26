@@ -9,7 +9,8 @@ interface RecentJobsGridProps {
   locationLabel: string;
   locationDetecting?: boolean;
   title?: string;
-  subtitle?: string;
+  /** `null` oculta o subtítulo (ex.: seção “Serviços em Destaque”). */
+  subtitle?: string | null;
 }
 
 export function RecentJobsGrid({
@@ -17,14 +18,16 @@ export function RecentJobsGrid({
   loading = false,
   locationLabel,
   locationDetecting = false,
-  title = "Procurados por você",
+  title = "Serviços em Destaque",
   subtitle: subtitleProp,
 }: RecentJobsGridProps) {
   const subtitle =
-    subtitleProp ??
-    (locationDetecting
-      ? "Detectando sua localização..."
-      : `Perto de ${locationLabel}`);
+    subtitleProp === null
+      ? null
+      : subtitleProp ??
+        (locationDetecting
+          ? "Detectando sua localização..."
+          : `Perto de ${locationLabel}`);
 
   return (
     <section className="w-full">
@@ -32,7 +35,9 @@ export function RecentJobsGrid({
         <h2 className="text-lg font-bold tracking-tight text-papufy-text sm:text-xl">
           {title}
         </h2>
-        <p className="mt-0.5 text-xs text-papufy-muted">{subtitle}</p>
+        {subtitle != null && (
+          <p className="mt-0.5 text-xs text-papufy-muted">{subtitle}</p>
+        )}
       </header>
 
       {loading && listings.length === 0 ? (

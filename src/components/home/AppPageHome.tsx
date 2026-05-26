@@ -73,12 +73,12 @@ export function AppPageHome() {
   const moreListings = listings.slice(FEATURED_COUNT);
   const searchTerm = debouncedSearch.trim();
   const hasSearch = searchTerm.length > 0;
-  const featuredTitle = hasSearch ? "Resultados da busca" : "Procurados por você";
+  const featuredTitle = hasSearch ? "Resultados da busca" : "Serviços em Destaque";
   const featuredSubtitle = hasSearch
     ? locationDetecting
       ? "Detectando sua localização..."
       : `"${searchTerm}" em ${locationLabel}`
-    : undefined;
+    : null;
   const regionSubtitle = locationDetecting
     ? "Detectando sua localização..."
     : hasSearch

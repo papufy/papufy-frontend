@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useChat } from "../../context/ChatContext";
 import { PapufyLogo } from "../PapufyLogo";
-import { IconChat } from "../icons/NavIcons";
+import { IconChat, IconSearch } from "../icons/NavIcons";
 
 function IconChevronDown({ className = "h-4 w-4" }: { className?: string }) {
   return (
@@ -52,7 +52,15 @@ export function HeaderMobile() {
           <PapufyLogo className="h-8 w-auto max-w-[8.5rem] object-contain object-left sm:h-9 sm:max-w-[9.5rem]" />
         </Link>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <Link
+            to="/buscar"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition active:scale-95 active:bg-slate-50"
+            aria-label="Buscar"
+          >
+            <IconSearch className="h-6 w-6 text-sky-600" />
+          </Link>
+
           <button
             type="button"
             onClick={openChat}

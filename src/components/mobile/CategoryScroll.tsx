@@ -41,9 +41,10 @@ export function CategoryScroll({ onChange }: CategoryScrollProps) {
   return (
     <section aria-label="Categorias" className="border-b border-slate-100/80 bg-white">
       <div
-        className="scrollbar-hide flex flex-nowrap gap-4 overflow-x-auto px-4 py-2 touch-pan-x"
+        className="scrollbar-hide overflow-x-auto px-4 py-2 touch-pan-x"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
+        <div className="mx-auto flex w-max min-w-full flex-nowrap justify-center gap-4">
         {MACRO_SCROLL_CATEGORIES.map((item) => {
           const isActive = activeId === item.id;
           return (
@@ -74,6 +75,7 @@ export function CategoryScroll({ onChange }: CategoryScrollProps) {
             </button>
           );
         })}
+        </div>
       </div>
     </section>
   );
