@@ -3,6 +3,8 @@ import { useLocation } from "react-router-dom";
 import { BottomNav } from "./BottomNav";
 import { CategoryScroll } from "./CategoryScroll";
 import { HeaderMobile } from "./HeaderMobile";
+import { Header as DesktopHeader } from "../Header";
+import { CategoryBar } from "../CategoryBar";
 
 interface MobileShellProps {
   children: ReactNode;
@@ -22,20 +24,34 @@ export function MobileShell({
 
   return (
     <div className="min-h-[100dvh] bg-papufy-bg">
-      <HeaderMobile />
-      {showCategories && (
-        <CategoryScroll onChange={onRefreshListings} />
-      )}
+      <div className="lg:hidden">
+        <HeaderMobile />
+        {showCategories && (
+          <CategoryScroll onChange={onRefreshListings} />
+        )}
+      </div>
+
+      <div className="hidden lg:block">
+        <DesktopHeader />
+        {showCategories && (
+          <CategoryBar onCategorySelect={onRefreshListings} />
+        )}
+      </div>
+
       <main
         className={
           hideBottom
             ? ""
-            : "pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))]"
+            : "pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0"
         }
       >
         {children}
       </main>
-      {!hideBottom && <BottomNav />}
+      {!hideBottom && (
+        <div className="lg:hidden">
+          <BottomNav />
+        </div>
+      )}
     </div>
   );
 }
