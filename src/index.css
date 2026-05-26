@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-papufy-orange: #5b9bd5;
-  --color-papufy-orange-dark: #4a8ac4;
-  --color-papufy-tint: #ebf4fb;
+  --color-papufy-orange: #ff6600;
+  --color-papufy-orange-dark: #e55a00;
+  --color-papufy-tint: #fff4ed;
   --color-papufy-purple: #6e0ad6;
+  --color-papufy-purple-deep: #5a05b8;
+  --color-papufy-blue: #5b9bd5;
   --color-papufy-bg: #f5f5f5;
   --color-papufy-text: #1a1a1a;
   --color-papufy-muted: #717171;
-  --color-papufy-border: #e0e0e0;
+  --color-papufy-border: #e8e8e8;
   --font-sans: "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
@@ -40,14 +42,26 @@ body {
   width: 100%;
   max-width: 1280px;
   margin-inline: auto;
-  padding-inline: max(1rem, env(safe-area-inset-left, 0px))
-    max(1rem, env(safe-area-inset-right, 0px));
+  padding-inline: max(1.25rem, env(safe-area-inset-left, 0px))
+    max(1.25rem, env(safe-area-inset-right, 0px));
 }
 
 @media (min-width: 1024px) {
   .page-container {
     padding-inline: 1.5rem;
   }
+}
+
+.section-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.section-stack-lg {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 .touch-target {

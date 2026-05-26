@@ -21,6 +21,15 @@ export function ProfilePage() {
   const [uf, setUf] = useState(user?.uf ?? "PB");
   const [senhaAtual, setSenhaAtual] = useState("");
   const [novaSenha, setNovaSenha] = useState("");
+  const [onboardLoading, setOnboardLoading] = useState(false);
+  const [cpfCnpj, setCpfCnpj] = useState(user?.cpfCnpj ?? "");
+  const [contaNome, setContaNome] = useState(user?.nome ?? "");
+  const [contaEmail, setContaEmail] = useState(user?.email ?? "");
+  const [contaTelefone, setContaTelefone] = useState(user?.telefone ?? "");
+  const [postalCode, setPostalCode] = useState("");
+  const [address, setAddress] = useState("");
+  const [addressNumber, setAddressNumber] = useState("");
+  const [province, setProvince] = useState("");
 
   const loadCerts = useCallback(async () => {
     try {
@@ -98,6 +107,35 @@ export function ProfilePage() {
     }
   };
 
+  const handleOnboard = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setOnboardLoading(true);
+    try {
+      const { user: updated } = await api.payments.onboardAccount({
+        name: contaNome,
+        cpfCnpj,
+        email: contaEmail,
+        mobilePhone: contaTelefone,
+        postalCode: postalCode || undefined,
+        address: address || undefined,
+        addressNumber: addressNumber || undefined,
+        province: province || undefined,
+      });
+      localStorage.setItem("papufy_user", JSON.stringify(updated));
+      showToast("Conta financeira ativada. Pronto para receber pagamentos!", "success");
+      window.location.reload();
+    } catch (err) {
+      showToast(
+        err instanceof Error
+          ? err.message
+          : "Erro ao ativar conta financeira.",
+        "error"
+      );
+    } finally {
+      setOnboardLoading(false);
+    }
+  };
+
   return (
     <Layout showCategories={false}>
       <div className="page-container mx-auto max-w-lg space-y-6 py-5 sm:py-8">
@@ -158,6 +196,106 @@ export function ProfilePage() {
             </ul>
           )}
         </section>
+
+        <form
+          onSubmit={handleOnboard}
+          className="space-y-4 rounded-2xl border border-papufy-border bg-white p-4 shadow-sm sm:p-6"
+        >
+          <h2 className="font-bold text-papufy-text">Onboarding financeiro</h2>
+          <p className="text-sm text-papufy-muted">
+            Status:{" "}
+            {user?.asaasWalletId ? (
+              <span className="font-semibold text-green-700">
+                Pronto para receber pagamentos
+              </span>
+            ) : (
+              <span className="font-semibold text-amber-700">
+                Pendente de ativação
+              </span>
+            )}
+          </p>
+          <div>
+            <label className="text-sm font-medium">Nome comercial</label>
+            <input
+              required
+              value={contaNome}
+              onChange={(e) => setContaNome(e.target.value)}
+              className="input-field mt-1"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">CPF/CNPJ</label>
+            <input
+              required
+              value={cpfCnpj}
+              onChange={(e) => setCpfCnpj(e.target.value)}
+              className="input-field mt-1"
+              inputMode="numeric"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">E-mail financeiro</label>
+            <input
+              required
+              type="email"
+              value={contaEmail}
+              onChange={(e) => setContaEmail(e.target.value)}
+              className="input-field mt-1"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Telefone comercial</label>
+            <input
+              required
+              value={contaTelefone}
+              onChange={(e) => setContaTelefone(e.target.value)}
+              className="input-field mt-1"
+              inputMode="tel"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm font-medium">CEP</label>
+              <input
+                value={postalCode}
+                onChange={(e) => setPostalCode(e.target.value)}
+                className="input-field mt-1"
+                inputMode="numeric"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Número</label>
+              <input
+                value={addressNumber}
+                onChange={(e) => setAddressNumber(e.target.value)}
+                className="input-field mt-1"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium">Endereço</label>
+            <input
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="input-field mt-1"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Bairro</label>
+            <input
+              value={province}
+              onChange={(e) => setProvince(e.target.value)}
+              className="input-field mt-1"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={onboardLoading}
+            className="h-12 w-full rounded-xl bg-papufy-orange font-bold text-white active:scale-95 disabled:opacity-60"
+          >
+            {onboardLoading ? "Ativando..." : "Ativar recebimento Asaas"}
+          </button>
+        </form>
 
         <form
           onSubmit={handleSubmit}

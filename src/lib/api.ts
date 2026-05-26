@@ -4,6 +4,7 @@ import type {
   ChatMessage,
   ConversationSummary,
   CreateJobPayload,
+  Transaction,
   InterestResponse,
   Job,
   JobInterestItem,
@@ -139,7 +140,7 @@ export const api = {
     list: (params?: {
       search?: string;
       category?: string;
-      tipo?: "BICO" | "PRODUTO";
+      listingType?: "JOB_VACANCY" | "PROFESSIONAL_PROFILE";
       location?: string;
       uf?: string;
       cidade?: string;
@@ -151,7 +152,7 @@ export const api = {
       const query = new URLSearchParams();
       if (params?.search) query.set("search", params.search);
       if (params?.category) query.set("category", params.category);
-      if (params?.tipo) query.set("tipo", params.tipo);
+      if (params?.listingType) query.set("listingType", params.listingType);
       if (params?.location) query.set("location", params.location);
       if (params?.uf) query.set("uf", params.uf);
       if (params?.cidade) query.set("cidade", params.cidade);
@@ -199,6 +200,56 @@ export const api = {
 
     listCertificates: () =>
       request<{ certificates: Certificate[] }>("/user/certificados"),
+  },
+
+  payments: {
+    onboardAccount: (body: {
+      name: string;
+      cpfCnpj: string;
+      email: string;
+      mobilePhone: string;
+      incomeValue?: number;
+      address?: string;
+      addressNumber?: string;
+      province?: string;
+      postalCode?: string;
+    }) =>
+      request<{ walletId: string; accountId: string; user: User }>(
+        "/payments/onboarding-account",
+        { method: "POST", body: JSON.stringify(body) }
+      ),
+
+    checkout: (body: {
+      listingId: string;
+      billingType: "PIX" | "CREDIT_CARD";
+      creditCard?: {
+        holderName: string;
+        number: string;
+        expiryMonth: string;
+        expiryYear: string;
+        ccv: string;
+      };
+      creditCardHolderInfo?: {
+        name: string;
+        email: string;
+        cpfCnpj: string;
+        postalCode: string;
+        addressNumber: string;
+        phone: string;
+      };
+    }) =>
+      request<{
+        transaction: Transaction;
+        pix?: { encodedImage?: string; payload?: string };
+      }>("/payments/checkout", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+
+    getTransactionStatus: (transactionId: string) =>
+      request<{ transaction: Transaction }>(
+        `/payments/transactions/${transactionId}/status`
+      ),
   },
 
   jobs: {
@@ -275,6 +326,11 @@ export const api = {
         `/chat/conversations/${conversationId}/messages`,
         { method: "POST", body: JSON.stringify({ content }) }
       ),
+
+    startListingConversation: (listingId: string) =>
+      request<{ conversationId: string }>(`/chat/listings/${listingId}/start`, {
+        method: "POST",
+      }),
 
     unread: () => request<{ count: number }>("/chat/unread"),
   },

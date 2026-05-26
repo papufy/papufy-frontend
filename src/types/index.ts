@@ -1,15 +1,18 @@
 export type JobStatus = "OPEN" | "CLOSED";
 
-export type ListingType = "BICO" | "PRODUTO";
+export type ListingType = "JOB_VACANCY" | "PROFESSIONAL_PROFILE";
 export type ListingStatus = "OPEN" | "CLOSED";
 
 export interface User {
   id: string;
   nome: string;
   email: string;
+  cpfCnpj?: string | null;
   telefone?: string | null;
   cidade?: string | null;
   uf?: string | null;
+  asaasWalletId?: string | null;
+  asaasCustomerId?: string | null;
   curriculoUrl?: string | null;
   createdAt?: string;
 }
@@ -23,7 +26,7 @@ export interface ListingImage {
 export interface Listing {
   id: string;
   userId: string;
-  tipo: ListingType;
+  listingType: ListingType;
   titulo: string;
   descricao: string;
   preco: number | null;
@@ -45,6 +48,7 @@ export interface Listing {
   imagens?: ListingImage[];
   imagemCapa?: string | null;
   isOwner?: boolean;
+  contactUnlocked?: boolean;
 }
 
 export interface Certificate {
@@ -111,7 +115,6 @@ export interface AuthResponse {
 
 export interface ContactInfo {
   telefone: string;
-  whatsappLink: string;
   contratante?: {
     nome: string;
     telefone?: string | null;
@@ -152,9 +155,11 @@ export interface ChatMessage {
 
 export interface ConversationSummary {
   id: string;
-  jobId: string;
-  jobTitulo: string;
-  jobCategoria: string;
+  contextType: "job" | "listing";
+  jobId?: string;
+  listingId?: string;
+  contextTitulo: string;
+  contextCategoria: string;
   otherUser: { id: string; nome: string };
   lastMessage: {
     content: string;
@@ -162,6 +167,30 @@ export interface ConversationSummary {
     isMine: boolean;
   } | null;
   unread: number;
+  updatedAt: string;
+}
+
+export type BillingType = "PIX" | "CREDIT_CARD";
+export type TransactionStatus = "PENDING" | "PAID" | "FAILED" | "CANCELED";
+
+export interface Transaction {
+  id: string;
+  listingId: string;
+  contractorId: string;
+  professionalId: string;
+  asaasPaymentId?: string | null;
+  amountGross: number;
+  platformFee: number;
+  professionalNet: number;
+  billingType: BillingType;
+  status: TransactionStatus;
+  pixQrCodeImage?: string | null;
+  pixCopyPaste?: string | null;
+  invoiceUrl?: string | null;
+  paymentLink?: string | null;
+  dueDate?: string | null;
+  paidAt?: string | null;
+  createdAt: string;
   updatedAt: string;
 }
 

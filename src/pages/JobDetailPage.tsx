@@ -59,7 +59,7 @@ export function JobDetailPage() {
     setError(null);
     loadJob()
       .catch((err) =>
-        setError(err instanceof Error ? err.message : "Trabalho não encontrado.")
+        setError(err instanceof Error ? err.message : "Serviço não encontrado.")
       )
       .finally(() => setLoading(false));
   }, [id, loadJob, isAuthenticated]);
@@ -80,7 +80,7 @@ export function JobDetailPage() {
     }
 
     if (job.status === "CLOSED") {
-      showToast("Este trabalho já foi encerrado.", "info");
+      showToast("Este serviço já foi encerrado.", "info");
       return;
     }
 

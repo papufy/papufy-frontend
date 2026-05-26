@@ -34,7 +34,7 @@ export function MyJobsPage() {
   const handleClose = async (id: string) => {
     try {
       await api.jobs.close(id);
-      showToast("Trabalho encerrado.", "success");
+      showToast("Serviço encerrado.", "success");
       load();
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Erro.", "error");
@@ -44,7 +44,7 @@ export function MyJobsPage() {
   const handleReopen = async (id: string) => {
     try {
       await api.jobs.reopen(id);
-      showToast("Trabalho reaberto.", "success");
+      showToast("Serviço reaberto.", "success");
       load();
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Erro.", "error");
@@ -78,7 +78,7 @@ export function MyJobsPage() {
             to="/anunciar"
             className="rounded-lg bg-papufy-orange px-4 py-2.5 text-sm font-bold text-white"
           >
-            + Novo trabalho
+            + Novo serviço
           </Link>
         </div>
 
@@ -92,7 +92,7 @@ export function MyJobsPage() {
 
         {!loading && jobs.length === 0 && (
           <div className="rounded-2xl border border-papufy-border bg-white p-12 text-center">
-            <p className="font-semibold">Você ainda não publicou nenhum trabalho.</p>
+            <p className="font-semibold">Você ainda não publicou nenhum serviço.</p>
             <Link
               to="/anunciar"
               className="mt-4 inline-block text-papufy-orange hover:underline"

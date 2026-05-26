@@ -18,7 +18,7 @@ export function AppPageHome() {
   const query = {
     search: debouncedSearch || undefined,
     category: filters.category || undefined,
-    tipo: filters.tipo || undefined,
+    listingType: filters.tipo || undefined,
     location: locationLabel,
     uf: filters.uf,
     cidade: filters.cidade,
@@ -56,42 +56,49 @@ export function AppPageHome() {
   }, [refresh]);
 
   return (
-    <div className="flex flex-col gap-5 pb-4">
-      <div className="page-container pt-2">
+    <div className="section-stack-lg pb-6 pt-5">
+      <section className="page-container">
         <HomeHeroCarousel />
-      </div>
+      </section>
 
-      <div className="page-container space-y-6">
-        <div className="flex items-center justify-between gap-2">
-          <span className="sr-only">Filtros de listagem</span>
+      <div className="page-container section-stack">
+        <div className="flex items-center justify-end">
           <button
             type="button"
             onClick={() => setFiltersOpen(true)}
-            className="ml-auto h-10 shrink-0 rounded-full border border-papufy-border bg-white px-4 text-xs font-bold text-papufy-text active:scale-95"
+            className="inline-flex h-10 items-center gap-1.5 rounded-full border border-papufy-border bg-white px-4 text-xs font-bold text-papufy-text shadow-sm active:scale-95"
           >
+            <svg
+              className="h-4 w-4 text-papufy-muted"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden
+            >
+              <path d="M4 6h16M7 12h10M10 18h4" strokeLinecap="round" />
+            </svg>
             Filtros
           </button>
         </div>
 
-        <RecentJobsGrid
-          subtitle={`Perto de ${locationLabel}`}
-        />
+        <RecentJobsGrid subtitle={`Perto de ${locationLabel}`} />
 
         <FeaturedProfessionalsScroll />
 
         {(loading || listings.length > 0 || error) && (
           <section>
-            <header className="mb-3">
-              <h2 className="text-base font-extrabold text-papufy-text">
+            <header className="mb-4">
+              <h2 className="text-2xl font-bold tracking-tight text-papufy-text">
                 Mais anúncios na região
               </h2>
-              <p className="text-xs text-papufy-muted">
-                Bicos e produtos do marketplace Papufy
+              <p className="mt-1 text-sm text-papufy-muted">
+                Serviços e profissionais do marketplace Papufy
               </p>
             </header>
 
             {loading && listings.length === 0 && (
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-3">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div
                     key={i}
@@ -120,7 +127,7 @@ export function AppPageHome() {
 
             {listings.length > 0 && (
               <>
-                <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   {listings.map((listing) => (
                     <ListingCardMobile key={listing.id} listing={listing} />
                   ))}

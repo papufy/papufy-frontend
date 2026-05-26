@@ -6,7 +6,7 @@ import {
 function VerifiedBadge() {
   return (
     <span
-      className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#5b9bd5] text-[10px] text-white"
+      className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-papufy-blue text-[10px] text-white"
       title="Verificado"
       aria-label="Verificado"
     >
@@ -26,20 +26,20 @@ export function FeaturedProfessionalsScroll({
 }: FeaturedProfessionalsScrollProps) {
   return (
     <section className="w-full">
-      <header className="mb-3 px-0.5">
-        <h2 className="text-base font-extrabold tracking-tight text-papufy-text sm:text-lg">
+      <header className="mb-4">
+        <h2 className="text-2xl font-bold tracking-tight text-papufy-text">
           {title}
         </h2>
       </header>
 
       <div
-        className="scrollbar-hide -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 touch-pan-x snap-x-mandatory"
+        className="scrollbar-hide -mx-5 flex gap-3 overflow-x-auto px-5 pb-1 touch-pan-x snap-x-mandatory"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         {professionals.map((pro) => (
           <article
             key={pro.id}
-            className="w-[140px] shrink-0 snap-start rounded-2xl border border-papufy-border bg-white p-3 shadow-sm transition active:scale-[0.97] sm:w-[152px]"
+            className="w-[148px] shrink-0 snap-start rounded-2xl border border-papufy-border bg-white p-3 shadow-sm transition active:scale-[0.97]"
           >
             <div
               className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br text-3xl shadow-inner ${pro.avatarGradient}`}
@@ -55,7 +55,7 @@ export function FeaturedProfessionalsScroll({
             </div>
 
             <p className="mt-1 text-center text-[9px] font-bold uppercase tracking-wide text-papufy-orange">
-              [{pro.badge}]
+              {pro.badge}
             </p>
 
             <p className="mt-1 line-clamp-2 text-center text-[11px] leading-tight text-papufy-muted">
@@ -64,7 +64,7 @@ export function FeaturedProfessionalsScroll({
 
             <button
               type="button"
-              className="mt-2 w-full rounded-full border border-papufy-orange py-1.5 text-[10px] font-bold text-papufy-orange active:scale-95"
+              className="mt-2 w-full rounded-full border-2 border-papufy-orange py-1.5 text-[10px] font-bold text-papufy-orange active:scale-95"
             >
               Ver perfil
             </button>

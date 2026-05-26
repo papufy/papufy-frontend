@@ -67,8 +67,8 @@ export function LoginPage() {
           </h1>
           <p className="mt-2 text-sm text-papufy-muted">
             {mode === "login"
-              ? "Acesse para anunciar trabalhos ou demonstrar interesse."
-              : "Cadastro em segundos para publicar seu primeiro trabalho."}
+              ? "Acesse para anunciar serviços ou demonstrar interesse."
+              : "Cadastro em segundos para publicar seu primeiro serviço."}
           </p>
 
           <div className="mt-6 flex rounded-lg bg-gray-100 p-1">

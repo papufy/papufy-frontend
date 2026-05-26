@@ -42,7 +42,7 @@ export default function App() {
                   }
                 />
                 <Route path="/trabalho/:id" element={<JobDetailPage />} />
-                <Route path="/bico/:id" element={<RedirectTrabalho />} />
+                <Route path="/trabalho-vaga/:id" element={<RedirectTrabalho />} />
                 <Route
                   path="/chat"
                   element={

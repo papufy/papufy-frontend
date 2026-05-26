@@ -26,14 +26,21 @@ export function MobileShell({
   const hideSearch = HIDE_SEARCH.some((p) => pathname.startsWith(p));
 
   return (
-    <div className="min-h-[100dvh] bg-[#f5f5f5]">
+    <div className="min-h-[100dvh] bg-papufy-bg">
       <HeaderMobile />
+
       {showSearch && !hideSearch && (
-        <SearchBar onSearch={onRefreshListings} />
+        <div className="bg-white pb-4">
+          <SearchBar onSearch={onRefreshListings} />
+        </div>
       )}
+
       {showCategories && (
-        <CategoryScroll onChange={onRefreshListings} />
+        <div className="bg-white pb-5">
+          <CategoryScroll onChange={onRefreshListings} />
+        </div>
       )}
+
       <main
         className={
           hideBottom

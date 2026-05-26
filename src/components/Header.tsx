@@ -33,7 +33,7 @@ export function Header({ onSearch }: HeaderProps) {
   const handleChat = () => {
     if (!isAuthenticated) {
       showToast(
-        "Abra um trabalho e toque em «Chat» para falar com o anunciante.",
+        "Abra um serviço e toque em «Chat» para falar com o anunciante.",
         "info"
       );
       navigate("/");

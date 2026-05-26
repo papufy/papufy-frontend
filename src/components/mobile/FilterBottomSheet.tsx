@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { BICO_CATEGORIES, PRODUCT_CATEGORIES } from "../../constants/categories";
+import {
+  BICO_CATEGORIES,
+  PROFESSIONAL_CATEGORIES,
+} from "../../constants/categories";
 import { useFilters } from "../../context/FilterContext";
 
 interface FilterBottomSheetProps {
@@ -42,11 +45,11 @@ export function FilterBottomSheet({
   if (!open) return null;
 
   const categories =
-    tipoLocal === "PRODUTO"
-      ? PRODUCT_CATEGORIES
-      : tipoLocal === "BICO"
+    tipoLocal === "PROFESSIONAL_PROFILE"
+      ? PROFESSIONAL_CATEGORIES
+      : tipoLocal === "JOB_VACANCY"
         ? BICO_CATEGORIES
-        : [...BICO_CATEGORIES, ...PRODUCT_CATEGORIES];
+        : [...BICO_CATEGORIES, ...PROFESSIONAL_CATEGORIES];
 
   const apply = () => {
     setTipo(tipoLocal);
@@ -87,8 +90,11 @@ export function FilterBottomSheet({
             {(
               [
                 { v: null, l: "Todos" },
-                { v: "BICO" as const, l: "Bicos" },
-                { v: "PRODUTO" as const, l: "Produtos" },
+                { v: "JOB_VACANCY" as const, l: "Pedidos de serviço" },
+                {
+                  v: "PROFESSIONAL_PROFILE" as const,
+                  l: "Profissionais",
+                },
               ] as const
             ).map((opt) => (
               <button

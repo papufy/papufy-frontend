@@ -72,22 +72,13 @@ export function ContactModal({
               Abrir chat em tempo real
             </button>
           )}
-
-          <div className="rounded-xl border border-papufy-border p-4">
-            <p className="text-xs font-medium uppercase text-papufy-muted">
-              Telefone / WhatsApp
+          <div className="rounded-xl border border-papufy-border bg-sky-50 p-4 text-sm text-papufy-text">
+            <p className="font-bold">Contatos protegidos</p>
+            <p className="mt-1 text-papufy-muted">
+              Para sua segurança, telefone e endereço não ficam disponíveis no
+              chat. Use o chat interno para combinar detalhes.
             </p>
-            <p className="mt-1 text-lg font-bold">{contact.telefone}</p>
           </div>
-
-          <a
-            href={contact.whatsappLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] py-3 font-bold text-white transition hover:opacity-90"
-          >
-            Abrir WhatsApp
-          </a>
 
           <button
             type="button"

@@ -1,16 +1,22 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { PaymentCheckoutSheet } from "../components/mobile/PaymentCheckoutSheet";
 import { MobileShell } from "../components/mobile/MobileShell";
 import { CATEGORY_META } from "../constants/categories";
+import { useAuth } from "../context/AuthContext";
 import { api } from "../lib/api";
 import type { Listing } from "../types";
 import { formatLocation, formatPrice } from "../utils/format";
 
 export function ListingDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [startingChat, setStartingChat] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -50,6 +56,25 @@ export function ListingDetailPage() {
   }
 
   const meta = CATEGORY_META[listing.categoria] ?? CATEGORY_META.Outros;
+  const isJobVacancy = listing.listingType === "JOB_VACANCY";
+  const ctaText = isJobVacancy ? "Quero fazer esse serviço" : "Pagar e contratar";
+
+  const startChat = async () => {
+    if (!id) return;
+    if (!isAuthenticated) {
+      navigate("/entrar", { state: { redirect: `/anuncio/${id}` } });
+      return;
+    }
+    setStartingChat(true);
+    try {
+      const { conversationId } = await api.chat.startListingConversation(id);
+      navigate(`/chat/${conversationId}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao iniciar chat.");
+    } finally {
+      setStartingChat(false);
+    }
+  };
 
   return (
     <MobileShell showSearch={false}>
@@ -62,10 +87,10 @@ export function ListingDetailPage() {
 
         <span
           className={`inline-block rounded-md px-2 py-1 text-xs font-bold uppercase text-white ${
-            listing.tipo === "BICO" ? "bg-papufy-orange" : "bg-slate-800"
+            isJobVacancy ? "bg-emerald-600" : "bg-blue-600"
           }`}
         >
-          {listing.tipo === "BICO" ? "Bico" : "Produto"}
+          {isJobVacancy ? "PEDIDO DE SERVIÇO" : "PROFISSIONAL DISPONÍVEL"}
         </span>
 
         <h1 className="text-xl font-bold text-papufy-text">{listing.titulo}</h1>
@@ -86,7 +111,46 @@ export function ListingDetailPage() {
         <p className="text-center text-xs text-papufy-muted">
           Anunciante: {listing.criador?.nome ?? "—"}
         </p>
+
+        <button
+          type="button"
+          onClick={() => {
+            if (!isAuthenticated) {
+              navigate("/entrar", { state: { redirect: `/anuncio/${id}` } });
+              return;
+            }
+            if (isJobVacancy || listing.contactUnlocked) {
+              void startChat();
+              return;
+            }
+            setCheckoutOpen(true);
+          }}
+          disabled={startingChat}
+          className={`w-full rounded-xl px-4 py-3 text-sm font-bold text-white ${
+            isJobVacancy ? "bg-emerald-600" : "bg-blue-600"
+          } disabled:cursor-not-allowed disabled:opacity-50`}
+        >
+          {startingChat ? "Abrindo chat..." : ctaText}
+        </button>
+
+        {!isJobVacancy && !listing.contactUnlocked && (
+          <p className="text-center text-xs text-papufy-muted">
+            O contato e endereço do serviço são liberados após o pagamento.
+          </p>
+        )}
       </article>
+
+      {!isJobVacancy && (
+        <PaymentCheckoutSheet
+          open={checkoutOpen}
+          listing={listing}
+          onClose={() => setCheckoutOpen(false)}
+          onPaid={async () => {
+            setCheckoutOpen(false);
+            await startChat();
+          }}
+        />
+      )}
     </MobileShell>
   );
 }

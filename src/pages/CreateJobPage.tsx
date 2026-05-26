@@ -1,14 +1,20 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Layout } from "../components/Layout";
-import { JOB_CATEGORIES, BRAZIL_STATES } from "../constants/categories";
+import { useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { MobileShell } from "../components/mobile/MobileShell";
+import {
+  BICO_CATEGORIES,
+  BRAZIL_STATES,
+  PROFESSIONAL_CATEGORIES,
+} from "../constants/categories";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { api } from "../lib/api";
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3;
+type ListingType = "JOB_VACANCY" | "PROFESSIONAL_PROFILE";
 
 export function CreateJobPage() {
+  const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { showToast } = useToast();
@@ -16,43 +22,63 @@ export function CreateJobPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [titulo, setTitulo] = useState("");
+  const initialType = (location.state as { listingType?: ListingType } | null)
+    ?.listingType;
+  const [listingType] = useState<ListingType>(initialType ?? "JOB_VACANCY");
+
+  const categories =
+    listingType === "JOB_VACANCY" ? BICO_CATEGORIES : PROFESSIONAL_CATEGORIES;
+
+  const [titulo, setTitulo] = useState(
+    listingType === "JOB_VACANCY" ? "" : `${user?.nome ?? ""} - `
+  );
   const [descricao, setDescricao] = useState("");
-  const [categoria, setCategoria] = useState<string>(JOB_CATEGORIES[0]);
+  const [categoria, setCategoria] = useState<string>(categories[0]);
   const [cep, setCep] = useState("");
   const [cidade, setCidade] = useState(user?.cidade || "Campina Grande");
   const [bairro, setBairro] = useState("");
   const [uf, setUf] = useState(user?.uf || "PB");
+  const [raioAtuacao, setRaioAtuacao] = useState(
+    `${user?.cidade || "Campina Grande"} e região`
+  );
   const [preco, setPreco] = useState("");
   const [aCombinar, setACombinar] = useState(false);
   const [telefone, setTelefone] = useState(user?.telefone || "");
+  const [imagens, setImagens] = useState<File[]>([]);
 
-  const handleSubmit = async () => {
-    setError(null);
-    setSubmitting(true);
-    try {
-      const { job } = await api.jobs.create({
-        titulo: titulo.trim(),
-        descricao: descricao.trim(),
-        categoria,
-        cep: cep.trim() || undefined,
-        cidade: cidade.trim(),
-        bairro: bairro.trim() || undefined,
-        uf,
-        telefone: telefone.trim(),
-        aCombinar,
-        preco: aCombinar ? null : parsedPreco(),
-      });
-      showToast("Trabalho publicado com sucesso!", "success");
-      navigate(`/trabalho/${job.id}`, { replace: true });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Erro ao publicar trabalho.";
-      setError(msg);
-      showToast(msg, "error");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const labels = useMemo(
+    () =>
+      listingType === "JOB_VACANCY"
+        ? {
+            pageTitle: "Publicar pedido de serviço",
+            subtitle: "Descreva o problema para receber propostas.",
+            titleLabel: "Título do problema",
+            titlePlaceholder: "Ex: Pia vazando no banheiro",
+            descLabel: "Descrição detalhada",
+            descPlaceholder:
+              "Explique o problema, urgência, referências e horário ideal.",
+            moneyLabel: "Orçamento estimado (R$)",
+            moneyPlaceholder: "150",
+            phoneHint:
+              "Profissionais verão seu contato ao clicar em 'Quero fazer esse serviço'.",
+            submitLabel: "Publicar serviço",
+          }
+        : {
+            pageTitle: "Anunciar perfil profissional",
+            subtitle: "Mostre suas habilidades para receber clientes.",
+            titleLabel: "Título do serviço/profissão",
+            titlePlaceholder: "Ex: João Silva - Eletricista Residencial",
+            descLabel: "Descrição das habilidades",
+            descPlaceholder:
+              "Conte sua experiência, certificações e diferenciais.",
+            moneyLabel: "Valor da diária/hora (R$)",
+            moneyPlaceholder: "200",
+            phoneHint:
+              "Clientes usarão este contato ao clicar em 'Contratar Profissional'.",
+            submitLabel: "Publicar perfil",
+          },
+    [listingType]
+  );
 
   const parsedPreco = () => {
     const raw = preco.replace(/[^\d,]/g, "").replace(",", ".");
@@ -61,23 +87,58 @@ export function CreateJobPage() {
   };
 
   const canNext =
-    (step === 1 && titulo.length >= 5 && descricao.length >= 20) ||
-    (step === 2 && cidade.length >= 2 && uf.length === 2) ||
-    (step === 3 && (aCombinar || parsedPreco() > 0)) ||
-    step === 4;
+    (step === 1 && titulo.trim().length >= 5 && descricao.trim().length >= 20) ||
+    (step === 2 &&
+      cidade.trim().length >= 2 &&
+      uf.length === 2 &&
+      telefone.trim().length >= 8) ||
+    (step === 3 && (aCombinar || parsedPreco() > 0));
+
+  const handleSubmit = async () => {
+    setError(null);
+    setSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append("listingType", listingType);
+      formData.append("titulo", titulo.trim());
+      formData.append("descricao", descricao.trim());
+      formData.append("categoria", categoria);
+      formData.append("cep", cep.trim());
+      formData.append("cidade", cidade.trim());
+      formData.append("bairro", bairro.trim());
+      formData.append("uf", uf);
+      formData.append("telefone", telefone.trim());
+      formData.append("aCombinar", String(aCombinar));
+      if (!aCombinar) formData.append("preco", String(parsedPreco()));
+      if (listingType === "PROFESSIONAL_PROFILE") {
+        formData.append("raioAtuacao", raioAtuacao.trim());
+      }
+      imagens.forEach((img) => formData.append("imagens", img));
+
+      const { listing } = await api.listings.create(formData);
+      showToast("Publicado com sucesso!", "success");
+      navigate(`/anuncio/${listing.id}`, { replace: true });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erro ao publicar.";
+      setError(msg);
+      showToast(msg, "error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
-    <Layout showCategories={false}>
-      <div className="page-container mx-auto max-w-2xl py-5 sm:py-8">
+    <MobileShell showSearch={false} showCategories={false}>
+      <div className="page-container mx-auto max-w-2xl py-5">
         <h1 className="text-2xl font-extrabold text-papufy-text">
-          Anunciar Trabalho Grátis
+          {labels.pageTitle}
         </h1>
         <p className="mt-1 text-sm text-papufy-muted">
-          Etapa {step} de 4 — conte o que você precisa
+          Etapa {step} de 3 — {labels.subtitle}
         </p>
 
         <div className="mt-6 flex gap-2">
-          {[1, 2, 3, 4].map((s) => (
+          {[1, 2, 3].map((s) => (
             <div
               key={s}
               className={`h-1.5 flex-1 rounded-full ${
@@ -90,23 +151,27 @@ export function CreateJobPage() {
         <div className="mt-6 rounded-2xl border border-papufy-border bg-white p-4 shadow-sm sm:mt-8 sm:p-6">
           {step === 1 && (
             <div className="space-y-4">
-              <h2 className="font-bold text-papufy-text">O que você precisa?</h2>
+              <h2 className="font-bold text-papufy-text">
+                {listingType === "JOB_VACANCY"
+                  ? "Conte a sua necessidade"
+                  : "Apresente seu serviço"}
+              </h2>
               <div>
-                <label className="text-sm font-medium">Título do trabalho</label>
+                <label className="text-sm font-medium">{labels.titleLabel}</label>
                 <input
                   value={titulo}
                   onChange={(e) => setTitulo(e.target.value)}
-                  placeholder="Ex: Encanador para vazamento na cozinha"
+                  placeholder={labels.titlePlaceholder}
                   className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Descrição detalhada</label>
+                <label className="text-sm font-medium">{labels.descLabel}</label>
                 <textarea
                   value={descricao}
                   onChange={(e) => setDescricao(e.target.value)}
                   rows={5}
-                  placeholder="Descreva o problema, prazo e detalhes importantes..."
+                  placeholder={labels.descPlaceholder}
                   className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
                 />
               </div>
@@ -117,7 +182,7 @@ export function CreateJobPage() {
                   onChange={(e) => setCategoria(e.target.value)}
                   className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
                 >
-                  {JOB_CATEGORIES.map((cat) => (
+                  {categories.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat}
                     </option>
@@ -129,13 +194,14 @@ export function CreateJobPage() {
 
           {step === 2 && (
             <div className="space-y-4">
-              <h2 className="font-bold text-papufy-text">Onde?</h2>
+              <h2 className="font-bold text-papufy-text">Localização e contato</h2>
               <div>
                 <label className="text-sm font-medium">CEP (opcional)</label>
                 <input
                   value={cep}
                   onChange={(e) => setCep(e.target.value)}
                   placeholder="00000-000"
+                  inputMode="numeric"
                   className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
                 />
               </div>
@@ -163,6 +229,17 @@ export function CreateJobPage() {
                   </select>
                 </div>
               </div>
+              {listingType === "PROFESSIONAL_PROFILE" && (
+                <div>
+                  <label className="text-sm font-medium">Raio de atuação</label>
+                  <input
+                    value={raioAtuacao}
+                    onChange={(e) => setRaioAtuacao(e.target.value)}
+                    placeholder="Ex: Campina Grande e bairros próximos"
+                    className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
+                  />
+                </div>
+              )}
               <div>
                 <label className="text-sm font-medium">Bairro (opcional)</label>
                 <input
@@ -171,12 +248,24 @@ export function CreateJobPage() {
                   className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
                 />
               </div>
+              <div>
+                <label className="text-sm font-medium">
+                  Telefone (liberado após pagamento)
+                </label>
+                <input
+                  value={telefone}
+                  onChange={(e) => setTelefone(e.target.value)}
+                  inputMode="numeric"
+                  placeholder="(83) 99999-9999"
+                  className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
+                />
+              </div>
             </div>
           )}
 
           {step === 3 && (
             <div className="space-y-4">
-              <h2 className="font-bold text-papufy-text">Quanto pretende pagar?</h2>
+              <h2 className="font-bold text-papufy-text">Valores e imagens</h2>
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -184,42 +273,51 @@ export function CreateJobPage() {
                   onChange={(e) => setACombinar(e.target.checked)}
                   className="h-4 w-4 accent-papufy-orange"
                 />
-                <span className="text-sm">Combinar com o profissional</span>
+                <span className="text-sm">A combinar</span>
               </label>
               {!aCombinar && (
                 <div>
-                  <label className="text-sm font-medium">Orçamento (R$)</label>
+                  <label className="text-sm font-medium">{labels.moneyLabel}</label>
                   <input
                     type="number"
+                    inputMode="decimal"
                     min={1}
                     value={preco}
                     onChange={(e) => setPreco(e.target.value)}
-                    placeholder="150"
+                    placeholder={labels.moneyPlaceholder}
                     className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
                   />
                 </div>
               )}
-            </div>
-          )}
-
-          {step === 4 && (
-            <div className="space-y-4">
-              <h2 className="font-bold text-papufy-text">Contato</h2>
-              <p className="text-sm text-papufy-muted">
-                Profissionais interessados verão este número após clicar em
-                &quot;Quero fazer esse trabalho&quot;.
-              </p>
               <div>
-                <label className="text-sm font-medium">
-                  Telefone / WhatsApp
-                </label>
+                <label className="text-sm font-medium">Fotos (até 5)</label>
                 <input
-                  value={telefone}
-                  onChange={(e) => setTelefone(e.target.value)}
-                  placeholder="(83) 99999-9999"
-                  className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) =>
+                    setImagens(Array.from(e.target.files ?? []).slice(0, 5))
+                  }
+                  className="mt-1 w-full rounded-lg border border-dashed border-papufy-border px-4 py-3 text-sm"
                 />
+                {imagens.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {imagens.map((img, i) => (
+                      <button
+                        key={`${img.name}-${i}`}
+                        type="button"
+                        onClick={() =>
+                          setImagens((prev) => prev.filter((_, idx) => idx !== i))
+                        }
+                        className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-papufy-muted"
+                      >
+                        {img.name.slice(0, 18)} ×
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
+              <p className="text-sm text-papufy-muted">{labels.phoneHint}</p>
             </div>
           )}
 
@@ -229,7 +327,7 @@ export function CreateJobPage() {
             </p>
           )}
 
-          <div className="sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] -mx-4 mt-6 flex gap-3 border-t border-papufy-border bg-white/95 p-4 backdrop-blur-md sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none lg:static">
+          <div className="sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] -mx-4 mt-6 flex gap-3 border-t border-papufy-border bg-white/95 p-4 backdrop-blur-md sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
             {step > 1 && (
               <button
                 type="button"
@@ -239,7 +337,7 @@ export function CreateJobPage() {
                 Voltar
               </button>
             )}
-            {step < 4 ? (
+            {step < 3 ? (
               <button
                 type="button"
                 disabled={!canNext}
@@ -251,16 +349,16 @@ export function CreateJobPage() {
             ) : (
               <button
                 type="button"
-                disabled={!telefone.trim() || submitting}
+                disabled={!canNext || submitting}
                 onClick={handleSubmit}
                 className="flex-1 rounded-lg bg-papufy-orange py-3 text-sm font-bold text-white disabled:opacity-50"
               >
-                {submitting ? "Publicando..." : "Publicar trabalho"}
+                {submitting ? "Publicando..." : labels.submitLabel}
               </button>
             )}
           </div>
         </div>
       </div>
-    </Layout>
+    </MobileShell>
   );
 }

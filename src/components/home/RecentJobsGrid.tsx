@@ -12,7 +12,7 @@ interface RecentJobsGridProps {
 export function RecentJobsGrid({
   jobs = MOCK_RECENT_JOBS,
   title = "Procurados por você",
-  subtitle = "Trabalhos mais recentes perto de você",
+  subtitle = "Perto de Campina Grande, PB",
 }: RecentJobsGridProps) {
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
 
@@ -24,14 +24,14 @@ export function RecentJobsGrid({
 
   return (
     <section className="w-full">
-      <header className="mb-3 px-0.5">
-        <h2 className="text-base font-extrabold tracking-tight text-papufy-text sm:text-lg">
+      <header className="mb-4">
+        <h2 className="text-2xl font-bold tracking-tight text-papufy-text">
           {title}
         </h2>
-        <p className="mt-0.5 text-xs text-papufy-muted sm:text-sm">{subtitle}</p>
+        <p className="mt-1 text-sm text-papufy-muted">{subtitle}</p>
       </header>
 
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+      <div className="grid grid-cols-2 gap-3">
         {jobs.map((job) => {
           const favorited = favorites[job.id];
           return (
@@ -43,14 +43,23 @@ export function RecentJobsGrid({
               <div
                 className={`relative aspect-[4/5] w-full overflow-hidden bg-gradient-to-br ${job.imageGradient}`}
               >
-                <div className="flex h-full items-center justify-center">
-                  <span className="text-5xl drop-shadow-md transition group-active:scale-105 sm:text-6xl">
+                <div
+                  className="absolute inset-0 opacity-20"
+                  style={{
+                    backgroundImage:
+                      "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,0.08) 8px, rgba(255,255,255,0.08) 16px)",
+                  }}
+                  aria-hidden
+                />
+
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-6xl drop-shadow-lg transition group-active:scale-105">
                     {job.imageEmoji}
                   </span>
                 </div>
 
                 <span
-                  className={`absolute left-2 top-2 rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide shadow-sm ${job.tagClassName}`}
+                  className={`absolute left-2 top-2 rounded-md px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide shadow-sm ${job.tagClassName}`}
                 >
                   {job.categoryTag}
                 </span>
@@ -58,7 +67,7 @@ export function RecentJobsGrid({
                 <button
                   type="button"
                   onClick={(e) => toggleFavorite(job.id, e)}
-                  className={`absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 shadow-sm transition active:scale-90 ${
+                  className={`absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md transition active:scale-90 ${
                     favorited ? "text-papufy-orange" : "text-papufy-muted"
                   }`}
                   aria-label={favorited ? "Remover dos favoritos" : "Favoritar"}
@@ -69,16 +78,17 @@ export function RecentJobsGrid({
                 </button>
               </div>
 
-              <div className="flex flex-col gap-0.5 p-2.5">
-                <h3 className="line-clamp-2 text-xs font-bold leading-snug text-papufy-text sm:text-[13px]">
+              <div className="flex flex-col gap-1 p-3">
+                <h3 className="line-clamp-2 min-h-[2.5rem] text-[13px] font-semibold leading-snug text-papufy-text">
                   {job.title}
                 </h3>
-                <p className="text-sm font-extrabold text-papufy-text">
+                <p className="text-base font-extrabold text-papufy-text">
                   {job.price}
                 </p>
-                <p className="line-clamp-1 text-[10px] text-papufy-muted">
-                  {job.locationLine}
-                </p>
+                <div className="mt-0.5 flex items-center justify-between gap-1 text-[10px] text-papufy-muted">
+                  <span className="line-clamp-1">{job.location}</span>
+                  <span className="shrink-0">{job.dateLabel}</span>
+                </div>
               </div>
             </Link>
           );

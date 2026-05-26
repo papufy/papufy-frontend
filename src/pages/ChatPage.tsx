@@ -121,7 +121,7 @@ export function ChatPage() {
           <div className="border-b border-papufy-border px-4 py-3">
             <h1 className="font-bold text-papufy-text">Mensagens</h1>
             <p className="text-xs text-papufy-muted">
-              Conversas dos seus trabalhos
+              Conversas dos seus serviços
               {connected ? " · online" : " · reconectando..."}
               {unreadCount > 0 && (
                 <span className="ml-2 font-semibold text-papufy-orange">
@@ -158,7 +158,7 @@ export function ChatPage() {
                     )}
                   </div>
                   <p className="line-clamp-1 text-xs text-papufy-muted">
-                    {c.jobTitulo}
+                    {c.contextTitulo}
                   </p>
                   {c.lastMessage && (
                     <p className="mt-1 line-clamp-1 text-xs text-papufy-muted">
@@ -174,13 +174,13 @@ export function ChatPage() {
                   Nenhuma conversa ainda
                 </p>
                 <p className="mt-2">
-                  Abra um trabalho e toque em <strong>Chat</strong> para iniciar.
+                  Abra um serviço e toque em <strong>Chat</strong> para iniciar.
                 </p>
                 <Link
                   to="/"
                   className="mt-4 inline-block font-semibold text-papufy-orange hover:underline"
                 >
-                  Ver trabalhos
+                  Ver serviços
                 </Link>
               </div>
             )}
@@ -212,7 +212,7 @@ export function ChatPage() {
                     {activeConversation?.otherUser.nome ?? "Conversa"}
                   </p>
                   <p className="truncate text-xs text-papufy-muted">
-                    {activeConversation?.jobTitulo}
+                    {activeConversation?.contextTitulo}
                   </p>
                 </div>
               </div>

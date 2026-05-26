@@ -7,21 +7,21 @@ export const BICO_CATEGORIES = [
   "Eventos",
 ] as const;
 
-export const PRODUCT_CATEGORIES = [
-  "Eletrônicos",
-  "Móveis e Decoração",
-  "Veículos",
-  "Moda e Beleza",
-  "Esportes",
-  "Casa e Jardim",
-  "Outros",
+export const PROFESSIONAL_CATEGORIES = [
+  "Eletricista",
+  "Encanador",
+  "Pintor",
+  "Diarista",
+  "Designer",
+  "Professor Particular",
+  "Outros Serviços",
 ] as const;
 
 export const JOB_CATEGORIES = BICO_CATEGORIES;
 
 export type JobCategory = (typeof BICO_CATEGORIES)[number];
-export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
-export type ListingTypeFilter = "BICO" | "PRODUTO" | null;
+export type ProfessionalCategory = (typeof PROFESSIONAL_CATEGORIES)[number];
+export type ListingTypeFilter = "JOB_VACANCY" | "PROFESSIONAL_PROFILE" | null;
 
 export const BRAZIL_STATES = [
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
@@ -63,37 +63,37 @@ export const CATEGORY_META: Record<
     color: "bg-pink-100 text-pink-800",
     imageGradient: "from-pink-500 to-rose-600",
   },
-  Eletrônicos: {
-    icon: "📱",
-    color: "bg-slate-100 text-slate-800",
-    imageGradient: "from-slate-600 to-slate-800",
-  },
-  "Móveis e Decoração": {
-    icon: "🛋️",
-    color: "bg-orange-100 text-orange-800",
-    imageGradient: "from-orange-500 to-amber-700",
-  },
-  Veículos: {
-    icon: "🚗",
+  Eletricista: {
+    icon: "⚡",
     color: "bg-blue-100 text-blue-800",
     imageGradient: "from-blue-600 to-indigo-800",
   },
-  "Moda e Beleza": {
-    icon: "👗",
+  Encanador: {
+    icon: "🚰",
+    color: "bg-cyan-100 text-cyan-800",
+    imageGradient: "from-cyan-600 to-blue-700",
+  },
+  Pintor: {
+    icon: "🎨",
     color: "bg-fuchsia-100 text-fuchsia-800",
     imageGradient: "from-fuchsia-500 to-pink-600",
   },
-  Esportes: {
-    icon: "⚽",
-    color: "bg-lime-100 text-lime-800",
-    imageGradient: "from-lime-600 to-green-700",
+  Diarista: {
+    icon: "🧽",
+    color: "bg-emerald-100 text-emerald-800",
+    imageGradient: "from-emerald-500 to-teal-700",
   },
-  "Casa e Jardim": {
-    icon: "🌿",
-    color: "bg-green-100 text-green-800",
-    imageGradient: "from-green-500 to-emerald-700",
+  Designer: {
+    icon: "💻",
+    color: "bg-violet-100 text-violet-800",
+    imageGradient: "from-violet-500 to-purple-700",
   },
-  Outros: {
+  "Professor Particular": {
+    icon: "📚",
+    color: "bg-indigo-100 text-indigo-800",
+    imageGradient: "from-indigo-500 to-blue-700",
+  },
+  "Outros Serviços": {
     icon: "📦",
     color: "bg-gray-100 text-gray-800",
     imageGradient: "from-gray-500 to-gray-700",
@@ -102,20 +102,30 @@ export const CATEGORY_META: Record<
 
 export const SCROLL_CATEGORIES = [
   { id: "all", label: "Todos", icon: "✨", tipo: null as ListingTypeFilter },
-  { id: "bico", label: "Bicos", icon: "🛠️", tipo: "BICO" as const },
-  { id: "produto", label: "Produtos", icon: "🛍️", tipo: "PRODUTO" as const },
+  {
+    id: "vacancy",
+    label: "Vagas",
+    icon: "🧰",
+    tipo: "JOB_VACANCY" as const,
+  },
+  {
+    id: "profile",
+    label: "Profissionais",
+    icon: "👷",
+    tipo: "PROFESSIONAL_PROFILE" as const,
+  },
   ...BICO_CATEGORIES.map((c) => ({
-    id: `bico-${c}`,
+    id: `vacancy-${c}`,
     label: c.split(" ")[0],
     icon: CATEGORY_META[c]?.icon ?? "📌",
-    tipo: "BICO" as const,
+    tipo: "JOB_VACANCY" as const,
     category: c,
   })),
-  ...PRODUCT_CATEGORIES.slice(0, 4).map((c) => ({
-    id: `prod-${c}`,
+  ...PROFESSIONAL_CATEGORIES.slice(0, 4).map((c) => ({
+    id: `profile-${c}`,
     label: c.split(" ")[0],
     icon: CATEGORY_META[c]?.icon ?? "📦",
-    tipo: "PRODUTO" as const,
+    tipo: "PROFESSIONAL_PROFILE" as const,
     category: c,
   })),
 ];
