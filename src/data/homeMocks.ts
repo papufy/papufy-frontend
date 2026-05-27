@@ -29,12 +29,6 @@ export const HERO_SLIDES: HeroSlide[] = [
     action: { type: "filter", category: "Reformas e Reparos" },
   },
   {
-    id: "slide-2",
-    src: "/slide2.png",
-    alt: "Papufy — destaque 2",
-    action: { type: "anunciar", listingType: "JOB_VACANCY" },
-  },
-  {
     id: "slide-3",
     src: "/slide3.png",
     alt: "Papufy — destaque 3",
