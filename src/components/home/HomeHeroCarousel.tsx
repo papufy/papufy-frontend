@@ -97,7 +97,7 @@ function HeroSlidePanel({
   onAction: (action: HeroSlideAction) => void;
 }) {
   const frame = (
-    <div className="relative aspect-video w-full overflow-hidden bg-slate-100 sm:aspect-[1576/300]">
+    <div className="relative aspect-[1576/300] w-full overflow-hidden bg-slate-100">
       <HeroBannerImage slide={slide} priority={priority} />
     </div>
   );

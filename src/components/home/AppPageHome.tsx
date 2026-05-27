@@ -119,23 +119,22 @@ export function AppPageHome() {
     Boolean(error) || loading || moreListings.length > 0 || hasMore;
 
   return (
-    <div className="flex flex-col space-y-4 pb-4 sm:space-y-6">
-      <div className="mobile-gutter pt-0 sm:pt-2">
+    <div className="flex flex-col gap-2 pb-4 sm:gap-6 sm:pb-4">
+      <div className="mobile-gutter flex flex-col gap-1.5 pt-0 sm:gap-4 sm:pt-2">
         <HomeHeroCarousel />
-      </div>
-
-      <div className="mobile-gutter space-y-4 sm:space-y-6">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-end gap-2 sm:justify-between">
           <span className="sr-only">Filtros de listagem</span>
           <button
             type="button"
             onClick={() => setFiltersOpen(true)}
-            className="ml-auto h-10 shrink-0 rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 shadow-sm active:scale-95"
+            className="h-10 shrink-0 rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 shadow-sm active:scale-95"
           >
             Filtros
           </button>
         </div>
+      </div>
 
+      <div className="mobile-gutter space-y-4 sm:space-y-6">
         <RecentJobsGrid
           listings={featuredListings}
           loading={loading}
