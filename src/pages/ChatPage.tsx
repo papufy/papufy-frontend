@@ -42,6 +42,7 @@ export function ChatPage() {
   );
   const [checkoutPixPayload, setCheckoutPixPayload] = useState("");
   const [checkoutPixImage, setCheckoutPixImage] = useState<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [reportDescription, setReportDescription] = useState("");
   const [reportFile, setReportFile] = useState<File | null>(null);
@@ -256,11 +257,16 @@ export function ChatPage() {
     if (!message.id) return;
     setCheckoutOpen(true);
     setCheckoutMessage(message);
+    setCheckoutError(null);
+    setCheckoutPixPayload("");
+    setCheckoutPixImage(null);
+    setCheckoutTransaction(null);
   };
 
   const generatePixCheckout = async () => {
     if (!checkoutMessage?.id) return;
     setCheckoutLoading(true);
+    setCheckoutError(null);
     try {
       const result = await api.payments.checkoutFromProposal(checkoutMessage.id, {
         billingType: "PIX",
@@ -271,7 +277,9 @@ export function ChatPage() {
       await loadMessages(activeId ?? "");
       await loadConversations();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao gerar Pix.");
+      const msg = err instanceof Error ? err.message : "Erro ao gerar Pix.";
+      setCheckoutError(msg);
+      setError(msg);
     } finally {
       setCheckoutLoading(false);
     }
@@ -291,30 +299,34 @@ export function ChatPage() {
   }) => {
     if (!checkoutMessage?.id) return;
     setCheckoutLoading(true);
+    setCheckoutError(null);
     try {
       const result = await api.payments.checkoutFromProposal(checkoutMessage.id, {
         billingType: "CREDIT_CARD",
         creditCard: {
-          holderName: card.holderName,
-          number: card.cardNumber,
-          expiryMonth: card.expiryMonth,
-          expiryYear: card.expiryYear,
-          ccv: card.ccv,
+          holderName: card.holderName.trim(),
+          number: card.cardNumber.replace(/\D/g, ""),
+          expiryMonth: card.expiryMonth.replace(/\D/g, "").padStart(2, "0"),
+          expiryYear: card.expiryYear.replace(/\D/g, ""),
+          ccv: card.ccv.replace(/\D/g, ""),
         },
         creditCardHolderInfo: {
-          name: card.holderName,
-          email: card.email,
-          cpfCnpj: card.cpfCnpj,
-          postalCode: card.postalCode,
-          addressNumber: card.addressNumber,
-          phone: card.phone,
+          name: card.holderName.trim(),
+          email: card.email.trim(),
+          cpfCnpj: card.cpfCnpj.replace(/\D/g, ""),
+          postalCode: card.postalCode.replace(/\D/g, ""),
+          addressNumber: card.addressNumber.trim(),
+          phone: card.phone.replace(/\D/g, ""),
         },
       });
       setCheckoutTransaction(result.transaction);
       await loadMessages(activeId ?? "");
       await loadConversations();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao pagar com cartão.");
+      const msg =
+        err instanceof Error ? err.message : "Erro ao pagar com cartão.";
+      setCheckoutError(msg);
+      setError(msg);
     } finally {
       setCheckoutLoading(false);
     }
@@ -626,6 +638,7 @@ export function ChatPage() {
         pixCopyPaste={checkoutPixPayload}
         pixQrCodeImage={checkoutPixImage}
         loading={checkoutLoading}
+        errorMessage={checkoutError}
         onGeneratePix={() => void generatePixCheckout()}
         onPayCard={(card) => void payWithCard(card)}
         statusLabel={
