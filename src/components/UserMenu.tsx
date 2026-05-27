@@ -89,6 +89,13 @@ export function UserMenu({ variant = "header" }: UserMenuProps) {
           >
             Chat
           </Link>
+          <Link
+            to="/pagamentos"
+            className="block px-4 py-2.5 text-sm hover:bg-sky-50"
+            onClick={() => setOpen(false)}
+          >
+            Pagamentos
+          </Link>
           <hr className="my-1 border-papufy-border" />
           <button
             type="button"

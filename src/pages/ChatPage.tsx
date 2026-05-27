@@ -45,6 +45,7 @@ export function ChatPage() {
   const [reportDescription, setReportDescription] = useState("");
   const [reportFile, setReportFile] = useState<File | null>(null);
   const [reportSending, setReportSending] = useState(false);
+  const [confirmingTxId, setConfirmingTxId] = useState<string | null>(null);
   const [transactionsById, setTransactionsById] = useState<
     Record<string, Transaction>
   >({});
@@ -257,19 +258,83 @@ export function ChatPage() {
     if (!message.id) return;
     setCheckoutOpen(true);
     setCheckoutMessage(message);
+  };
+
+  const generatePixCheckout = async () => {
+    if (!checkoutMessage?.id) return;
     setCheckoutLoading(true);
     try {
-      const result = await api.payments.checkoutFromProposal(message.id, "PIX");
+      const result = await api.payments.checkoutFromProposal(checkoutMessage.id, {
+        billingType: "PIX",
+      });
       setCheckoutTransaction(result.transaction);
       setCheckoutPixPayload(result.pix.payload ?? "");
       setCheckoutPixImage(result.pix.encodedImage ?? null);
       await loadMessages(activeId ?? "");
       await loadConversations();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao iniciar pagamento.");
-      setCheckoutOpen(false);
+      setError(err instanceof Error ? err.message : "Erro ao gerar Pix.");
     } finally {
       setCheckoutLoading(false);
+    }
+  };
+
+  const payWithCard = async (card: {
+    cardNumber: string;
+    holderName: string;
+    expiryMonth: string;
+    expiryYear: string;
+    ccv: string;
+    cpfCnpj: string;
+    phone: string;
+    postalCode: string;
+    addressNumber: string;
+    email: string;
+  }) => {
+    if (!checkoutMessage?.id) return;
+    setCheckoutLoading(true);
+    try {
+      const result = await api.payments.checkoutFromProposal(checkoutMessage.id, {
+        billingType: "CREDIT_CARD",
+        creditCard: {
+          holderName: card.holderName,
+          number: card.cardNumber,
+          expiryMonth: card.expiryMonth,
+          expiryYear: card.expiryYear,
+          ccv: card.ccv,
+        },
+        creditCardHolderInfo: {
+          name: card.holderName,
+          email: card.email,
+          cpfCnpj: card.cpfCnpj,
+          postalCode: card.postalCode,
+          addressNumber: card.addressNumber,
+          phone: card.phone,
+        },
+      });
+      setCheckoutTransaction(result.transaction);
+      await loadMessages(activeId ?? "");
+      await loadConversations();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao pagar com cartão.");
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
+  const confirmCompletion = async (transactionId: string) => {
+    setConfirmingTxId(transactionId);
+    try {
+      const { transaction } = await api.payments.confirmCompletion(transactionId);
+      setTransactionsById((prev) => ({ ...prev, [transactionId]: transaction }));
+      if (checkoutTransaction?.id === transactionId) {
+        setCheckoutTransaction(transaction);
+      }
+      await loadMessages(activeId ?? "");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao confirmar serviço.");
+    } finally {
+      setConfirmingTxId(null);
     }
   };
 
@@ -443,7 +508,9 @@ export function ChatPage() {
                             maximumFractionDigits: 2,
                           }).format(m.proposalValue ?? 0)}
                         </p>
-                        {!m.transactionId && activeConversation?.myRole === "contractor" && (
+                        {!m.transactionId &&
+                          activeConversation?.myRole === "contractor" &&
+                          activeConversation?.contextType === "listing" && (
                           <button
                             type="button"
                             onClick={() => void openCheckout(m)}
@@ -453,17 +520,36 @@ export function ChatPage() {
                           </button>
                         )}
                         {m.transactionId && (
-                          <p className="mt-2 text-xs font-semibold text-sky-700">
-                            {(m.transactionId &&
-                              transactionsById[m.transactionId]?.status === "PAID") ||
-                            checkoutTransaction?.status === "PAID"
-                              ? "Pagamento Confirmado — Serviço em Andamento"
-                              : m.transactionId &&
-                                  transactionsById[m.transactionId]?.status ===
-                                    "IN_DISPUTE"
-                                ? "Pagamento em mediação pelo suporte"
-                              : "Proposta vinculada ao pagamento"}
-                          </p>
+                          <>
+                            <p className="mt-2 text-xs font-semibold text-sky-700">
+                              {(m.transactionId &&
+                                transactionsById[m.transactionId]?.status === "PAID") ||
+                              checkoutTransaction?.status === "PAID"
+                                ? "Pagamento Confirmado — Serviço em Andamento"
+                                : m.transactionId &&
+                                    transactionsById[m.transactionId]?.status ===
+                                      "IN_DISPUTE"
+                                  ? "Pagamento em mediação pelo suporte"
+                                  : m.transactionId &&
+                                      transactionsById[m.transactionId]?.status ===
+                                        "RELEASED"
+                                    ? "Serviço concluído e pagamento liberado"
+                                    : "Proposta vinculada ao pagamento"}
+                            </p>
+                            {m.transactionId &&
+                              transactionsById[m.transactionId]?.status === "PAID" && (
+                                <button
+                                  type="button"
+                                  onClick={() => void confirmCompletion(m.transactionId!)}
+                                  disabled={confirmingTxId === m.transactionId}
+                                  className="mt-2 rounded-lg border border-sky-200 bg-white px-3 py-1.5 text-xs font-semibold text-sky-700 disabled:opacity-60"
+                                >
+                                  {confirmingTxId === m.transactionId
+                                    ? "Confirmando..."
+                                    : "Confirmar serviço concluído"}
+                                </button>
+                              )}
+                          </>
                         )}
                       </div>
                     ) : (
@@ -530,7 +616,7 @@ export function ChatPage() {
       <PaymentCheckoutSheet
         open={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
-        title={checkoutLoading ? "Gerando pagamento..." : "Pagamento Seguro"}
+        title={checkoutLoading ? "Processando pagamento..." : "Pagamento Seguro"}
         amountLabel={
           checkoutMessage?.proposalValue
             ? new Intl.NumberFormat("pt-BR", {
@@ -541,9 +627,14 @@ export function ChatPage() {
         }
         pixCopyPaste={checkoutPixPayload}
         pixQrCodeImage={checkoutPixImage}
+        loading={checkoutLoading}
+        onGeneratePix={() => void generatePixCheckout()}
+        onPayCard={(card) => void payWithCard(card)}
         statusLabel={
           checkoutTransaction?.status === "PAID"
             ? "Pagamento Confirmado — Serviço em Andamento"
+            : checkoutTransaction?.status === "RELEASED"
+              ? "Serviço concluído — valor liberado para saque"
             : checkoutTransaction?.status === "IN_DISPUTE"
               ? "Em mediação do suporte"
               : undefined

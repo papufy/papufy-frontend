@@ -36,7 +36,7 @@ function clearSessionStorage() {
 }
 
 function handleAuthFailure(status: number) {
-  if (status === 401 || status === 403) {
+  if (status === 401) {
     clearSessionStorage();
     unauthorizedHandler?.();
   }
@@ -382,14 +382,33 @@ export const api = {
   payments: {
     checkoutFromProposal: (
       messageId: string,
-      billingType: "PIX" | "CREDIT_CARD" = "PIX"
+      payload:
+        | { billingType: "PIX" }
+        | {
+            billingType: "CREDIT_CARD";
+            creditCard: {
+              holderName: string;
+              number: string;
+              expiryMonth: string;
+              expiryYear: string;
+              ccv: string;
+            };
+            creditCardHolderInfo: {
+              name: string;
+              email: string;
+              cpfCnpj: string;
+              postalCode: string;
+              addressNumber: string;
+              phone: string;
+            };
+          }
     ) =>
       request<{
         transaction: Transaction;
         pix: { encodedImage?: string; payload?: string };
       }>(`/payments/proposals/${messageId}/checkout`, {
         method: "POST",
-        body: JSON.stringify({ billingType }),
+        body: JSON.stringify(payload),
       }),
 
     transactionStatus: (transactionId: string) =>
@@ -410,6 +429,29 @@ export const api = {
         fd
       );
     },
+
+    listMine: () =>
+      request<{
+        transactions: Array<
+          Transaction & {
+            listing?: { id: string; titulo: string };
+            contractor?: { id: string; nome: string };
+            professional?: { id: string; nome: string };
+          }
+        >;
+      }>("/payments/transactions/mine"),
+
+    confirmCompletion: (transactionId: string) =>
+      request<{ transaction: Transaction }>(
+        `/payments/transactions/${transactionId}/confirm-completion`,
+        { method: "POST" }
+      ),
+
+    withdraw: (transactionId: string, pixKey: string) =>
+      request<{ transaction: Transaction; transferId: string }>(
+        `/payments/transactions/${transactionId}/withdraw`,
+        { method: "POST", body: JSON.stringify({ pixKey }) }
+      ),
   },
 };
 

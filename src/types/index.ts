@@ -183,6 +183,8 @@ export type TransactionStatus =
   | "PENDING"
   | "PAID"
   | "IN_DISPUTE"
+  | "RELEASED"
+  | "WITHDRAWN"
   | "FAILED"
   | "CANCELED";
 
@@ -203,6 +205,12 @@ export interface Transaction {
   paymentLink?: string | null;
   dueDate?: string | null;
   paidAt?: string | null;
+  contractorConfirmedAt?: string | null;
+  professionalConfirmedAt?: string | null;
+  releasedAt?: string | null;
+  withdrawnAt?: string | null;
+  withdrawPixKey?: string | null;
+  withdrawTransferId?: string | null;
   createdAt: string;
   updatedAt: string;
 }

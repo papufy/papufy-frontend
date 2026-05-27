@@ -16,6 +16,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { MyJobsPage } from "./pages/MyJobsPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { ProfilePage } from "./pages/ProfilePage";
+import { PaymentsPage } from "./pages/PaymentsPage";
 import { SearchPage } from "./pages/SearchPage";
 
 export default function App() {
@@ -74,6 +75,14 @@ export default function App() {
                   element={
                     <ProtectedRoute>
                       <ProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/pagamentos"
+                  element={
+                    <ProtectedRoute>
+                      <PaymentsPage />
                     </ProtectedRoute>
                   }
                 />
