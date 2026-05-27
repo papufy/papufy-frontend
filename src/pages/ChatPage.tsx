@@ -4,6 +4,7 @@ import { Layout } from "../components/Layout";
 import { SafeText } from "../components/SafeText";
 import { PaymentCheckoutSheet } from "../components/mobile/PaymentCheckoutSheet";
 import { IconChevronLeft } from "../components/icons/NavIcons";
+import { useAuth } from "../context/AuthContext";
 import { useChat } from "../context/ChatContext";
 import { api } from "../lib/api";
 import {
@@ -15,6 +16,7 @@ import type { ChatMessage, Transaction } from "../types";
 export function ChatPage() {
   const { id: activeId } = useParams<{ id?: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const {
     unreadCount,
     connected,
@@ -34,6 +36,15 @@ export function ChatPage() {
   const [sendingProposal, setSendingProposal] = useState(false);
   const [proposalModalOpen, setProposalModalOpen] = useState(false);
   const [proposalValue, setProposalValue] = useState("");
+  const [proposalReceiverPhone, setProposalReceiverPhone] = useState("");
+  const needsPayerCpf = useMemo(() => {
+    const doc = user?.cpfCnpj?.replace(/\D/g, "") ?? "";
+    return doc.length < 11;
+  }, [user?.cpfCnpj]);
+  const needsReceiverPhone = useMemo(() => {
+    const phone = user?.telefone?.replace(/\D/g, "") ?? "";
+    return phone.length < 10;
+  }, [user?.telefone]);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutMessage, setCheckoutMessage] = useState<ChatMessage | null>(null);
@@ -241,13 +252,28 @@ export function ChatPage() {
     if (!value || value <= 0) return;
     setSendingProposal(true);
     try {
-      const { message } = await api.chat.sendProposal(activeId, value);
+      const receiverProfile =
+        needsReceiverPhone && proposalReceiverPhone.trim()
+          ? { telefone: proposalReceiverPhone.replace(/\D/g, "") }
+          : undefined;
+      const { message } = await api.chat.sendProposal(
+        activeId,
+        value,
+        receiverProfile
+      );
       setMessages((prev) => [...prev, message]);
       setProposalModalOpen(false);
       setProposalValue("");
       await loadConversations();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao enviar proposta.");
+      const e = err as Error & { missingFields?: string[] };
+      const msg =
+        e.missingFields?.includes("telefone")
+          ? "Informe seu telefone para receber pagamentos."
+          : e instanceof Error
+            ? e.message
+            : "Erro ao enviar proposta.";
+      setError(msg);
     } finally {
       setSendingProposal(false);
     }
@@ -263,13 +289,17 @@ export function ChatPage() {
     setCheckoutTransaction(null);
   };
 
-  const generatePixCheckout = async () => {
+  const generatePixCheckout = async (payerProfile?: {
+    cpfCnpj: string;
+    telefone?: string;
+  }) => {
     if (!checkoutMessage?.id) return;
     setCheckoutLoading(true);
     setCheckoutError(null);
     try {
       const result = await api.payments.checkoutFromProposal(checkoutMessage.id, {
         billingType: "PIX",
+        ...(payerProfile ? { payerProfile } : {}),
       });
       setCheckoutTransaction(result.transaction);
       setCheckoutPixPayload(result.pix.payload ?? "");
@@ -285,24 +315,28 @@ export function ChatPage() {
     }
   };
 
-  const payWithCard = async (card: {
-    cardNumber: string;
-    holderName: string;
-    expiryMonth: string;
-    expiryYear: string;
-    ccv: string;
-    cpfCnpj: string;
-    phone: string;
-    postalCode: string;
-    addressNumber: string;
-    email: string;
-  }) => {
+  const payWithCard = async (
+    card: {
+      cardNumber: string;
+      holderName: string;
+      expiryMonth: string;
+      expiryYear: string;
+      ccv: string;
+      cpfCnpj: string;
+      phone: string;
+      postalCode: string;
+      addressNumber: string;
+      email: string;
+    },
+    payerProfile?: { cpfCnpj: string; telefone?: string }
+  ) => {
     if (!checkoutMessage?.id) return;
     setCheckoutLoading(true);
     setCheckoutError(null);
     try {
       const result = await api.payments.checkoutFromProposal(checkoutMessage.id, {
         billingType: "CREDIT_CARD",
+        ...(payerProfile ? { payerProfile } : {}),
         creditCard: {
           holderName: card.holderName.trim(),
           number: card.cardNumber.replace(/\D/g, ""),
@@ -639,8 +673,9 @@ export function ChatPage() {
         pixQrCodeImage={checkoutPixImage}
         loading={checkoutLoading}
         errorMessage={checkoutError}
-        onGeneratePix={() => void generatePixCheckout()}
-        onPayCard={(card) => void payWithCard(card)}
+        needsPayerCpf={needsPayerCpf}
+        onGeneratePix={(payer) => void generatePixCheckout(payer)}
+        onPayCard={(card, payer) => void payWithCard(card, payer)}
         statusLabel={
           checkoutTransaction?.status === "PAID"
             ? "Pagamento Confirmado — Serviço em Andamento"
@@ -666,6 +701,21 @@ export function ChatPage() {
               className="mt-3 w-full rounded-xl border border-sky-200 px-3 py-2.5 text-sm outline-none focus:border-sky-400"
               placeholder="Ex: 180"
             />
+            {needsReceiverPhone && (
+              <>
+                <p className="mt-3 text-xs text-sky-700">
+                  Primeiro recebimento: informe seu telefone para ativar sua conta
+                  de pagamento.
+                </p>
+                <input
+                  type="tel"
+                  value={proposalReceiverPhone}
+                  onChange={(e) => setProposalReceiverPhone(e.target.value)}
+                  className="mt-2 w-full rounded-xl border border-sky-200 px-3 py-2.5 text-sm outline-none focus:border-sky-400"
+                  placeholder="Telefone com DDD"
+                />
+              </>
+            )}
             <div className="mt-4 flex gap-2">
               <button
                 type="button"
@@ -676,7 +726,11 @@ export function ChatPage() {
               </button>
               <button
                 type="button"
-                disabled={!proposalValue || sendingProposal}
+                disabled={
+                  !proposalValue ||
+                  sendingProposal ||
+                  (needsReceiverPhone && proposalReceiverPhone.replace(/\D/g, "").length < 10)
+                }
                 onClick={() => void submitProposal()}
                 className="flex-1 rounded-xl bg-sky-500 py-2 text-sm font-semibold text-white disabled:opacity-50"
               >

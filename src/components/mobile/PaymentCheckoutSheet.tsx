@@ -14,6 +14,11 @@ export interface PaymentCardPayload {
   email: string;
 }
 
+export interface PayerProfilePayload {
+  cpfCnpj: string;
+  telefone?: string;
+}
+
 interface PaymentCheckoutSheetProps {
   open: boolean;
   onClose: () => void;
@@ -24,8 +29,13 @@ interface PaymentCheckoutSheetProps {
   statusLabel?: string;
   loading?: boolean;
   errorMessage?: string | null;
-  onGeneratePix?: () => void;
-  onPayCard?: (payload: PaymentCardPayload) => void;
+  /** Exibe CPF do pagador quando ainda não há cadastro no Asaas */
+  needsPayerCpf?: boolean;
+  onGeneratePix?: (payerProfile?: PayerProfilePayload) => void;
+  onPayCard?: (
+    payload: PaymentCardPayload,
+    payerProfile?: PayerProfilePayload
+  ) => void;
 }
 
 function LoadingSpinner({ label }: { label: string }) {
@@ -91,6 +101,7 @@ export function PaymentCheckoutSheet({
   statusLabel,
   loading = false,
   errorMessage = null,
+  needsPayerCpf = false,
   onGeneratePix,
   onPayCard,
 }: PaymentCheckoutSheetProps) {
@@ -108,6 +119,8 @@ export function PaymentCheckoutSheet({
   const [postalCode, setPostalCode] = useState("");
   const [addressNumber, setAddressNumber] = useState("");
   const [email, setEmail] = useState("");
+  const [payerCpf, setPayerCpf] = useState("");
+  const [payerPhone, setPayerPhone] = useState("");
 
   const pixImageSrc = useMemo(
     () => resolvePixImageSrc(pixQrCodeImage),
@@ -148,6 +161,27 @@ export function PaymentCheckoutSheet({
     }
   }, [pixCopyPaste]);
 
+  const buildPayerProfile = (): PayerProfilePayload | undefined => {
+    if (!needsPayerCpf) return undefined;
+    const cpf = payerCpf.replace(/\D/g, "");
+    if (cpf.length < 11) {
+      setLocalError("Informe seu CPF ou CNPJ para o primeiro pagamento.");
+      return undefined;
+    }
+    const phone = payerPhone.replace(/\D/g, "");
+    return {
+      cpfCnpj: cpf,
+      telefone: phone.length >= 10 ? phone : undefined,
+    };
+  };
+
+  const handleGeneratePix = () => {
+    setLocalError(null);
+    const payerProfile = buildPayerProfile();
+    if (needsPayerCpf && !payerProfile) return;
+    onGeneratePix?.(payerProfile);
+  };
+
   const handlePayCard = () => {
     const payload: PaymentCardPayload = {
       cardNumber,
@@ -166,8 +200,10 @@ export function PaymentCheckoutSheet({
       setLocalError(validationError);
       return;
     }
+    const payerProfile = buildPayerProfile();
+    if (needsPayerCpf && !payerProfile) return;
     setLocalError(null);
-    onPayCard?.(payload);
+    onPayCard?.(payload, payerProfile);
   };
 
   const handleClose = () => {
@@ -234,6 +270,32 @@ export function PaymentCheckoutSheet({
         )}
 
         <div className="mx-auto flex w-full max-w-sm flex-col items-center gap-4">
+          {needsPayerCpf && (
+            <div className="w-full rounded-xl border border-sky-100 bg-sky-50/50 p-3">
+              <p className="mb-2 text-xs font-semibold text-sky-800">
+                Primeiro pagamento — confirme seus dados
+              </p>
+              <input
+                value={payerCpf}
+                onChange={(e) =>
+                  setPayerCpf(e.target.value.replace(/\D/g, "").slice(0, 14))
+                }
+                placeholder="CPF ou CNPJ"
+                disabled={busy}
+                inputMode="numeric"
+                className="mb-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm disabled:bg-slate-50"
+              />
+              <input
+                value={payerPhone}
+                onChange={(e) => setPayerPhone(e.target.value)}
+                placeholder="Telefone (opcional)"
+                disabled={busy}
+                inputMode="tel"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm disabled:bg-slate-50"
+              />
+            </div>
+          )}
+
           <div className="grid w-full grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
             <button
               type="button"
@@ -265,10 +327,7 @@ export function PaymentCheckoutSheet({
             <>
               <button
                 type="button"
-                onClick={() => {
-                  setLocalError(null);
-                  onGeneratePix?.();
-                }}
+                onClick={handleGeneratePix}
                 disabled={busy}
                 className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-sky-500 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
               >

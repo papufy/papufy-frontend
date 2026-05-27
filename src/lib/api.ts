@@ -91,8 +91,18 @@ async function request<T>(
       typeof data.error === "string"
         ? data.error
         : "Erro na requisição. Tente novamente.";
-    const err = new Error(message) as Error & { statusCode?: number };
+    const err = new Error(message) as Error & {
+      statusCode?: number;
+      code?: string;
+      role?: "payer" | "receiver";
+      missingFields?: string[];
+    };
     err.statusCode = response.status;
+    if (typeof data.code === "string") err.code = data.code;
+    if (data.role === "payer" || data.role === "receiver") err.role = data.role;
+    if (Array.isArray(data.missingFields)) {
+      err.missingFields = data.missingFields as string[];
+    }
     throw err;
   }
 
@@ -158,6 +168,7 @@ export const api = {
 
     updateProfile: (body: {
       nome?: string;
+      cpfCnpj?: string;
       telefone?: string;
       cidade?: string;
       uf?: string;
@@ -366,10 +377,17 @@ export const api = {
         { method: "POST", body: JSON.stringify({ content }) }
       ),
 
-    sendProposal: (conversationId: string, value: number) =>
+    sendProposal: (
+      conversationId: string,
+      value: number,
+      receiverProfile?: { cpfCnpj?: string; telefone?: string }
+    ) =>
       request<{ message: ChatMessage }>(
         `/chat/conversations/${conversationId}/proposal`,
-        { method: "POST", body: JSON.stringify({ value }) }
+        {
+          method: "POST",
+          body: JSON.stringify({ value, receiverProfile }),
+        }
       ),
 
     unread: () => request<{ count: number }>("/chat/unread"),
@@ -384,9 +402,10 @@ export const api = {
     checkoutFromProposal: (
       messageId: string,
       payload:
-        | { billingType: "PIX" }
+        | { billingType: "PIX"; payerProfile?: { cpfCnpj?: string; telefone?: string } }
         | {
             billingType: "CREDIT_CARD";
+            payerProfile?: { cpfCnpj?: string; telefone?: string };
             creditCard: {
               holderName: string;
               number: string;
