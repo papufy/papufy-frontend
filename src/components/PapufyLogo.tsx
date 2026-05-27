@@ -32,8 +32,8 @@ export function PapufyLogo({
       src={PAPUFY_LOGO_SRC}
       alt={alt}
       className={className}
-      width={120}
-      height={32}
+      width={160}
+      height={44}
       decoding="async"
       onError={() => setImageFailed(true)}
     />

@@ -10,7 +10,7 @@ import {
   CONTACT_VIOLATION_MESSAGE,
   containsRestrictedContent,
 } from "../lib/contactPolicy";
-import type { ChatMessage, ConversationSummary, Transaction } from "../types";
+import type { ChatMessage, Transaction } from "../types";
 
 export function ChatPage() {
   const { id: activeId } = useParams<{ id?: string }>();
@@ -18,17 +18,18 @@ export function ChatPage() {
   const {
     unreadCount,
     connected,
+    conversations,
+    conversationsLoading,
     joinConversation,
     sendMessage,
     onMessage,
+    refreshConversations,
     refreshUnread,
   } = useChat();
-
-  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [policyWarning, setPolicyWarning] = useState<string | null>(null);
-  const [loadingList, setLoadingList] = useState(true);
+  const loadingList = conversationsLoading && conversations.length === 0;
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sendingProposal, setSendingProposal] = useState(false);
   const [proposalModalOpen, setProposalModalOpen] = useState(false);
@@ -58,17 +59,13 @@ export function ChatPage() {
   );
 
   const loadConversations = useCallback(async () => {
-    setLoadingList(true);
     setError(null);
     try {
-      const { conversations: list } = await api.chat.conversations();
-      setConversations(list);
+      await refreshConversations({ force: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao carregar chat.");
-    } finally {
-      setLoadingList(false);
     }
-  }, []);
+  }, [refreshConversations]);
 
   const loadMessages = useCallback(
     async (conversationId: string) => {
@@ -218,7 +215,8 @@ export function ChatPage() {
   const canSendProposal =
     !!activeConversation &&
     activeConversation.contextType === "listing" &&
-    activeConversation.myRole === "provider";
+    activeConversation.myRole === "provider" &&
+    activeConversation.listingType === "JOB_VACANCY";
 
   const canReportProblem = useMemo(() => {
     if (!activeConversation || activeConversation.myRole !== "provider") return false;

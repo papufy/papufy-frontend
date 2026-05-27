@@ -22,7 +22,7 @@ export function AppPageHome() {
     () => ({
       search: debouncedSearch || undefined,
       category: filters.category || undefined,
-      tipo: filters.tipo || undefined,
+      listingType: filters.listingType || undefined,
       location: locationLabel,
       uf: filters.uf,
       cidade: filters.cidade,
@@ -32,7 +32,7 @@ export function AppPageHome() {
     [
       debouncedSearch,
       filters.category,
-      filters.tipo,
+      filters.listingType,
       locationLabel,
       filters.uf,
       filters.cidade,
@@ -45,7 +45,7 @@ export function AppPageHome() {
     () => ({
       search: debouncedSearch || undefined,
       category: filters.category || undefined,
-      tipo: "PROFESSIONAL_PROFILE" as const,
+      listingType: "PROFESSIONAL_PROFILE" as const,
       uf: filters.uf,
       cidade: filters.cidade,
     }),

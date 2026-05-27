@@ -91,7 +91,7 @@ export function ListingDetailPage() {
 
   const meta = CATEGORY_META[listing.categoria] ?? CATEGORY_META.Outros;
   const isBico =
-    listing.listingType === "JOB_VACANCY" || listing.tipo === "BICO";
+    listing.listingType === "JOB_VACANCY";
   const isOwner = listing.userId === user?.id;
   const cover = listing.imagemCapa;
   const showImage = Boolean(cover && !cover.includes("placeholders/"));
@@ -104,12 +104,12 @@ export function ListingDetailPage() {
   return (
     <MobileShell>
       <article className="mobile-gutter space-y-4 py-3 pb-28">
-        <div className="relative mx-auto aspect-[16/10] max-h-52 w-full max-w-md overflow-hidden rounded-2xl bg-slate-100">
+        <div className="relative mx-auto aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100">
           {showImage ? (
             <img
               src={cover!}
               alt={listing.titulo}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain object-center"
             />
           ) : (
             <div

@@ -110,7 +110,7 @@ export function MyJobsPage() {
         <div className="space-y-3">
           {listings.map((listing) => {
             const isBico =
-              listing.listingType === "JOB_VACANCY" || listing.tipo === "BICO";
+              listing.listingType === "JOB_VACANCY";
 
             return (
               <article

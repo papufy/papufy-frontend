@@ -1,8 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useChat } from "../context/ChatContext";
-import { api } from "../lib/api";
-import type { ConversationSummary } from "../types";
 import { formatRelativeTime } from "../utils/format";
 import { IconBell } from "./icons/NavIcons";
 
@@ -11,26 +9,17 @@ interface NotificationsMenuProps {
 }
 
 export function NotificationsMenu({ variant = "desktop" }: NotificationsMenuProps) {
-  const { unreadCount, refreshUnread } = useChat();
+  const {
+    unreadCount,
+    conversations,
+    conversationsLoading,
+    refreshConversations,
+  } = useChat();
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [items, setItems] = useState<ConversationSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
-  const loadLatest = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { conversations } = await api.chat.conversations();
-      setItems(conversations.slice(0, 4));
-      await refreshUnread();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao carregar notificações.");
-    } finally {
-      setLoading(false);
-    }
-  }, [refreshUnread]);
+  const previewItems = useMemo(() => conversations.slice(0, 4), [conversations]);
 
   useEffect(() => {
     const onDown = (event: MouseEvent) => {
@@ -44,8 +33,24 @@ export function NotificationsMenu({ variant = "desktop" }: NotificationsMenuProp
 
   useEffect(() => {
     if (!open) return;
-    void loadLatest();
-  }, [open, loadLatest]);
+
+    setError(null);
+
+    if (previewItems.length > 0) {
+      void refreshConversations().catch((err) => {
+        setError(
+          err instanceof Error ? err.message : "Erro ao atualizar notificações."
+        );
+      });
+      return;
+    }
+
+    void refreshConversations({ force: true }).catch((err) => {
+      setError(
+        err instanceof Error ? err.message : "Erro ao carregar notificações."
+      );
+    });
+  }, [open, refreshConversations]);
 
   const wrapperClass =
     variant === "mobile" ? "relative lg:hidden" : "relative hidden lg:block";
@@ -59,13 +64,22 @@ export function NotificationsMenu({ variant = "desktop" }: NotificationsMenuProp
     return `Notificações, ${unreadCount} não lidas`;
   }, [unreadCount]);
 
+  const showLoading = conversationsLoading && previewItems.length === 0;
+
   return (
     <div className={wrapperClass} ref={ref}>
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
+        onMouseEnter={() => {
+          if (!open) void refreshConversations();
+        }}
+        onFocus={() => {
+          void refreshConversations();
+        }}
         className="touch-target relative rounded-full p-2 text-papufy-muted transition hover:bg-gray-50"
         aria-label={unreadLabel}
+        aria-expanded={open}
       >
         <IconBell className="h-6 w-6" />
         {unreadCount > 0 && (
@@ -80,20 +94,27 @@ export function NotificationsMenu({ variant = "desktop" }: NotificationsMenuProp
           <p className="px-4 pb-2 pt-2 text-xs font-bold uppercase tracking-wide text-papufy-muted">
             Últimas 4 notificações
           </p>
-          {loading && (
-            <p className="px-4 py-4 text-sm text-papufy-muted">Carregando...</p>
+          {showLoading && (
+            <div className="space-y-2 px-4 py-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-12 animate-pulse rounded-lg bg-slate-100"
+                />
+              ))}
+            </div>
           )}
-          {error && !loading && (
+          {error && !showLoading && (
             <p className="px-4 py-4 text-sm text-red-600">{error}</p>
           )}
-          {!loading && !error && items.length === 0 && (
+          {!showLoading && !error && previewItems.length === 0 && (
             <p className="px-4 py-4 text-sm text-papufy-muted">
               Nenhuma notificação no momento.
             </p>
           )}
-          {!loading && !error && items.length > 0 && (
+          {!showLoading && !error && previewItems.length > 0 && (
             <ul className="divide-y divide-papufy-border">
-              {items.map((conversation) => {
+              {previewItems.map((conversation) => {
                 const preview =
                   conversation.lastMessage?.content?.trim() || "Nova mensagem";
                 const when = conversation.lastMessage?.createdAt
@@ -132,6 +153,20 @@ export function NotificationsMenu({ variant = "desktop" }: NotificationsMenuProp
               })}
             </ul>
           )}
+          {conversationsLoading && previewItems.length > 0 && (
+            <p className="px-4 pb-2 text-center text-[10px] text-papufy-muted">
+              Atualizando…
+            </p>
+          )}
+          <div className="border-t border-papufy-border px-4 py-2">
+            <Link
+              to="/notificacoes"
+              onClick={() => setOpen(false)}
+              className="block text-center text-xs font-bold text-sky-600"
+            >
+              Ver todas
+            </Link>
+          </div>
         </div>
       )}
     </div>

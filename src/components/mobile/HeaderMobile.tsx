@@ -62,13 +62,13 @@ export function HeaderMobile() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-100/80 bg-white shadow-sm">
-      <div className="flex h-14 w-full items-center justify-between gap-2 px-4">
+      <div className="flex h-[3.75rem] w-full items-center justify-between gap-2 px-3 sm:h-16 sm:px-4">
         <Link
           to="/"
-          className="flex min-w-0 shrink items-center active:opacity-85"
+          className="flex shrink-0 items-center py-1 active:opacity-85"
           aria-label="Papufy — início"
         >
-          <PapufyLogo className="h-7 w-auto max-w-[7.5rem] object-contain object-left sm:h-8 sm:max-w-[8.5rem]" />
+          <PapufyLogo className="h-10 w-auto max-w-[10.5rem] object-contain object-left drop-shadow-[0_2px_8px_rgba(14,116,144,0.18)] sm:h-11 sm:max-w-[12rem]" />
         </Link>
 
         <div className="ml-auto flex shrink-0 items-center gap-2">

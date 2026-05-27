@@ -1,23 +1,57 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { PageLoader } from "./components/PageLoader";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ToastContainer } from "./components/ToastContainer";
 import { AuthProvider } from "./context/AuthContext";
 import { ChatProvider } from "./context/ChatContext";
 import { FilterProvider } from "./context/FilterContext";
 import { ToastProvider } from "./context/ToastContext";
-import { ChatPage } from "./pages/ChatPage";
-import { CreateJobPage } from "./pages/CreateJobPage";
-import { AnunciarTipoPage } from "./pages/AnunciarTipoPage";
-import { HomePage } from "./pages/HomePage";
-import { JobDetailPage } from "./pages/JobDetailPage";
-import { ListingDetailPage } from "./pages/ListingDetailPage";
-import { LoginPage } from "./pages/LoginPage";
-import { MyJobsPage } from "./pages/MyJobsPage";
-import { NotFoundPage } from "./pages/NotFoundPage";
-import { ProfilePage } from "./pages/ProfilePage";
-import { PaymentsPage } from "./pages/PaymentsPage";
-import { SearchPage } from "./pages/SearchPage";
+
+const HomePage = lazy(() =>
+  import("./pages/HomePage").then((m) => ({ default: m.HomePage }))
+);
+const SearchPage = lazy(() =>
+  import("./pages/SearchPage").then((m) => ({ default: m.SearchPage }))
+);
+const ListingDetailPage = lazy(() =>
+  import("./pages/ListingDetailPage").then((m) => ({
+    default: m.ListingDetailPage,
+  }))
+);
+const LoginPage = lazy(() =>
+  import("./pages/LoginPage").then((m) => ({ default: m.LoginPage }))
+);
+const AnunciarTipoPage = lazy(() =>
+  import("./pages/AnunciarTipoPage").then((m) => ({ default: m.AnunciarTipoPage }))
+);
+const CreateJobPage = lazy(() =>
+  import("./pages/CreateJobPage").then((m) => ({ default: m.CreateJobPage }))
+);
+const JobDetailPage = lazy(() =>
+  import("./pages/JobDetailPage").then((m) => ({ default: m.JobDetailPage }))
+);
+const ChatPage = lazy(() =>
+  import("./pages/ChatPage").then((m) => ({ default: m.ChatPage }))
+);
+const MyJobsPage = lazy(() =>
+  import("./pages/MyJobsPage").then((m) => ({ default: m.MyJobsPage }))
+);
+const ProfilePage = lazy(() =>
+  import("./pages/ProfilePage").then((m) => ({ default: m.ProfilePage }))
+);
+const PaymentsPage = lazy(() =>
+  import("./pages/PaymentsPage").then((m) => ({ default: m.PaymentsPage }))
+);
+const NotificationsPage = lazy(() =>
+  import("./pages/NotificationsPage").then((m) => ({
+    default: m.NotificationsPage,
+  }))
+);
+const NotFoundPage = lazy(() =>
+  import("./pages/NotFoundPage").then((m) => ({ default: m.NotFoundPage }))
+);
 
 export default function App() {
   return (
@@ -27,68 +61,75 @@ export default function App() {
           <ChatProvider>
             <FilterProvider>
               <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/buscar" element={<SearchPage />} />
-                <Route path="/anuncio/:id" element={<ListingDetailPage />} />
-                <Route path="/entrar" element={<LoginPage />} />
-                <Route
-                  path="/anunciar/tipo"
-                  element={<AnunciarTipoPage />}
-                />
-                <Route
-                  path="/anunciar"
-                  element={
-                    <ProtectedRoute>
-                      <CreateJobPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/trabalho/:id" element={<JobDetailPage />} />
-                <Route path="/bico/:id" element={<RedirectTrabalho />} />
-                <Route
-                  path="/chat"
-                  element={
-                    <ProtectedRoute>
-                      <ChatPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/chat/:id"
-                  element={
-                    <ProtectedRoute>
-                      <ChatPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/minhas-publicacoes"
-                  element={
-                    <ProtectedRoute>
-                      <MyJobsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/perfil"
-                  element={
-                    <ProtectedRoute>
-                      <ProfilePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/pagamentos"
-                  element={
-                    <ProtectedRoute>
-                      <PaymentsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-              <ToastContainer />
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/buscar" element={<SearchPage />} />
+                    <Route path="/anuncio/:id" element={<ListingDetailPage />} />
+                    <Route path="/entrar" element={<LoginPage />} />
+                    <Route path="/anunciar/tipo" element={<AnunciarTipoPage />} />
+                    <Route
+                      path="/anunciar"
+                      element={
+                        <ProtectedRoute>
+                          <CreateJobPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route path="/trabalho/:id" element={<JobDetailPage />} />
+                    <Route path="/bico/:id" element={<RedirectTrabalho />} />
+                    <Route
+                      path="/chat"
+                      element={
+                        <ProtectedRoute>
+                          <ChatPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/chat/:id"
+                      element={
+                        <ProtectedRoute>
+                          <ChatPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/notificacoes"
+                      element={
+                        <ProtectedRoute>
+                          <NotificationsPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/minhas-publicacoes"
+                      element={
+                        <ProtectedRoute>
+                          <MyJobsPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/perfil"
+                      element={
+                        <ProtectedRoute>
+                          <ProfilePage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/pagamentos"
+                      element={
+                        <ProtectedRoute>
+                          <PaymentsPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route path="*" element={<NotFoundPage />} />
+                  </Routes>
+                </Suspense>
+                <ToastContainer />
               </BrowserRouter>
             </FilterProvider>
           </ChatProvider>

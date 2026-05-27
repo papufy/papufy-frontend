@@ -10,8 +10,10 @@ import {
 } from "react";
 import { api } from "../lib/api";
 import { getWebSocketUrl } from "../lib/wsUrl";
-import type { ChatMessage } from "../types";
+import type { ChatMessage, ConversationSummary } from "../types";
 import { useAuth } from "./AuthContext";
+
+const CONVERSATIONS_CACHE_MS = 45_000;
 
 type WsPayload =
   | { type: "connected"; userId: string }
@@ -20,10 +22,19 @@ type WsPayload =
   | { type: "joined"; conversationId: string }
   | { type: "error"; message: string };
 
+interface RefreshConversationsOptions {
+  force?: boolean;
+}
+
 interface ChatContextValue {
   unreadCount: number;
   connected: boolean;
+  conversations: ConversationSummary[];
+  conversationsLoading: boolean;
   refreshUnread: () => Promise<void>;
+  refreshConversations: (
+    options?: RefreshConversationsOptions
+  ) => Promise<ConversationSummary[]>;
   joinConversation: (conversationId: string) => void;
   sendMessage: (conversationId: string, content: string) => void;
   onMessage: (handler: (msg: ChatMessage) => void) => () => void;
@@ -35,9 +46,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const { token, isAuthenticated } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
   const [connected, setConnected] = useState(false);
+  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const [conversationsLoading, setConversationsLoading] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const handlersRef = useRef<Set<(msg: ChatMessage) => void>>(new Set());
   const joinedRef = useRef<string | null>(null);
+  const conversationsFetchedAtRef = useRef(0);
+  const conversationsCacheRef = useRef<ConversationSummary[]>([]);
+  const conversationsInflightRef = useRef<Promise<ConversationSummary[]> | null>(
+    null
+  );
 
   const refreshUnread = useCallback(async () => {
     if (!token) {
@@ -51,6 +69,54 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       /* API offline */
     }
   }, [token]);
+
+  const refreshConversations = useCallback(
+    async (options?: RefreshConversationsOptions) => {
+      if (!token) {
+        setConversations([]);
+        conversationsCacheRef.current = [];
+        conversationsFetchedAtRef.current = 0;
+        return [];
+      }
+
+      const force = options?.force ?? false;
+      const isFresh =
+        !force &&
+        conversationsCacheRef.current.length > 0 &&
+        Date.now() - conversationsFetchedAtRef.current < CONVERSATIONS_CACHE_MS;
+
+      if (isFresh) {
+        return conversationsCacheRef.current;
+      }
+
+      if (conversationsInflightRef.current) {
+        return conversationsInflightRef.current;
+      }
+
+      setConversationsLoading(true);
+
+      const task = (async () => {
+        try {
+          const { conversations: list, unreadTotal } =
+            await api.chat.conversations();
+          conversationsCacheRef.current = list;
+          setConversations(list);
+          setUnreadCount(unreadTotal);
+          conversationsFetchedAtRef.current = Date.now();
+          return list;
+        } catch {
+          return conversationsCacheRef.current;
+        } finally {
+          setConversationsLoading(false);
+          conversationsInflightRef.current = null;
+        }
+      })();
+
+      conversationsInflightRef.current = task;
+      return task;
+    },
+    [token]
+  );
 
   const joinConversation = useCallback((conversationId: string) => {
     joinedRef.current = conversationId;
@@ -83,10 +149,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       wsRef.current = null;
       setConnected(false);
       setUnreadCount(0);
+      setConversations([]);
+      conversationsCacheRef.current = [];
+      conversationsFetchedAtRef.current = 0;
       return;
     }
 
-    void refreshUnread();
+    void refreshConversations({ force: true });
 
     let ws: WebSocket;
     try {
@@ -119,6 +188,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           setUnreadCount(data.count);
         }
         if (data.type === "message") {
+          conversationsFetchedAtRef.current = 0;
           for (const h of handlersRef.current) {
             h(data.message);
           }
@@ -133,13 +203,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       wsRef.current = null;
       setConnected(false);
     };
-  }, [isAuthenticated, token, refreshUnread]);
+  }, [isAuthenticated, token, refreshConversations]);
 
   const value = useMemo(
     () => ({
       unreadCount,
       connected,
+      conversations,
+      conversationsLoading,
       refreshUnread,
+      refreshConversations,
       joinConversation,
       sendMessage,
       onMessage,
@@ -147,7 +220,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     [
       unreadCount,
       connected,
+      conversations,
+      conversationsLoading,
       refreshUnread,
+      refreshConversations,
       joinConversation,
       sendMessage,
       onMessage,

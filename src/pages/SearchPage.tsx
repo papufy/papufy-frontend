@@ -14,7 +14,7 @@ export function SearchPage() {
     () => ({
       search: debouncedSearch || undefined,
       category: filters.category || undefined,
-      tipo: filters.tipo || undefined,
+      listingType: filters.listingType || undefined,
       location: `${filters.cidade}, ${filters.uf}`,
       uf: filters.uf,
       cidade: filters.cidade,
@@ -24,7 +24,7 @@ export function SearchPage() {
     [
       debouncedSearch,
       filters.category,
-      filters.tipo,
+      filters.listingType,
       filters.cidade,
       filters.uf,
       filters.minPrice,

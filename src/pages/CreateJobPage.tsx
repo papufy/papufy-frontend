@@ -2,9 +2,9 @@ import { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { MobileShell } from "../components/mobile/MobileShell";
 import {
-  BICO_CATEGORIES,
+  JOB_VACANCY_CATEGORIES,
   BRAZIL_STATES,
-  PROFESSIONAL_CATEGORIES,
+  PROFESSIONAL_PROFILE_CATEGORIES,
 } from "../constants/categories";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
@@ -29,7 +29,9 @@ export function CreateJobPage() {
   const [listingType] = useState<ListingType>(initialType ?? "JOB_VACANCY");
 
   const categories =
-    listingType === "JOB_VACANCY" ? BICO_CATEGORIES : PROFESSIONAL_CATEGORIES;
+    listingType === "JOB_VACANCY"
+      ? JOB_VACANCY_CATEGORIES
+      : PROFESSIONAL_PROFILE_CATEGORIES;
 
   const [titulo, setTitulo] = useState(
     listingType === "JOB_VACANCY" ? "" : `${user?.nome ?? ""} - `

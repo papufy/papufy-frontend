@@ -13,11 +13,12 @@ import {
   isLocationManual,
   markLocationManual,
 } from "../lib/geolocation";
+import { normalizeListingType } from "../lib/listingType";
 
 export interface JobFilters {
   search: string;
   category: string | null;
-  tipo: ListingTypeFilter;
+  listingType: ListingTypeFilter;
   minPrice: number | null;
   maxPrice: number | null;
   cidade: string;
@@ -31,7 +32,7 @@ interface FilterContextValue {
   locationDetecting: boolean;
   setSearch: (search: string) => void;
   setCategory: (category: string | null) => void;
-  setTipo: (tipo: ListingTypeFilter) => void;
+  setListingType: (listingType: ListingTypeFilter) => void;
   setPriceRange: (min: number | null, max: number | null) => void;
   setLocation: (cidade: string, uf: string) => void;
   applySearch: (search: string) => void;
@@ -44,7 +45,7 @@ const STORAGE_KEY = "papufy_filters";
 const DEFAULT_FILTERS: JobFilters = {
   search: "",
   category: null,
-  tipo: null,
+  listingType: null,
   minPrice: null,
   maxPrice: null,
   cidade: "Campina Grande",
@@ -54,7 +55,16 @@ const DEFAULT_FILTERS: JobFilters = {
 function loadFilters(): JobFilters {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return { ...DEFAULT_FILTERS, ...JSON.parse(raw) };
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<JobFilters> & { tipo?: string };
+      const listingType =
+        normalizeListingType(parsed.listingType ?? parsed.tipo) ?? null;
+      return {
+        ...DEFAULT_FILTERS,
+        ...parsed,
+        listingType,
+      };
+    }
   } catch {
     /* ignore */
   }
@@ -111,7 +121,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
         cidade: filters.cidade,
         uf: filters.uf,
         category: filters.category,
-        tipo: filters.tipo,
+        listingType: filters.listingType,
         minPrice: filters.minPrice,
         maxPrice: filters.maxPrice,
       })
@@ -120,7 +130,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     filters.cidade,
     filters.uf,
     filters.category,
-    filters.tipo,
+    filters.listingType,
     filters.minPrice,
     filters.maxPrice,
   ]);
@@ -139,8 +149,8 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     setFilters((prev) => ({ ...prev, category }));
   }, []);
 
-  const setTipo = useCallback((tipo: ListingTypeFilter) => {
-    setFilters((prev) => ({ ...prev, tipo }));
+  const setListingType = useCallback((listingType: ListingTypeFilter) => {
+    setFilters((prev) => ({ ...prev, listingType }));
   }, []);
 
   const setPriceRange = useCallback(
@@ -181,7 +191,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
       locationDetecting,
       setSearch,
       setCategory,
-      setTipo,
+      setListingType,
       setPriceRange,
       setLocation,
       applySearch,
@@ -194,7 +204,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
       locationDetecting,
       setSearch,
       setCategory,
-      setTipo,
+      setListingType,
       setPriceRange,
       setLocation,
       applySearch,

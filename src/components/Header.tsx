@@ -41,9 +41,9 @@ export function Header({ onSearch }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 border-b border-papufy-border bg-white shadow-sm">
-      <div className="page-container flex items-center gap-2 py-2.5 sm:gap-3 lg:gap-4">
-        <Link to="/" className="shrink-0" aria-label="Papufy — início">
-          <PapufyLogo className="h-8 w-auto max-w-[10rem] object-contain sm:h-9" />
+      <div className="page-container flex items-center gap-2 py-3 sm:gap-3 lg:gap-4">
+        <Link to="/" className="shrink-0 py-0.5" aria-label="Papufy — início">
+          <PapufyLogo className="h-10 w-auto max-w-[12rem] object-contain drop-shadow-[0_2px_8px_rgba(14,116,144,0.15)] sm:h-12 sm:max-w-[14rem]" />
         </Link>
 
         <div className="hidden min-w-0 flex-1 lg:flex lg:justify-center">

@@ -26,9 +26,7 @@ export interface ListingImage {
 export interface Listing {
   id: string;
   userId: string;
-  listingType?: ListingType;
-  /** Campo legado da API Supabase */
-  tipo?: "BICO" | "PRODUTO";
+  listingType: ListingType;
   titulo: string;
   descricao: string;
   preco: number | null;
@@ -166,6 +164,8 @@ export interface ConversationSummary {
   contractorId?: string;
   providerId?: string;
   myRole?: "contractor" | "provider";
+  /** Tipo do anúncio vinculado à conversa */
+  listingType?: ListingType;
   contextTitulo: string;
   contextCategoria: string;
   otherUser: { id: string; nome: string };

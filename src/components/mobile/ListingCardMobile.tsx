@@ -32,7 +32,7 @@ export function ListingCardMobile({
 }: ListingCardMobileProps) {
   const meta = CATEGORY_META[listing.categoria] ?? CATEGORY_META.Outros;
   const isBico =
-    listing.listingType === "JOB_VACANCY" || listing.tipo === "BICO";
+    listing.listingType === "JOB_VACANCY";
   const cover = listing.imagemCapa;
   const showImage = Boolean(cover && !cover.includes("placeholders/"));
 

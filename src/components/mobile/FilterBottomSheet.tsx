@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
-  BICO_CATEGORIES,
-  PROFESSIONAL_CATEGORIES,
+  JOB_VACANCY_CATEGORIES,
+  PROFESSIONAL_PROFILE_CATEGORIES,
 } from "../../constants/categories";
 import { useFilters } from "../../context/FilterContext";
 
@@ -16,7 +16,7 @@ export function FilterBottomSheet({
   onClose,
   onApply,
 }: FilterBottomSheetProps) {
-  const { filters, setCategory, setTipo, setPriceRange, resetFilters } =
+  const { filters, setCategory, setListingType, setPriceRange, resetFilters } =
     useFilters();
   const [min, setMin] = useState(
     filters.minPrice != null ? String(filters.minPrice) : ""
@@ -24,14 +24,14 @@ export function FilterBottomSheet({
   const [max, setMax] = useState(
     filters.maxPrice != null ? String(filters.maxPrice) : ""
   );
-  const [tipoLocal, setTipoLocal] = useState(filters.tipo);
+  const [listingTypeLocal, setListingTypeLocal] = useState(filters.listingType);
   const [catLocal, setCatLocal] = useState(filters.category);
 
   useEffect(() => {
     if (open) {
       setMin(filters.minPrice != null ? String(filters.minPrice) : "");
       setMax(filters.maxPrice != null ? String(filters.maxPrice) : "");
-      setTipoLocal(filters.tipo);
+      setListingTypeLocal(filters.listingType);
       setCatLocal(filters.category);
       document.body.style.overflow = "hidden";
     } else {
@@ -45,14 +45,14 @@ export function FilterBottomSheet({
   if (!open) return null;
 
   const categories =
-    tipoLocal === "PROFESSIONAL_PROFILE"
-      ? PROFESSIONAL_CATEGORIES
-      : tipoLocal === "JOB_VACANCY"
-        ? BICO_CATEGORIES
-        : [...BICO_CATEGORIES, ...PROFESSIONAL_CATEGORIES];
+    listingTypeLocal === "PROFESSIONAL_PROFILE"
+      ? PROFESSIONAL_PROFILE_CATEGORIES
+      : listingTypeLocal === "JOB_VACANCY"
+        ? JOB_VACANCY_CATEGORIES
+        : [...JOB_VACANCY_CATEGORIES, ...PROFESSIONAL_PROFILE_CATEGORIES];
 
   const apply = () => {
-    setTipo(tipoLocal);
+    setListingType(listingTypeLocal);
     setCategory(catLocal);
     setPriceRange(
       min ? parseFloat(min) : null,
@@ -109,9 +109,9 @@ export function FilterBottomSheet({
               <button
                 key={opt.l}
                 type="button"
-                onClick={() => setTipoLocal(opt.v)}
+                onClick={() => setListingTypeLocal(opt.v)}
                 className={`h-10 rounded-xl border px-4 text-sm font-semibold active:scale-95 sm:h-9 sm:flex-initial ${
-                  tipoLocal === opt.v
+                  listingTypeLocal === opt.v
                     ? "border-sky-400 bg-sky-50 text-sky-600"
                     : "border-papufy-border text-papufy-muted"
                 }`}
@@ -182,7 +182,7 @@ export function FilterBottomSheet({
               resetFilters();
               setMin("");
               setMax("");
-              setTipoLocal(null);
+              setListingTypeLocal(null);
               setCatLocal(null);
               onApply();
               onClose();

@@ -1,4 +1,5 @@
-export const BICO_CATEGORIES = [
+/** Categorias para pedidos de serviço (JOB_VACANCY) */
+export const JOB_VACANCY_CATEGORIES = [
   "Assistência Técnica",
   "Reformas e Reparos",
   "Serviços Domésticos",
@@ -7,17 +8,8 @@ export const BICO_CATEGORIES = [
   "Eventos",
 ] as const;
 
-export const PRODUCT_CATEGORIES = [
-  "Eletrônicos",
-  "Móveis e Decoração",
-  "Veículos",
-  "Moda e Beleza",
-  "Esportes",
-  "Casa e Jardim",
-  "Outros",
-] as const;
-
-export const PROFESSIONAL_CATEGORIES = [
+/** Categorias para perfil profissional (PROFESSIONAL_PROFILE) */
+export const PROFESSIONAL_PROFILE_CATEGORIES = [
   "Eletricista",
   "Encanador",
   "Pintor",
@@ -27,15 +19,16 @@ export const PROFESSIONAL_CATEGORIES = [
   "Outros Serviços",
 ] as const;
 
-export const JOB_CATEGORIES = BICO_CATEGORIES;
+export type JobVacancyCategory = (typeof JOB_VACANCY_CATEGORIES)[number];
+export type ProfessionalProfileCategory =
+  (typeof PROFESSIONAL_PROFILE_CATEGORIES)[number];
 
-export type JobCategory = (typeof BICO_CATEGORIES)[number];
-export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
+/** @deprecated use JobVacancyCategory */
+export type JobCategory = JobVacancyCategory;
+
 export type ListingTypeFilter =
   | "JOB_VACANCY"
   | "PROFESSIONAL_PROFILE"
-  | "BICO"
-  | "PRODUTO"
   | null;
 
 export const BRAZIL_STATES = [
@@ -78,85 +71,85 @@ export const CATEGORY_META: Record<
     color: "bg-pink-100 text-pink-800",
     imageGradient: "from-pink-500 to-rose-600",
   },
-  Eletrônicos: {
-    icon: "📱",
-    color: "bg-slate-100 text-slate-800",
-    imageGradient: "from-slate-600 to-slate-800",
+  Eletricista: {
+    icon: "⚡",
+    color: "bg-amber-100 text-amber-800",
+    imageGradient: "from-amber-500 to-orange-600",
   },
-  "Móveis e Decoração": {
-    icon: "🛋️",
-    color: "bg-orange-100 text-orange-800",
-    imageGradient: "from-orange-500 to-amber-700",
-  },
-  Veículos: {
-    icon: "🚗",
+  Encanador: {
+    icon: "🔩",
     color: "bg-blue-100 text-blue-800",
-    imageGradient: "from-blue-600 to-indigo-800",
+    imageGradient: "from-blue-500 to-indigo-600",
   },
-  "Moda e Beleza": {
-    icon: "👗",
-    color: "bg-fuchsia-100 text-fuchsia-800",
-    imageGradient: "from-fuchsia-500 to-pink-600",
+  Pintor: {
+    icon: "🎨",
+    color: "bg-violet-100 text-violet-800",
+    imageGradient: "from-violet-500 to-purple-600",
   },
-  Esportes: {
-    icon: "⚽",
-    color: "bg-lime-100 text-lime-800",
-    imageGradient: "from-lime-600 to-green-700",
+  Diarista: {
+    icon: "🧹",
+    color: "bg-emerald-100 text-emerald-800",
+    imageGradient: "from-emerald-500 to-teal-600",
   },
-  "Casa e Jardim": {
-    icon: "🌿",
-    color: "bg-green-100 text-green-800",
-    imageGradient: "from-green-500 to-emerald-700",
+  Designer: {
+    icon: "✏️",
+    color: "bg-sky-100 text-sky-800",
+    imageGradient: "from-sky-400 to-blue-600",
   },
-  Outros: {
+  "Professor Particular": {
+    icon: "📖",
+    color: "bg-indigo-100 text-indigo-800",
+    imageGradient: "from-indigo-500 to-blue-700",
+  },
+  "Outros Serviços": {
     icon: "📦",
     color: "bg-gray-100 text-gray-800",
     imageGradient: "from-gray-500 to-gray-700",
   },
 };
 
-/** Macro-categorias do carrossel da home (sem subcategorias redundantes). */
+/** Macro-categorias do carrossel da home */
 export const MACRO_SCROLL_CATEGORIES = [
   {
     id: "all",
     label: "Todos",
     icon: "✨",
-    tipo: null as ListingTypeFilter,
+    listingType: null as ListingTypeFilter,
     category: null as string | null,
   },
   {
     id: "pedidos",
     label: "Pedidos",
     icon: "📋",
-    tipo: "JOB_VACANCY" as const,
+    listingType: "JOB_VACANCY" as const,
     category: null as string | null,
   },
   {
     id: "profissionais",
     label: "Profissionais",
     icon: "👷",
-    tipo: "PROFESSIONAL_PROFILE" as const,
+    listingType: "PROFESSIONAL_PROFILE" as const,
     category: null as string | null,
   },
   {
     id: "assistencia",
     label: "Assistência",
     icon: "🔧",
-    tipo: null as ListingTypeFilter,
+    listingType: null as ListingTypeFilter,
     category: "Assistência Técnica",
   },
   {
     id: "reformas",
     label: "Reformas",
     icon: "🏗️",
-    tipo: null as ListingTypeFilter,
+    listingType: null as ListingTypeFilter,
     category: "Reformas e Reparos",
   },
   {
     id: "servicos",
     label: "Serviços",
     icon: "🧹",
-    tipo: null as ListingTypeFilter,
+    listingType: null as ListingTypeFilter,
     category: "Serviços Domésticos",
   },
 ] as const;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { JobCategory } from "../constants/categories";
 import { CATEGORY_META } from "../constants/categories";
 
@@ -13,22 +13,39 @@ export function JobImageGallery({ categoria, titulo }: JobImageGalleryProps) {
     CATEGORY_META["Serviços Domésticos"];
 
   const [activeIndex, setActiveIndex] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const slides = [0, 1, 2, 3, 4];
+
+  const scrollToSlide = (i: number) => {
+    setActiveIndex(i);
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTo({ left: i * el.clientWidth, behavior: "smooth" });
+  };
 
   return (
     <>
       {/* Mobile: carrossel em tela cheia */}
       <div className="lg:hidden">
         <div
-          className="snap-x-mandatory flex gap-2 overflow-x-auto rounded-xl"
+          ref={scrollRef}
+          className="snap-x-mandatory flex overflow-x-auto scroll-smooth rounded-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           role="region"
           aria-label="Fotos do anúncio"
+          onScroll={(e) => {
+            const el = e.currentTarget;
+            const w = el.clientWidth || 1;
+            const i = Math.round(el.scrollLeft / w);
+            if (i !== activeIndex && i >= 0 && i < slides.length) {
+              setActiveIndex(i);
+            }
+          }}
         >
           {slides.map((i) => (
             <div
               key={i}
-              className={`relative aspect-[4/3] w-[88vw] max-w-full shrink-0 snap-start overflow-hidden rounded-xl bg-gradient-to-br sm:w-[85vw] ${meta.imageGradient}`}
-              onClick={() => setActiveIndex(i)}
+              className={`relative aspect-[4/3] w-full shrink-0 snap-center snap-always overflow-hidden rounded-xl bg-gradient-to-br ${meta.imageGradient}`}
+              onClick={() => scrollToSlide(i)}
             >
               <div className="flex h-full flex-col items-center justify-center p-6">
                 <span className="text-6xl drop-shadow-md">{meta.icon}</span>
@@ -52,7 +69,7 @@ export function JobImageGallery({ categoria, titulo }: JobImageGalleryProps) {
               key={i}
               type="button"
               aria-label={`Foto ${i + 1}`}
-              onClick={() => setActiveIndex(i)}
+              onClick={() => scrollToSlide(i)}
               className={`h-1.5 rounded-full transition-all ${
                 activeIndex === i
                   ? "w-5 bg-papufy-orange"

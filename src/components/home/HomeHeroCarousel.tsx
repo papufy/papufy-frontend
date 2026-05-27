@@ -51,7 +51,7 @@ function HeroBannerImage({
       alt={slide.alt}
       width={HERO_BANNER_WIDTH}
       height={HERO_BANNER_HEIGHT}
-      className="h-full w-full object-cover object-center"
+      className="h-full w-full object-contain object-center sm:object-cover"
       loading={priority ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : "auto"}
       decoding="async"
@@ -63,12 +63,12 @@ function HeroBannerImage({
 function useSlideAction() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const { setCategory, setTipo } = useFilters();
+  const { setCategory, setListingType } = useFilters();
 
   return useCallback(
     (action: HeroSlideAction) => {
       if (action.type === "filter") {
-        setTipo(null);
+        setListingType(null);
         setCategory(action.category);
         window.scrollTo({ top: 0, behavior: "smooth" });
         return;
@@ -83,7 +83,7 @@ function useSlideAction() {
         state: { redirect: "/anunciar/tipo", listingType },
       });
     },
-    [isAuthenticated, navigate, setCategory, setTipo]
+    [isAuthenticated, navigate, setCategory, setListingType]
   );
 }
 
@@ -97,7 +97,7 @@ function HeroSlidePanel({
   onAction: (action: HeroSlideAction) => void;
 }) {
   const frame = (
-    <div className="relative aspect-[1576/300] w-full overflow-hidden rounded-2xl bg-slate-100">
+    <div className="relative aspect-[3/2] w-full overflow-hidden bg-slate-100 sm:aspect-[1576/300]">
       <HeroBannerImage slide={slide} priority={priority} />
     </div>
   );
@@ -158,9 +158,12 @@ export function HomeHeroCarousel() {
     }, 2000);
   };
 
+  const navBtnClass =
+    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-sky-600 shadow-sm active:scale-95 sm:h-10 sm:w-10";
+
   return (
     <section
-      className="relative w-full select-none"
+      className="w-full select-none"
       aria-roledescription="carousel"
       aria-label="Destaques Papufy"
       onMouseEnter={() => {
@@ -172,54 +175,78 @@ export function HomeHeroCarousel() {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      <div className="overflow-hidden rounded-2xl">
-        <div
-          className="flex transition-transform duration-500 ease-out"
-          style={{ transform: `translateX(-${index * 100}%)` }}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={prev}
+          className={`${navBtnClass} hidden sm:flex`}
+          aria-label="Banner anterior"
         >
-          {HERO_SLIDES.map((slide, i) => (
-            <div key={slide.id} className="w-full shrink-0">
-              <HeroSlidePanel
-                slide={slide}
-                priority={i === 0}
-                onAction={runSlideAction}
-              />
-            </div>
-          ))}
+          <IconChevron direction="left" />
+        </button>
+
+        <div className="min-w-0 flex-1 overflow-hidden rounded-2xl">
+          <div
+            className="flex transition-transform duration-500 ease-out"
+            style={{ transform: `translateX(-${index * 100}%)` }}
+          >
+            {HERO_SLIDES.map((slide, i) => (
+              <div key={slide.id} className="w-full shrink-0">
+                <HeroSlidePanel
+                  slide={slide}
+                  priority={i === 0}
+                  onAction={runSlideAction}
+                />
+              </div>
+            ))}
+          </div>
         </div>
+
+        <button
+          type="button"
+          onClick={next}
+          className={`${navBtnClass} hidden sm:flex`}
+          aria-label="Próximo banner"
+        >
+          <IconChevron direction="right" />
+        </button>
       </div>
 
-      <button
-        type="button"
-        onClick={prev}
-        className="absolute left-1 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-sky-600 shadow-md active:scale-95 sm:left-2 sm:h-9 sm:w-9"
-        aria-label="Banner anterior"
-      >
-        <IconChevron direction="left" />
-      </button>
-      <button
-        type="button"
-        onClick={next}
-        className="absolute right-1 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-sky-600 shadow-md active:scale-95 sm:right-2 sm:h-9 sm:w-9"
-        aria-label="Próximo banner"
-      >
-        <IconChevron direction="right" />
-      </button>
+      <div className="mt-2.5 flex items-center justify-center gap-3 sm:mt-3">
+        <button
+          type="button"
+          onClick={prev}
+          className={`${navBtnClass} sm:hidden`}
+          aria-label="Banner anterior"
+        >
+          <IconChevron direction="left" />
+        </button>
 
-      <div className="pointer-events-none absolute bottom-2 left-0 right-0 flex justify-center gap-1.5">
-        {HERO_SLIDES.map((slide, i) => (
-          <button
-            key={slide.id}
-            type="button"
-            onClick={() => goTo(i)}
-            aria-label={`Ir para banner ${i + 1}`}
-            className={`pointer-events-auto rounded-full shadow-sm ring-1 ring-black/10 transition-all ${
-              i === index
-                ? "h-2 w-5 bg-sky-500"
-                : "h-2 w-2 bg-white/95"
-            }`}
-          />
-        ))}
+        <div className="flex items-center gap-1.5">
+          {HERO_SLIDES.map((slide, i) => (
+            <button
+              key={slide.id}
+              type="button"
+              onClick={() => goTo(i)}
+              aria-label={`Ir para banner ${i + 1}`}
+              aria-current={i === index ? "true" : undefined}
+              className={`rounded-full transition-all ${
+                i === index
+                  ? "h-2 w-5 bg-sky-500"
+                  : "h-2 w-2 bg-slate-300"
+              }`}
+            />
+          ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={next}
+          className={`${navBtnClass} sm:hidden`}
+          aria-label="Próximo banner"
+        >
+          <IconChevron direction="right" />
+        </button>
       </div>
     </section>
   );

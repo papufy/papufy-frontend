@@ -14,6 +14,7 @@ import type {
   User,
 } from "../types";
 import { getApiBaseUrl } from "./env";
+import { normalizeListingType } from "./listingType";
 
 const API_BASE = getApiBaseUrl();
 const TOKEN_KEY = "papufy_token";
@@ -122,10 +123,12 @@ async function uploadRequest<T>(
   return data as T;
 }
 
-function normalizeListing(listing: Listing): Listing {
+function normalizeListing(
+  listing: Listing & { tipo?: string; listingType?: string }
+): Listing {
   const listingType =
-    listing.listingType ??
-    (listing.tipo === "BICO" ? "JOB_VACANCY" : "PROFESSIONAL_PROFILE");
+    normalizeListingType(listing.listingType ?? listing.tipo) ??
+    "JOB_VACANCY";
   return { ...listing, listingType };
 }
 
@@ -171,7 +174,7 @@ export const api = {
     list: (params?: {
       search?: string;
       category?: string;
-      tipo?: "BICO" | "PRODUTO" | "JOB_VACANCY" | "PROFESSIONAL_PROFILE";
+      listingType?: "JOB_VACANCY" | "PROFESSIONAL_PROFILE";
       location?: string;
       uf?: string;
       cidade?: string;
@@ -183,15 +186,9 @@ export const api = {
       const query = new URLSearchParams();
       if (params?.search) query.set("search", params.search);
       if (params?.category) query.set("category", params.category);
-      if (params?.tipo === "BICO" || params?.tipo === "JOB_VACANCY") {
-        query.set("tipo", "BICO");
-        query.set("listingType", "JOB_VACANCY");
-      } else if (
-        params?.tipo === "PRODUTO" ||
-        params?.tipo === "PROFESSIONAL_PROFILE"
-      ) {
-        query.set("tipo", "PRODUTO");
-        query.set("listingType", "PROFESSIONAL_PROFILE");
+      const listingType = normalizeListingType(params?.listingType);
+      if (listingType) {
+        query.set("listingType", listingType);
       }
       if (params?.location) query.set("location", params.location);
       if (params?.uf) query.set("uf", params.uf);
@@ -350,6 +347,8 @@ export const api = {
           contextTitulo: c.contextTitulo ?? c.jobTitulo ?? "Conversa",
           contextCategoria: c.contextCategoria ?? c.jobCategoria ?? "Geral",
           contextType: c.contextType ?? (c.listingId ? "listing" : "job"),
+          listingType:
+            normalizeListingType(c.listingType ?? c.listingTipo) ?? undefined,
         })),
       };
     },

@@ -8,13 +8,15 @@ import type { JobFilters } from "../../context/FilterContext";
 function resolveActiveMacroId(filters: JobFilters): string {
   const match = MACRO_SCROLL_CATEGORIES.find((macro) => {
     if (macro.id === "all") {
-      return filters.tipo === null && filters.category === null;
+      return filters.listingType === null && filters.category === null;
     }
-    if (macro.tipo !== null) {
-      return filters.tipo === macro.tipo && filters.category === null;
+    if (macro.listingType !== null) {
+      return (
+        filters.listingType === macro.listingType && filters.category === null
+      );
     }
     if (macro.category !== null) {
-      return filters.category === macro.category && filters.tipo === null;
+      return filters.category === macro.category && filters.listingType === null;
     }
     return false;
   });
@@ -26,14 +28,14 @@ interface CategoryScrollProps {
 }
 
 export function CategoryScroll({ onChange }: CategoryScrollProps) {
-  const { filters, setCategory, setTipo } = useFilters();
+  const { filters, setCategory, setListingType } = useFilters();
   const activeId = resolveActiveMacroId(filters);
 
   const applyMacro = (
-    tipo: ListingTypeFilter,
+    listingType: ListingTypeFilter,
     category: string | null
   ) => {
-    setTipo(tipo);
+    setListingType(listingType);
     setCategory(category);
     onChange?.();
   };
@@ -51,7 +53,7 @@ export function CategoryScroll({ onChange }: CategoryScrollProps) {
             <button
               key={item.id}
               type="button"
-              onClick={() => applyMacro(item.tipo, item.category)}
+              onClick={() => applyMacro(item.listingType, item.category)}
               className="flex w-[4.25rem] shrink-0 flex-col items-center gap-1.5 active:scale-95"
             >
               <span
