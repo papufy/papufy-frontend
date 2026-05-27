@@ -264,12 +264,19 @@ export function WalletPage() {
 
           <button
             type="button"
-            disabled={loading || balanceUnavailable}
+            disabled={loading || balanceUnavailable || !canWithdraw}
             onClick={() => setShowWithdrawForm((v) => !v)}
             className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 text-sm font-bold text-white shadow-md transition hover:from-sky-500 hover:to-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {showWithdrawForm ? "Fechar formulário de saque" : "Solicitar saque via Pix"}
           </button>
+          {!loading && !balanceUnavailable && !canWithdraw && (
+            <p className="mt-2 text-center text-xs text-sky-700">
+              {papufyWithdrawable < 1
+                ? "Confirme a conclusão dos serviços no chat para liberar o saque."
+                : "Saldo na subconta ainda insuficiente para o valor liberado no Papufy."}
+            </p>
+          )}
         </section>
 
         {showWithdrawForm && (
