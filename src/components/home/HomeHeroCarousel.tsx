@@ -51,7 +51,7 @@ function HeroBannerImage({
       alt={slide.alt}
       width={HERO_BANNER_WIDTH}
       height={HERO_BANNER_HEIGHT}
-      className="h-full w-full origin-center object-cover object-center max-sm:scale-[0.60] sm:scale-100"
+      className="h-full w-full object-contain object-center sm:object-cover"
       loading={priority ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : "auto"}
       decoding="async"
@@ -97,7 +97,7 @@ function HeroSlidePanel({
   onAction: (action: HeroSlideAction) => void;
 }) {
   const frame = (
-    <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 sm:aspect-[1576/300]">
+    <div className="relative aspect-video w-full overflow-hidden bg-slate-100 sm:aspect-[1576/300]">
       <HeroBannerImage slide={slide} priority={priority} />
     </div>
   );
