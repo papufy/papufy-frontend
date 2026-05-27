@@ -450,6 +450,14 @@ export const api = {
       );
     },
 
+    wallet: () =>
+      request<{
+        availableBalance: number;
+        pendingReceive: number;
+        pendingPay: number;
+        totalWithdrawn: number;
+      }>("/payments/wallet"),
+
     listMine: () =>
       request<{
         transactions: Array<

@@ -41,8 +41,8 @@ const MyJobsPage = lazy(() =>
 const ProfilePage = lazy(() =>
   import("./pages/ProfilePage").then((m) => ({ default: m.ProfilePage }))
 );
-const PaymentsPage = lazy(() =>
-  import("./pages/PaymentsPage").then((m) => ({ default: m.PaymentsPage }))
+const WalletPage = lazy(() =>
+  import("./pages/WalletPage").then((m) => ({ default: m.WalletPage }))
 );
 const NotificationsPage = lazy(() =>
   import("./pages/NotificationsPage").then((m) => ({
@@ -119,12 +119,16 @@ export default function App() {
                       }
                     />
                     <Route
-                      path="/pagamentos"
+                      path="/carteira"
                       element={
                         <ProtectedRoute>
-                          <PaymentsPage />
+                          <WalletPage />
                         </ProtectedRoute>
                       }
+                    />
+                    <Route
+                      path="/pagamentos"
+                      element={<Navigate to="/carteira" replace />}
                     />
                     <Route path="*" element={<NotFoundPage />} />
                   </Routes>

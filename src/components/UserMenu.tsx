@@ -90,11 +90,11 @@ export function UserMenu({ variant = "header" }: UserMenuProps) {
             Chat
           </Link>
           <Link
-            to="/pagamentos"
+            to="/carteira"
             className="block px-4 py-2.5 text-sm hover:bg-sky-50"
             onClick={() => setOpen(false)}
           >
-            Pagamentos
+            Carteira
           </Link>
           <hr className="my-1 border-papufy-border" />
           <button
