@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
-import type { JobCategory } from "../constants/categories";
-import { CATEGORY_META } from "../constants/categories";
+import { getCategoryMeta } from "../constants/categories";
 
 interface JobImageGalleryProps {
   categoria: string;
@@ -8,9 +7,7 @@ interface JobImageGalleryProps {
 }
 
 export function JobImageGallery({ categoria, titulo }: JobImageGalleryProps) {
-  const meta =
-    CATEGORY_META[categoria as JobCategory] ??
-    CATEGORY_META["Serviços Domésticos"];
+  const meta = getCategoryMeta(categoria);
 
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);

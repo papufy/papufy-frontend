@@ -6,10 +6,7 @@ import { JobDetailSidebar } from "../components/JobDetailSidebar";
 import { JobImageGallery } from "../components/JobImageGallery";
 import { Layout } from "../components/Layout";
 import { IconHeart, IconShare } from "../components/icons/NavIcons";
-import {
-  CATEGORY_META,
-  type JobCategory,
-} from "../constants/categories";
+import { getCategoryMeta } from "../constants/categories";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { api } from "../lib/api";
@@ -173,9 +170,7 @@ export function JobDetailPage() {
     );
   }
 
-  const meta =
-    CATEGORY_META[job.categoria as JobCategory] ??
-    CATEGORY_META["Serviços Domésticos"];
+  const meta = getCategoryMeta(job.categoria);
 
   const isOwner = job.isOwner || user?.id === job.userId;
   const isClosed = job.status === "CLOSED";

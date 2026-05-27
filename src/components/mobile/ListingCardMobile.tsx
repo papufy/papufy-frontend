@@ -1,6 +1,6 @@
 import { useCallback, useState, type MouseEvent } from "react";
 import { Link } from "react-router-dom";
-import { CATEGORY_META } from "../../constants/categories";
+import { getCategoryMeta } from "../../constants/categories";
 import type { Listing } from "../../types";
 import { formatPrice, formatRelativeTime } from "../../utils/format";
 import { IconHeart } from "../icons/NavIcons";
@@ -30,7 +30,7 @@ export function ListingCardMobile({
   listing,
   compact = false,
 }: ListingCardMobileProps) {
-  const meta = CATEGORY_META[listing.categoria] ?? CATEGORY_META.Outros;
+  const meta = getCategoryMeta(listing.categoria);
   const isBico =
     listing.listingType === "JOB_VACANCY";
   const cover = listing.imagemCapa;

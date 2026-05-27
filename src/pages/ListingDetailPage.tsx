@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { SafeText } from "../components/SafeText";
 import { MobileShell } from "../components/mobile/MobileShell";
-import { CATEGORY_META } from "../constants/categories";
+import { getCategoryMeta } from "../constants/categories";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { api } from "../lib/api";
@@ -89,7 +89,7 @@ export function ListingDetailPage() {
     );
   }
 
-  const meta = CATEGORY_META[listing.categoria] ?? CATEGORY_META.Outros;
+  const meta = getCategoryMeta(listing.categoria);
   const isBico =
     listing.listingType === "JOB_VACANCY";
   const isOwner = listing.userId === user?.id;

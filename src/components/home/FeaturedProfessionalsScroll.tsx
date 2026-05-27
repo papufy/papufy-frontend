@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { CATEGORY_META } from "../../constants/categories";
+import { getCategoryMeta } from "../../constants/categories";
 import type { Listing } from "../../types";
 import { formatPrice, formatRelativeTime } from "../../utils/format";
 
@@ -44,7 +44,7 @@ export function FeaturedProfessionalsScroll({
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           {listings.map((listing) => {
-            const meta = CATEGORY_META[listing.categoria] ?? CATEGORY_META.Outros;
+            const meta = getCategoryMeta(listing.categoria);
             const cover = listing.imagemCapa;
             const showImage = Boolean(cover && !cover.includes("placeholders/"));
 

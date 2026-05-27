@@ -106,7 +106,55 @@ export const CATEGORY_META: Record<
     color: "bg-gray-100 text-gray-800",
     imageGradient: "from-gray-500 to-gray-700",
   },
+  /** Legado (anúncios antigos no banco) */
+  Outros: {
+    icon: "📦",
+    color: "bg-gray-100 text-gray-800",
+    imageGradient: "from-gray-500 to-gray-700",
+  },
+  Eletrônicos: {
+    icon: "📱",
+    color: "bg-slate-100 text-slate-800",
+    imageGradient: "from-slate-600 to-slate-800",
+  },
+  "Móveis e Decoração": {
+    icon: "🛋️",
+    color: "bg-orange-100 text-orange-800",
+    imageGradient: "from-orange-500 to-amber-700",
+  },
+  Veículos: {
+    icon: "🚗",
+    color: "bg-blue-100 text-blue-800",
+    imageGradient: "from-blue-600 to-indigo-800",
+  },
+  "Moda e Beleza": {
+    icon: "👗",
+    color: "bg-fuchsia-100 text-fuchsia-800",
+    imageGradient: "from-fuchsia-500 to-pink-600",
+  },
+  Esportes: {
+    icon: "⚽",
+    color: "bg-lime-100 text-lime-800",
+    imageGradient: "from-lime-600 to-green-700",
+  },
+  "Casa e Jardim": {
+    icon: "🌿",
+    color: "bg-green-100 text-green-800",
+    imageGradient: "from-green-500 to-emerald-700",
+  },
 };
+
+export type CategoryMeta = (typeof CATEGORY_META)[string];
+
+export const DEFAULT_CATEGORY_META: CategoryMeta = {
+  icon: "📦",
+  color: "bg-gray-100 text-gray-800",
+  imageGradient: "from-gray-500 to-gray-700",
+};
+
+export function getCategoryMeta(categoria: string): CategoryMeta {
+  return CATEGORY_META[categoria] ?? DEFAULT_CATEGORY_META;
+}
 
 /** Macro-categorias do carrossel da home */
 export const MACRO_SCROLL_CATEGORIES = [

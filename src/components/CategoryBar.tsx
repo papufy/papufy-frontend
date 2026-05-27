@@ -1,6 +1,6 @@
 import {
   JOB_VACANCY_CATEGORIES,
-  CATEGORY_META,
+  getCategoryMeta,
   type JobVacancyCategory,
 } from "../constants/categories";
 import { useFilters } from "../context/FilterContext";
@@ -26,7 +26,7 @@ export function CategoryBar({ onCategorySelect }: CategoryBarProps) {
       <div className="page-container py-2.5 lg:py-3">
         <div className="scrollbar-hide snap-x-mandatory flex gap-2.5 overflow-x-auto pb-1 sm:gap-3">
           {JOB_VACANCY_CATEGORIES.map((category) => {
-            const meta = CATEGORY_META[category];
+            const meta = getCategoryMeta(category);
             const isActive = filters.category === category;
 
             return (

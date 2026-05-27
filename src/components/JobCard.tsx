@@ -1,8 +1,5 @@
 import { Link } from "react-router-dom";
-import {
-  CATEGORY_META,
-  type JobCategory,
-} from "../constants/categories";
+import { getCategoryMeta } from "../constants/categories";
 import type { Job } from "../types";
 import { formatLocation, formatPrice, formatRelativeTime } from "../utils/format";
 import { StatusBadge } from "./StatusBadge";
@@ -12,9 +9,7 @@ interface JobCardProps {
 }
 
 export function JobCard({ job }: JobCardProps) {
-  const meta =
-    CATEGORY_META[job.categoria as JobCategory] ??
-    CATEGORY_META["Serviços Domésticos"];
+  const meta = getCategoryMeta(job.categoria);
 
   return (
     <Link
