@@ -119,12 +119,12 @@ export function AppPageHome() {
     Boolean(error) || loading || moreListings.length > 0 || hasMore;
 
   return (
-    <div className="flex flex-col space-y-6 pb-4">
-      <div className="mobile-gutter pt-2">
+    <div className="flex flex-col space-y-4 pb-4 sm:space-y-6">
+      <div className="mobile-gutter pt-0 sm:pt-2">
         <HomeHeroCarousel />
       </div>
 
-      <div className="mobile-gutter space-y-6">
+      <div className="mobile-gutter space-y-4 sm:space-y-6">
         <div className="flex items-center justify-between gap-2">
           <span className="sr-only">Filtros de listagem</span>
           <button
