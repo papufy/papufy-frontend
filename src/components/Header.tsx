@@ -2,12 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useChat } from "../context/ChatContext";
 import { useToast } from "../context/ToastContext";
-import {
-  IconBell,
-  IconChat,
-  IconGrid,
-  IconPlus,
-} from "./icons/NavIcons";
+import { IconBell, IconChat, IconPlus } from "./icons/NavIcons";
 import { HeaderNavItem } from "./HeaderNavItem";
 import { PapufyLogo } from "./PapufyLogo";
 import { SearchBar } from "./SearchBar";
@@ -43,14 +38,6 @@ export function Header({ onSearch }: HeaderProps) {
     navigate("/chat");
   };
 
-  const handleMeusAnuncios = () => {
-    if (!isAuthenticated) {
-      navigate("/entrar", { state: { redirect: "/minhas-publicacoes" } });
-      return;
-    }
-    navigate("/minhas-publicacoes");
-  };
-
   return (
     <header className="sticky top-0 z-50 border-b border-papufy-border bg-white shadow-sm">
       <div className="page-container flex items-center gap-2 py-2.5 sm:gap-3 lg:gap-4">
@@ -62,28 +49,21 @@ export function Header({ onSearch }: HeaderProps) {
           <SearchBar onSearch={onSearch} variant="header" />
         </div>
 
-        <nav className="hidden items-center gap-0.5 lg:flex">
-          <HeaderNavItem
-            icon={<IconGrid />}
-            label="Meus Anúncios"
-            onClick={handleMeusAnuncios}
-          />
-          {isAuthenticated && (
+        {isAuthenticated && (
+          <nav className="hidden shrink-0 items-center gap-0.5 lg:flex">
             <HeaderNavItem
               icon={<IconChat />}
               label="Chat"
               onClick={handleChat}
               badge={unreadCount}
             />
-          )}
-          {isAuthenticated && (
             <HeaderNavItem
               icon={<IconBell />}
               label="Notificações"
-              onClick={() => showToast("Notificações em breve.", "info")}
+              onClick={() => navigate("/notificacoes")}
             />
-          )}
-        </nav>
+          </nav>
+        )}
 
         <div className="ml-auto flex items-center gap-1.5 sm:gap-2 lg:gap-3">
           {isAuthenticated ? (
@@ -111,7 +91,7 @@ export function Header({ onSearch }: HeaderProps) {
           {isAuthenticated && (
             <button
               type="button"
-              onClick={() => showToast("Notificações em breve.", "info")}
+              onClick={() => navigate("/notificacoes")}
               className="touch-target rounded-full p-2 text-papufy-muted hover:bg-gray-50 lg:hidden"
               aria-label="Notificações"
             >

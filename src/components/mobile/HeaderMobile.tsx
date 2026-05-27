@@ -3,8 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useChat } from "../../context/ChatContext";
 import { PapufyLogo } from "../PapufyLogo";
-import { IconBell } from "../icons/NavIcons";
-import { MenuSearchBar } from "./MenuSearchBar";
+import { IconBell, IconSearch } from "../icons/NavIcons";
 
 const GUEST_CTA_LABELS = ["Anunciar grátis", "Encontrar Serviço"] as const;
 const CTA_ROTATE_MS = 4000;
@@ -61,14 +60,6 @@ export function HeaderMobile() {
     navigate("/");
   };
 
-  const openNotifications = () => {
-    if (isAuthenticated) {
-      navigate("/notificacoes");
-      return;
-    }
-    navigate("/entrar", { state: { redirect: "/notificacoes" } });
-  };
-
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-100/80 bg-white shadow-sm">
       <div className="flex h-14 w-full items-center justify-between gap-2 px-4">
@@ -80,30 +71,36 @@ export function HeaderMobile() {
           <PapufyLogo className="h-7 w-auto max-w-[7.5rem] object-contain object-left sm:h-8 sm:max-w-[8.5rem]" />
         </Link>
 
-        {pathname.startsWith("/entrar") ? null : (
-          <div className="min-w-0 flex-1 px-1">
-            <MenuSearchBar compact />
-          </div>
-        )}
-
-        <div className="flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            onClick={openNotifications}
-            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-600 transition active:scale-95 active:bg-slate-50"
-            aria-label={
-              unreadCount > 0
-                ? `Notificações, ${unreadCount} não lidas`
-                : "Notificações"
-            }
-          >
-            <IconBell className="h-5 w-5 text-sky-600" />
-            {isAuthenticated && unreadCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-sky-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white">
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </span>
-            )}
-          </button>
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          {pathname.startsWith("/entrar") ? null : (
+            <button
+              type="button"
+              onClick={() => navigate("/buscar")}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-600 transition active:scale-95 active:bg-slate-50"
+              aria-label="Abrir busca"
+            >
+              <IconSearch className="h-5 w-5 text-sky-600" />
+            </button>
+          )}
+          {isAuthenticated && (
+            <button
+              type="button"
+              onClick={() => navigate("/notificacoes")}
+              className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-600 transition active:scale-95 active:bg-slate-50"
+              aria-label={
+                unreadCount > 0
+                  ? `Notificações, ${unreadCount} não lidas`
+                  : "Notificações"
+              }
+            >
+              <IconBell className="h-5 w-5 text-sky-600" />
+              {unreadCount > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-sky-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
+          )}
 
           {isAuthenticated ? (
             <Link

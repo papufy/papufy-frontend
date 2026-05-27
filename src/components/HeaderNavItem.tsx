@@ -24,7 +24,7 @@ export function HeaderNavItem({
           </span>
         )}
       </span>
-      <span className="max-w-[72px] truncate text-center text-[11px] leading-tight text-papufy-muted">
+      <span className="whitespace-nowrap text-center text-[11px] leading-tight text-papufy-muted">
         {label}
       </span>
     </>

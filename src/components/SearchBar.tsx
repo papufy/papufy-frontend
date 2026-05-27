@@ -44,7 +44,7 @@ export function SearchBar({ onSearch, variant = "full" }: SearchBarProps) {
 
   if (variant === "header") {
     return (
-      <form onSubmit={handleSubmit} className="relative w-full max-w-2xl flex-1">
+      <form onSubmit={handleSubmit} className="relative w-full max-w-lg flex-1">
         <input
           type="text"
           value={localSearch}

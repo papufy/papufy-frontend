@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import { BottomNav } from "./BottomNav";
 import { CategoryScroll } from "./CategoryScroll";
 import { HeaderMobile } from "./HeaderMobile";
@@ -20,7 +21,9 @@ export function MobileShell({
   showCategories = false,
 }: MobileShellProps) {
   const { pathname } = useLocation();
-  const hideBottom = HIDE_BOTTOM.some((p) => pathname.startsWith(p));
+  const { isAuthenticated } = useAuth();
+  const hideBottom =
+    HIDE_BOTTOM.some((p) => pathname.startsWith(p)) || !isAuthenticated;
 
   return (
     <div className="min-h-[100dvh] bg-papufy-bg">
