@@ -104,7 +104,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           setUnreadCount(unreadTotal);
           conversationsFetchedAtRef.current = Date.now();
           return list;
-        } catch {
+        } catch (err) {
+          if (conversationsCacheRef.current.length === 0) {
+            throw err;
+          }
           return conversationsCacheRef.current;
         } finally {
           setConversationsLoading(false);
