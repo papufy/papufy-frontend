@@ -1,3 +1,5 @@
+import { getApiBaseUrl } from "./env";
+
 /** Só na sessão atual — nova aba/sessão volta a detectar GPS automaticamente. */
 const LOCATION_MANUAL_KEY = "papufy_location_manual";
 
@@ -45,15 +47,7 @@ export async function reverseGeocode(
     addressdetails: "1",
   });
 
-  const response = await fetch(
-    `https://nominatim.openstreetmap.org/reverse?${params}`,
-    {
-      headers: {
-        Accept: "application/json",
-        "User-Agent": "Papufy/1.0 (https://papufy.com; contato@papufy.com)",
-      },
-    }
-  );
+  const response = await fetch(`${getApiBaseUrl()}/geo/reverse?${params}`);
 
   if (!response.ok) return null;
 
