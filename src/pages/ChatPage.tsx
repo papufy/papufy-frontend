@@ -150,6 +150,7 @@ export function ChatPage() {
         const isMine = user?.id ? msg.senderId === user.id : msg.isMine;
         return [...prev, { ...msg, isMine }];
       });
+      void loadConversations();
     });
   }, [activeId, onMessage, loadConversations, user?.id]);
 
