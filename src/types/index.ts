@@ -3,6 +3,20 @@ export type JobStatus = "OPEN" | "CLOSED";
 export type ListingType = "JOB_VACANCY" | "PROFESSIONAL_PROFILE";
 export type ListingStatus = "OPEN" | "CLOSED";
 
+export interface UserReputation {
+  averageRating: number | null;
+  reviewCount: number;
+  completedJobsCount: number;
+}
+
+export interface TransactionReview {
+  id: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  reviewedUserId: string;
+}
+
 export interface User {
   id: string;
   nome: string;
@@ -32,6 +46,7 @@ export interface Listing {
   preco: number | null;
   aCombinar: boolean;
   categoria: string;
+  semQualificacao?: boolean;
   status: ListingStatus;
   cep?: string | null;
   cidade: string;
@@ -44,6 +59,7 @@ export interface Listing {
     nome: string;
     cidade?: string | null;
     uf?: string | null;
+    reputation?: UserReputation;
   };
   imagens?: ListingImage[];
   imagemCapa?: string | null;

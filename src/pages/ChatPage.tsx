@@ -2,21 +2,42 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Layout } from "../components/Layout";
 import { SafeText } from "../components/SafeText";
+import { TransactionReviewPanel } from "../components/chat/TransactionReviewPanel";
 import { PaymentCheckoutSheet } from "../components/mobile/PaymentCheckoutSheet";
 import { IconChevronLeft, IconPaperclip } from "../components/icons/NavIcons";
 import { useAuth } from "../context/AuthContext";
 import { useChat } from "../context/ChatContext";
+import { useToast } from "../context/ToastContext";
 import { api } from "../lib/api";
 import {
   CONTACT_VIOLATION_MESSAGE,
   containsRestrictedContent,
 } from "../lib/contactPolicy";
-import type { ChatMessage, Transaction } from "../types";
+import type { ChatMessage, Transaction, TransactionReview } from "../types";
+
+function formatPaymentError(err: unknown): string {
+  const e = err as Error & {
+    code?: string;
+    role?: "payer" | "receiver";
+    missingFields?: string[];
+  };
+  if (e.code === "PAYMENT_PROFILE_INCOMPLETE") {
+    if (e.role === "receiver") {
+      return "O profissional precisa cadastrar CPF e telefone no perfil para receber pagamentos.";
+    }
+    if (e.missingFields?.includes("cpfCnpj")) {
+      return "Informe seu CPF ou CNPJ para concluir o pagamento.";
+    }
+    return e.message || "Complete seus dados de pagamento no checkout.";
+  }
+  return e instanceof Error ? e.message : "Erro ao processar pagamento.";
+}
 
 export function ChatPage() {
   const { id: activeId } = useParams<{ id?: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const {
     unreadCount,
     connected,
@@ -64,12 +85,46 @@ export function ChatPage() {
   const [transactionsById, setTransactionsById] = useState<
     Record<string, Transaction>
   >({});
+  const [reviewsByTxId, setReviewsByTxId] = useState<
+    Record<string, TransactionReview | null>
+  >({});
+  const [submittingReviewTxId, setSubmittingReviewTxId] = useState<
+    string | null
+  >(null);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const draftHasContactLeak = useMemo(
     () => draft.trim().length > 0 && containsRestrictedContent(draft),
     [draft]
+  );
+
+  const loadReviewsForTransactions = useCallback(
+    async (txMap: Record<string, Transaction>) => {
+      if (!user?.id) return;
+      const pending = Object.entries(txMap).filter(
+        ([, tx]) =>
+          (tx.status === "RELEASED" || tx.status === "WITHDRAWN") &&
+          tx.contractorId === user.id
+      );
+      if (!pending.length) return;
+
+      const fetched = await Promise.all(
+        pending.map(async ([id]) => {
+          try {
+            const { review } = await api.user.getReviewByTransaction(id);
+            return [id, review] as const;
+          } catch {
+            return [id, null] as const;
+          }
+        })
+      );
+      setReviewsByTxId((prev) => ({
+        ...prev,
+        ...Object.fromEntries(fetched),
+      }));
+    },
+    [user?.id]
   );
 
   const loadConversations = useCallback(async () => {
@@ -101,10 +156,14 @@ export function ChatPage() {
               return [id, transaction] as const;
             })
           );
+          const txMap = {
+            ...Object.fromEntries(fetched),
+          };
           setTransactionsById((prev) => ({
             ...prev,
-            ...Object.fromEntries(fetched),
+            ...txMap,
           }));
+          await loadReviewsForTransactions(txMap);
         }
         joinConversation(conversationId);
         await refreshUnread();
@@ -116,7 +175,7 @@ export function ChatPage() {
         setLoadingMessages(false);
       }
     },
-    [joinConversation, refreshUnread]
+    [joinConversation, loadReviewsForTransactions, refreshUnread]
   );
 
   useEffect(() => {
@@ -320,6 +379,39 @@ export function ChatPage() {
     setCheckoutPixPayload("");
     setCheckoutPixImage(null);
     setCheckoutTransaction(null);
+
+    if (message.transactionId) {
+      try {
+        const { transaction } = await api.payments.transactionStatus(
+          message.transactionId
+        );
+        setCheckoutTransaction(transaction);
+        if (transaction.status === "PENDING") {
+          const hasPix =
+            Boolean(transaction.pixCopyPaste?.trim()) ||
+            Boolean(transaction.pixQrCodeImage?.trim());
+          if (hasPix) {
+            setCheckoutPixPayload(transaction.pixCopyPaste ?? "");
+            setCheckoutPixImage(transaction.pixQrCodeImage ?? null);
+          } else {
+            setCheckoutLoading(true);
+            try {
+              const result = await api.payments.checkoutFromProposal(
+                message.id,
+                { billingType: "PIX" }
+              );
+              setCheckoutTransaction(result.transaction);
+              setCheckoutPixPayload(result.pix.payload ?? "");
+              setCheckoutPixImage(result.pix.encodedImage ?? null);
+            } finally {
+              setCheckoutLoading(false);
+            }
+          }
+        }
+      } catch (err) {
+        setCheckoutError(formatPaymentError(err));
+      }
+    }
   };
 
   const generatePixCheckout = async (payerProfile?: {
@@ -340,7 +432,7 @@ export function ChatPage() {
       await loadMessages(activeId ?? "");
       await loadConversations();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Erro ao gerar Pix.";
+      const msg = formatPaymentError(err);
       setCheckoutError(msg);
       setError(msg);
     } finally {
@@ -390,8 +482,7 @@ export function ChatPage() {
       await loadMessages(activeId ?? "");
       await loadConversations();
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : "Erro ao pagar com cartão.";
+      const msg = formatPaymentError(err);
       setCheckoutError(msg);
       setError(msg);
     } finally {
@@ -407,11 +498,47 @@ export function ChatPage() {
       if (checkoutTransaction?.id === transactionId) {
         setCheckoutTransaction(transaction);
       }
+      if (
+        transaction.status === "RELEASED" ||
+        transaction.status === "WITHDRAWN"
+      ) {
+        await loadReviewsForTransactions({ [transactionId]: transaction });
+      }
       await loadMessages(activeId ?? "");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao confirmar serviço.");
     } finally {
       setConfirmingTxId(null);
+    }
+  };
+
+  const submitReview = async (
+    transactionId: string,
+    input: { rating: number; comment?: string }
+  ) => {
+    setSubmittingReviewTxId(transactionId);
+    setError(null);
+    try {
+      const { review, listingArchived } = await api.user.createReview({
+        transactionId,
+        rating: input.rating,
+        comment: input.comment,
+      });
+      setReviewsByTxId((prev) => ({ ...prev, [transactionId]: review }));
+      if (listingArchived) {
+        showToast(
+          "Avaliação enviada! O anúncio foi encerrado e removido da vitrine.",
+          "success"
+        );
+      } else {
+        showToast("Avaliação enviada com sucesso!", "success");
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Não foi possível enviar a avaliação."
+      );
+    } finally {
+      setSubmittingReviewTxId(null);
     }
   };
 
@@ -585,15 +712,19 @@ export function ChatPage() {
                             maximumFractionDigits: 2,
                           }).format(m.proposalValue ?? 0)}
                         </p>
-                        {!m.transactionId &&
-                          activeConversation?.myRole === "contractor" &&
-                          activeConversation?.contextType === "listing" && (
+                        {activeConversation?.myRole === "contractor" &&
+                          activeConversation?.contextType === "listing" &&
+                          (!m.transactionId ||
+                            transactionsById[m.transactionId]?.status ===
+                              "PENDING") && (
                           <button
                             type="button"
                             onClick={() => void openCheckout(m)}
                             className="mt-3 rounded-xl bg-sky-500 px-4 py-2 text-sm font-medium text-white transition-transform active:scale-95"
                           >
-                            Aceitar e Pagar Seguro
+                            {m.transactionId
+                              ? "Continuar pagamento Pix"
+                              : "Aceitar e Pagar Seguro"}
                           </button>
                         )}
                         {m.transactionId && (
@@ -625,6 +756,22 @@ export function ChatPage() {
                                     ? "Confirmando..."
                                     : "Confirmar serviço concluído"}
                                 </button>
+                              )}
+                            {m.transactionId &&
+                              activeConversation?.myRole === "contractor" &&
+                              (transactionsById[m.transactionId]?.status ===
+                                "RELEASED" ||
+                                transactionsById[m.transactionId]?.status ===
+                                  "WITHDRAWN") && (
+                                <TransactionReviewPanel
+                                  transactionId={m.transactionId}
+                                  existingReview={reviewsByTxId[m.transactionId]}
+                                  professionalName={activeConversation.otherUser.nome}
+                                  submitting={submittingReviewTxId === m.transactionId}
+                                  onSubmit={(input) =>
+                                    submitReview(m.transactionId!, input)
+                                  }
+                                />
                               )}
                           </>
                         )}

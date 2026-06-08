@@ -12,6 +12,8 @@ import type {
   SupportTicket,
   Transaction,
   User,
+  TransactionReview,
+  UserReputation,
 } from "../types";
 import { getApiBaseUrl } from "./env";
 import { normalizeListingType } from "./listingType";
@@ -281,6 +283,37 @@ export const api = {
 
     listCertificates: () =>
       request<{ certificates: Certificate[] }>("/user/certificados"),
+
+    getReputation: () =>
+      request<{ reputation: UserReputation }>("/user/reputation"),
+
+    getUserReputation: (userId: string) =>
+      request<{ reputation: UserReputation }>(`/user/${userId}/reputation`),
+
+    getReviewByTransaction: (transactionId: string) =>
+      request<{ review: TransactionReview | null }>(
+        `/user/reviews/transaction/${transactionId}`
+      ),
+
+    createReview: (body: {
+      transactionId: string;
+      rating: number;
+      comment?: string;
+    }) =>
+      request<{
+        review: {
+          id: string;
+          rating: number;
+          comment: string | null;
+          createdAt: string;
+          reviewedUserId: string;
+        };
+        reputation: UserReputation;
+        listingArchived?: boolean;
+      }>("/user/reviews", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
   },
 
   jobs: {

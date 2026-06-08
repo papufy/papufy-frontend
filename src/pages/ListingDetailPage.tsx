@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { ListingImageGallery } from "../components/ListingImageGallery";
+import { ReputationBlock } from "../components/ReputationBlock";
 import { SafeText } from "../components/SafeText";
 import { MobileShell } from "../components/mobile/MobileShell";
-import { getCategoryMeta } from "../constants/categories";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { api } from "../lib/api";
@@ -89,46 +90,40 @@ export function ListingDetailPage() {
     );
   }
 
-  const meta = getCategoryMeta(listing.categoria);
-  const isBico =
-    listing.listingType === "JOB_VACANCY";
+  const isBico = listing.listingType === "JOB_VACANCY";
   const isOwner = listing.userId === user?.id;
-  const cover = listing.imagemCapa;
-  const showImage = Boolean(cover && !cover.includes("placeholders/"));
   const ctaLabel = isOwner
     ? "Gerenciar meu anúncio"
     : isBico
       ? "Quero fazer esse serviço"
       : "Contratar profissional";
+  const typeBadge = isBico ? "Pedido de serviço" : "Profissional disponível";
+  const typeBadgeClass = isBico
+    ? "bg-emerald-100 text-emerald-800"
+    : "bg-sky-100 text-sky-800";
 
   return (
     <MobileShell>
       <article className="mobile-gutter space-y-4 py-3 pb-28">
-        <div className="relative mx-auto aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100">
-          {showImage ? (
-            <img
-              src={cover!}
-              alt={listing.titulo}
-              className="h-full w-full object-contain object-center"
-            />
-          ) : (
-            <div
-              className={`flex h-full items-center justify-center bg-gradient-to-br ${meta.imageGradient}`}
-            >
-              <span className="text-7xl">{meta.icon}</span>
-            </div>
+        <ListingImageGallery
+          titulo={listing.titulo}
+          categoria={listing.categoria}
+          imagemCapa={listing.imagemCapa}
+          imagens={listing.imagens}
+        />
+
+        <div className="flex flex-wrap gap-2">
+          <span
+            className={`inline-block rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${typeBadgeClass}`}
+          >
+            {typeBadge}
+          </span>
+          {listing.semQualificacao && (
+            <span className="inline-block rounded-lg bg-sky-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-sky-800">
+              Sem qualificação exigida
+            </span>
           )}
         </div>
-
-        <span
-          className={`inline-block rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${
-            isBico
-              ? "bg-emerald-100 text-emerald-800"
-              : "bg-sky-100 text-sky-800"
-          }`}
-        >
-          {isBico ? "Pedido de serviço" : "Profissional disponível"}
-        </span>
 
         <h1 className="text-xl font-bold text-slate-900">{listing.titulo}</h1>
         <p className="text-2xl font-extrabold text-sky-700">
@@ -137,6 +132,14 @@ export function ListingDetailPage() {
         <p className="text-sm text-slate-500">
           {formatLocation(listing.cidade, listing.uf, listing.bairro)}
         </p>
+
+        {listing.criador?.reputation && (
+          <ReputationBlock
+            reputation={listing.criador.reputation}
+            subjectLabel={listing.criador.nome.split(" ")[0] ?? "esta pessoa"}
+            compact
+          />
+        )}
 
         <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="font-bold text-slate-900">Descrição</h2>
@@ -148,9 +151,11 @@ export function ListingDetailPage() {
           </SafeText>
         </section>
 
-        <p className="text-center text-xs text-slate-500">
-          Anunciante: {listing.criador?.nome ?? "—"}
-        </p>
+        {listing.criador && (
+          <p className="text-center text-xs text-slate-500">
+            Anunciante: {listing.criador.nome}
+          </p>
+        )}
       </article>
 
       <div className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] left-0 right-0 z-40 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-md">

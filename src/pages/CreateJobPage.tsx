@@ -1,18 +1,14 @@
 import { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { MobileShell } from "../components/mobile/MobileShell";
-import {
-  JOB_VACANCY_CATEGORIES,
-  BRAZIL_STATES,
-  PROFESSIONAL_PROFILE_CATEGORIES,
-} from "../constants/categories";
+import { BRAZIL_STATES } from "../constants/categories";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { api } from "../lib/api";
 import { lookupCep, normalizeCep } from "../lib/cep";
+import type { ListingType } from "../types";
 
-type Step = 1 | 2 | 3;
-type ListingType = "JOB_VACANCY" | "PROFESSIONAL_PROFILE";
+type Step = 1 | 2;
 
 export function CreateJobPage() {
   const location = useLocation();
@@ -28,16 +24,11 @@ export function CreateJobPage() {
     ?.listingType;
   const [listingType] = useState<ListingType>(initialType ?? "JOB_VACANCY");
 
-  const categories =
-    listingType === "JOB_VACANCY"
-      ? JOB_VACANCY_CATEGORIES
-      : PROFESSIONAL_PROFILE_CATEGORIES;
-
   const [titulo, setTitulo] = useState(
-    listingType === "JOB_VACANCY" ? "" : `${user?.nome ?? ""} - `
+    listingType === "PROFESSIONAL_PROFILE" ? `${user?.nome ?? ""} - ` : ""
   );
   const [descricao, setDescricao] = useState("");
-  const [categoria, setCategoria] = useState<string>(categories[0]);
+  const [semQualificacao, setSemQualificacao] = useState(false);
   const [cep, setCep] = useState("");
   const [rua, setRua] = useState("");
   const [cidade, setCidade] = useState(user?.cidade || "Campina Grande");
@@ -52,39 +43,41 @@ export function CreateJobPage() {
   const [telefone, setTelefone] = useState(user?.telefone || "");
   const [imagens, setImagens] = useState<File[]>([]);
 
-  const labels = useMemo(
-    () =>
-      listingType === "JOB_VACANCY"
-        ? {
-            pageTitle: "Publicar pedido de serviço",
-            subtitle: "Descreva o problema para receber propostas.",
-            titleLabel: "Título do problema",
-            titlePlaceholder: "Ex: Pia vazando no banheiro",
-            descLabel: "Descrição detalhada",
-            descPlaceholder:
-              "Explique o problema, urgência, referências e horário ideal.",
-            moneyLabel: "Orçamento estimado (R$)",
-            moneyPlaceholder: "150",
-            phoneHint:
-              "Profissionais verão seu contato ao clicar em 'Quero fazer esse serviço'.",
-            submitLabel: "Publicar serviço",
-          }
-        : {
-            pageTitle: "Anunciar perfil profissional",
-            subtitle: "Mostre suas habilidades para receber clientes.",
-            titleLabel: "Título do serviço/profissão",
-            titlePlaceholder: "Ex: João Silva - Eletricista Residencial",
-            descLabel: "Descrição das habilidades",
-            descPlaceholder:
-              "Conte sua experiência, certificações e diferenciais.",
-            moneyLabel: "Faixa de preço (R$)",
-            moneyPlaceholder: "200",
-            phoneHint:
-              "Clientes usarão este contato ao clicar em 'Contratar Profissional'.",
-            submitLabel: "Publicar perfil",
-          },
-    [listingType]
-  );
+  const labels = useMemo(() => {
+    if (listingType === "JOB_VACANCY") {
+      return {
+        pageTitle: "Publicar pedido de serviço",
+        subtitle: "Em 2 passos simples você recebe propostas.",
+        step1Title: "Valores e fotos",
+        step2Title: "Sobre o serviço",
+        titleLabel: "Título do que você precisa",
+        titlePlaceholder: "Ex: Pia vazando no banheiro",
+        descLabel: "Descreva o problema ou serviço",
+        descPlaceholder:
+          "Explique o que precisa, urgência e qualquer detalhe útil.",
+        moneyLabel: "Orçamento estimado (R$)",
+        moneyPlaceholder: "150",
+        phoneHint:
+          "Profissionais verão seu contato ao demonstrar interesse.",
+        submitLabel: "Publicar serviço",
+      };
+    }
+    return {
+      pageTitle: "Anunciar seu trabalho",
+      subtitle: "Em 2 passos simples você aparece para novos clientes.",
+      step1Title: "Valores e fotos",
+      step2Title: "Sobre seus serviços",
+      titleLabel: "Como você quer ser encontrado?",
+      titlePlaceholder: "Ex: Maria — Diarista e organização",
+      descLabel: "O que você faz e sua experiência",
+      descPlaceholder:
+        "Conte o que você oferece, onde atende e seus diferenciais.",
+      moneyLabel: "Faixa de preço (R$)",
+      moneyPlaceholder: "200",
+      phoneHint: "Clientes usarão este contato para contratar você.",
+      submitLabel: "Publicar anúncio",
+    };
+  }, [listingType]);
 
   const parsedPreco = () => {
     const raw = preco.replace(/[^\d,]/g, "").replace(",", ".");
@@ -101,18 +94,21 @@ export function CreateJobPage() {
     };
   };
 
-  const canNext =
-    (step === 1 && titulo.trim().length >= 5 && descricao.trim().length >= 20) ||
-    (step === 2 &&
-      cidade.trim().length >= 2 &&
-      uf.length === 2 &&
-      telefone.trim().length >= 8) ||
-    (step === 3 &&
-      (listingType === "JOB_VACANCY"
-        ? parsedPreco() > 0
-        : parsedRange().min > 0 &&
-          parsedRange().max > 0 &&
-          parsedRange().max >= parsedRange().min));
+  const step1Valid =
+    listingType === "PROFESSIONAL_PROFILE"
+      ? parsedRange().min > 0 &&
+        parsedRange().max > 0 &&
+        parsedRange().max >= parsedRange().min
+      : parsedPreco() > 0;
+
+  const step2Valid =
+    titulo.trim().length >= 5 &&
+    descricao.trim().length >= 20 &&
+    cidade.trim().length >= 2 &&
+    uf.length === 2 &&
+    telefone.trim().length >= 8;
+
+  const canNext = step === 1 ? step1Valid : step2Valid;
 
   const handleCepChange = async (value: string) => {
     const masked = value
@@ -144,29 +140,34 @@ export function CreateJobPage() {
       const formData = new FormData();
       formData.append("listingType", listingType);
       formData.append("titulo", titulo.trim());
+
       const { min, max } = parsedRange();
-      const finalDescription =
-        listingType === "PROFESSIONAL_PROFILE"
-          ? `${descricao.trim()}\n\nFaixa de preço: R$ ${min.toFixed(
-              2
-            )} até R$ ${max.toFixed(2)}.`
-          : descricao.trim();
+      let finalDescription = descricao.trim();
+      if (listingType === "PROFESSIONAL_PROFILE") {
+        finalDescription += `\n\nFaixa de preço: R$ ${min.toFixed(2)} até R$ ${max.toFixed(2)}.`;
+      }
+      if (semQualificacao) {
+        finalDescription +=
+          "\n\nNão é necessária qualificação para realizar este serviço.";
+      }
       formData.append("descricao", finalDescription);
-      formData.append("categoria", categoria);
+      formData.append("categoria", "Geral");
       formData.append("cep", cep.trim());
       formData.append("cidade", cidade.trim());
       formData.append("bairro", bairro.trim());
       formData.append("uf", uf);
       formData.append("telefone", telefone.trim());
       formData.append("aCombinar", "false");
-      if (listingType === "JOB_VACANCY") {
-        formData.append("preco", String(parsedPreco()));
-      } else {
-        formData.append("preco", String((min + max) / 2));
-      }
+
       if (listingType === "PROFESSIONAL_PROFILE") {
+        formData.append("preco", String((min + max) / 2));
         formData.append("raioAtuacao", raioAtuacao.trim());
+      } else {
+        formData.append("preco", String(parsedPreco()));
       }
+
+      formData.append("semQualificacao", String(semQualificacao));
+
       imagens.forEach((img) => formData.append("imagens", img));
 
       const { listing } = await api.listings.create(formData);
@@ -181,6 +182,9 @@ export function CreateJobPage() {
     }
   };
 
+  const inputClass =
+    "mt-1 w-full rounded-lg border border-sky-200 px-4 py-3 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100";
+
   return (
     <MobileShell showCategories={false}>
       <div className="page-container mx-auto max-w-2xl py-5">
@@ -188,15 +192,15 @@ export function CreateJobPage() {
           {labels.pageTitle}
         </h1>
         <p className="mt-1 text-sm text-papufy-muted">
-          Etapa {step} de 3 — {labels.subtitle}
+          Etapa {step} de 2 — {labels.subtitle}
         </p>
 
         <div className="mt-6 flex gap-2">
-          {[1, 2, 3].map((s) => (
+          {[1, 2].map((s) => (
             <div
               key={s}
               className={`h-1.5 flex-1 rounded-full ${
-                s <= step ? "bg-papufy-orange" : "bg-gray-200"
+                s <= step ? "bg-sky-500" : "bg-gray-200"
               }`}
             />
           ))}
@@ -205,153 +209,9 @@ export function CreateJobPage() {
         <div className="mt-6 rounded-2xl border border-papufy-border bg-white p-4 shadow-sm sm:mt-8 sm:p-6">
           {step === 1 && (
             <div className="space-y-4">
-              <h2 className="font-bold text-papufy-text">
-                {listingType === "JOB_VACANCY"
-                  ? "Conte a sua necessidade"
-                  : "Apresente seu serviço"}
-              </h2>
-              <div>
-                <label className="text-sm font-medium">{labels.titleLabel}</label>
-                <input
-                  value={titulo}
-                  onChange={(e) => setTitulo(e.target.value)}
-                  placeholder={labels.titlePlaceholder}
-                  className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">{labels.descLabel}</label>
-                <textarea
-                  value={descricao}
-                  onChange={(e) => setDescricao(e.target.value)}
-                  rows={5}
-                  placeholder={labels.descPlaceholder}
-                  className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Categoria</label>
-                <select
-                  value={categoria}
-                  onChange={(e) => setCategoria(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
-                >
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          )}
+              <h2 className="font-bold text-papufy-text">{labels.step1Title}</h2>
 
-          {step === 2 && (
-            <div className="space-y-4">
-              <h2 className="font-bold text-papufy-text">Localização e contato</h2>
-              <div>
-                <label className="text-sm font-medium">CEP (opcional)</label>
-                <input
-                  value={cep}
-                  onChange={(e) => void handleCepChange(e.target.value)}
-                  placeholder="00000-000"
-                  inputMode="numeric"
-                  className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
-                />
-                {cepLoading && (
-                  <p className="mt-1 text-xs text-papufy-muted">
-                    Buscando endereço pelo CEP...
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="text-sm font-medium">Rua</label>
-                <input
-                  value={rua}
-                  onChange={(e) => setRua(e.target.value)}
-                  placeholder="Logradouro"
-                  className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
-                />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="text-sm font-medium">Cidade</label>
-                  <input
-                    value={cidade}
-                    onChange={(e) => setCidade(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">UF</label>
-                  <select
-                    value={uf}
-                    onChange={(e) => setUf(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
-                  >
-                    {BRAZIL_STATES.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              {listingType === "PROFESSIONAL_PROFILE" && (
-                <div>
-                  <label className="text-sm font-medium">Raio de atuação</label>
-                  <input
-                    value={raioAtuacao}
-                    onChange={(e) => setRaioAtuacao(e.target.value)}
-                    placeholder="Ex: Campina Grande e bairros próximos"
-                    className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
-                  />
-                </div>
-              )}
-              <div>
-                <label className="text-sm font-medium">Bairro (opcional)</label>
-                <input
-                  value={bairro}
-                  onChange={(e) => setBairro(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">
-                  Telefone (liberado após pagamento)
-                </label>
-                <input
-                  value={telefone}
-                  onChange={(e) => setTelefone(e.target.value)}
-                  inputMode="numeric"
-                  placeholder="(83) 99999-9999"
-                  className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
-                />
-              </div>
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="space-y-4">
-              <h2 className="font-bold text-papufy-text">Valores e imagens</h2>
-              {listingType === "JOB_VACANCY" && (
-                <div>
-                  <label className="text-sm font-medium">{labels.moneyLabel}</label>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    min={1}
-                    value={preco}
-                    onChange={(e) => setPreco(e.target.value)}
-                    placeholder={labels.moneyPlaceholder}
-                    className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
-                  />
-                  <p className="mt-1 text-xs text-papufy-muted">
-                    Papufy cobra uma taxa de 7% por transações dentro do app.
-                  </p>
-                </div>
-              )}
-              {listingType === "PROFESSIONAL_PROFILE" && (
+              {listingType === "PROFESSIONAL_PROFILE" ? (
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
                     <label className="text-sm font-medium">Valor mínimo (R$)</label>
@@ -362,7 +222,7 @@ export function CreateJobPage() {
                       value={precoMin}
                       onChange={(e) => setPrecoMin(e.target.value)}
                       placeholder="100"
-                      className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
+                      className={inputClass}
                     />
                   </div>
                   <div>
@@ -374,23 +234,38 @@ export function CreateJobPage() {
                       value={precoMax}
                       onChange={(e) => setPrecoMax(e.target.value)}
                       placeholder="350"
-                      className="mt-1 w-full rounded-lg border border-papufy-border px-4 py-3 text-sm outline-none focus:border-papufy-orange"
+                      className={inputClass}
                     />
                   </div>
-                  <p className="text-xs text-papufy-muted sm:col-span-2">
-                    Papufy cobra uma taxa de 7% por transações dentro do app.
-                  </p>
                   {parsedRange().max > 0 &&
                     parsedRange().min > 0 &&
                     parsedRange().max < parsedRange().min && (
                       <p className="text-xs text-red-600 sm:col-span-2">
-                        O valor máximo deve ser maior ou igual ao valor mínimo.
+                        O valor máximo deve ser maior ou igual ao mínimo.
                       </p>
                     )}
                 </div>
+              ) : (
+                <div>
+                  <label className="text-sm font-medium">{labels.moneyLabel}</label>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min={1}
+                    value={preco}
+                    onChange={(e) => setPreco(e.target.value)}
+                    placeholder={labels.moneyPlaceholder}
+                    className={inputClass}
+                  />
+                </div>
               )}
+
+              <p className="text-xs text-papufy-muted">
+                Papufy cobra 7% apenas em pagamentos feitos pelo app.
+              </p>
+
               <div>
-                <label className="text-sm font-medium">Fotos (até 5)</label>
+                <label className="text-sm font-medium">Fotos (opcional, até 5)</label>
                 <input
                   type="file"
                   accept="image/*"
@@ -398,7 +273,7 @@ export function CreateJobPage() {
                   onChange={(e) =>
                     setImagens(Array.from(e.target.files ?? []).slice(0, 5))
                   }
-                  className="mt-1 w-full rounded-lg border border-dashed border-papufy-border px-4 py-3 text-sm"
+                  className="mt-1 w-full rounded-lg border border-dashed border-sky-200 px-4 py-3 text-sm"
                 />
                 {imagens.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -409,7 +284,7 @@ export function CreateJobPage() {
                         onClick={() =>
                           setImagens((prev) => prev.filter((_, idx) => idx !== i))
                         }
-                        className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-papufy-muted"
+                        className="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700"
                       >
                         {img.name.slice(0, 18)} ×
                       </button>
@@ -417,7 +292,141 @@ export function CreateJobPage() {
                   </div>
                 )}
               </div>
-              <p className="text-sm text-papufy-muted">{labels.phoneHint}</p>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-4">
+              <h2 className="font-bold text-papufy-text">{labels.step2Title}</h2>
+
+              <div>
+                <label className="text-sm font-medium">{labels.titleLabel}</label>
+                <input
+                  value={titulo}
+                  onChange={(e) => setTitulo(e.target.value)}
+                  placeholder={labels.titlePlaceholder}
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">{labels.descLabel}</label>
+                <textarea
+                  value={descricao}
+                  onChange={(e) => setDescricao(e.target.value)}
+                  rows={5}
+                  placeholder={labels.descPlaceholder}
+                  className={inputClass}
+                />
+              </div>
+
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-sky-100 bg-sky-50/60 px-4 py-3">
+                <input
+                  type="checkbox"
+                  checked={semQualificacao}
+                  onChange={(e) => setSemQualificacao(e.target.checked)}
+                  className="mt-0.5 h-5 w-5 rounded border-sky-300 text-sky-600 focus:ring-sky-400"
+                />
+                <span>
+                  <span className="block text-sm font-semibold text-slate-800">
+                    Não é necessária qualificação
+                  </span>
+                  <span className="mt-0.5 block text-xs text-slate-600">
+                    Marque se qualquer pessoa pode fazer este serviço, sem curso,
+                    diploma ou experiência específica.
+                  </span>
+                </span>
+              </label>
+
+              <div className="border-t border-papufy-border pt-4">
+                <h3 className="text-sm font-semibold text-papufy-text">
+                  Onde e como falar com você
+                </h3>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">CEP (opcional)</label>
+                <input
+                  value={cep}
+                  onChange={(e) => void handleCepChange(e.target.value)}
+                  placeholder="00000-000"
+                  inputMode="numeric"
+                  className={inputClass}
+                />
+                {cepLoading && (
+                  <p className="mt-1 text-xs text-papufy-muted">
+                    Buscando endereço pelo CEP...
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Rua (opcional)</label>
+                <input
+                  value={rua}
+                  onChange={(e) => setRua(e.target.value)}
+                  placeholder="Logradouro"
+                  className={inputClass}
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="text-sm font-medium">Cidade</label>
+                  <input
+                    value={cidade}
+                    onChange={(e) => setCidade(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">UF</label>
+                  <select
+                    value={uf}
+                    onChange={(e) => setUf(e.target.value)}
+                    className={inputClass}
+                  >
+                    {BRAZIL_STATES.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {listingType === "PROFESSIONAL_PROFILE" && (
+                <div>
+                  <label className="text-sm font-medium">Onde você atende</label>
+                  <input
+                    value={raioAtuacao}
+                    onChange={(e) => setRaioAtuacao(e.target.value)}
+                    placeholder="Ex: Campina Grande e região"
+                    className={inputClass}
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="text-sm font-medium">Bairro (opcional)</label>
+                <input
+                  value={bairro}
+                  onChange={(e) => setBairro(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Telefone / WhatsApp</label>
+                <input
+                  value={telefone}
+                  onChange={(e) => setTelefone(e.target.value)}
+                  inputMode="numeric"
+                  placeholder="(83) 99999-9999"
+                  className={inputClass}
+                />
+                <p className="mt-1 text-xs text-papufy-muted">{labels.phoneHint}</p>
+              </div>
             </div>
           )}
 
@@ -431,18 +440,18 @@ export function CreateJobPage() {
             {step > 1 && (
               <button
                 type="button"
-                onClick={() => setStep((s) => (s - 1) as Step)}
+                onClick={() => setStep(1)}
                 className="flex-1 rounded-lg border border-papufy-border py-3 text-sm font-semibold text-papufy-muted hover:bg-gray-50"
               >
                 Voltar
               </button>
             )}
-            {step < 3 ? (
+            {step < 2 ? (
               <button
                 type="button"
                 disabled={!canNext}
-                onClick={() => setStep((s) => (s + 1) as Step)}
-                className="flex-1 rounded-lg bg-papufy-orange py-3 text-sm font-bold text-white disabled:opacity-50"
+                onClick={() => setStep(2)}
+                className="flex-1 rounded-lg bg-gradient-to-r from-sky-400 to-blue-500 py-3 text-sm font-bold text-white disabled:opacity-50"
               >
                 Continuar
               </button>
@@ -450,8 +459,8 @@ export function CreateJobPage() {
               <button
                 type="button"
                 disabled={!canNext || submitting}
-                onClick={handleSubmit}
-                className="flex-1 rounded-lg bg-papufy-orange py-3 text-sm font-bold text-white disabled:opacity-50"
+                onClick={() => void handleSubmit()}
+                className="flex-1 rounded-lg bg-gradient-to-r from-sky-400 to-blue-500 py-3 text-sm font-bold text-white disabled:opacity-50"
               >
                 {submitting ? "Publicando..." : labels.submitLabel}
               </button>

@@ -126,6 +126,7 @@ export function PaymentCheckoutSheet({
     () => resolvePixImageSrc(pixQrCodeImage),
     [pixQrCodeImage]
   );
+  const hasPixData = Boolean(pixImageSrc || pixCopyPaste.trim());
 
   const displayError = localError ?? errorMessage;
   const busy = loading;
@@ -334,22 +335,26 @@ export function PaymentCheckoutSheet({
                 {busy ? (
                   <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
                 ) : null}
-                {busy ? "Gerando Pix..." : "Gerar cobrança Pix"}
+                {busy
+                  ? "Gerando Pix..."
+                  : hasPixData
+                    ? "Atualizar QR Code Pix"
+                    : "Gerar cobrança Pix"}
               </button>
 
-              <div className="flex w-full flex-col items-center rounded-2xl border border-sky-100 bg-sky-50/60 p-5 shadow-inner">
+              <div className="flex w-full flex-col items-center rounded-2xl border border-sky-100 bg-sky-50/60 p-4 shadow-inner">
                 {pixImageSrc ? (
                   <img
                     src={pixImageSrc}
                     alt="QR Code Pix"
-                    className="mx-auto h-52 w-52 max-w-full object-contain"
+                    className="mx-auto h-40 w-40 max-w-full object-contain sm:h-44 sm:w-44"
                   />
                 ) : (
-                  <QrCodePlaceholder className="mx-auto scale-110" />
+                  <QrCodePlaceholder className="mx-auto scale-90" />
                 )}
-                {!pixCopyPaste && !pixImageSrc && (
+                {!hasPixData && (
                   <p className="mt-3 text-center text-xs text-slate-500">
-                    Gere a cobrança para exibir o QR Code e o copia e cola.
+                    Toque em &quot;Gerar cobrança Pix&quot; para exibir o QR Code.
                   </p>
                 )}
               </div>

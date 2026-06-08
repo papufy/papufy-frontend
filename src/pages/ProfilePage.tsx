@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Layout } from "../components/Layout";
+import { ReputationBlock } from "../components/ReputationBlock";
 import { UploadZone } from "../components/mobile/UploadZone";
 import { IconUser } from "../components/icons/NavIcons";
 import { useAuth } from "../context/AuthContext";
@@ -12,7 +13,7 @@ import {
   removeProfilePhotoUrl,
   setProfilePhotoUrl,
 } from "../lib/profilePhoto";
-import type { Certificate } from "../types";
+import type { Certificate, UserReputation } from "../types";
 
 export function ProfilePage() {
   const { user } = useAuth();
@@ -32,6 +33,7 @@ export function ProfilePage() {
   const [profilePhoto, setProfilePhoto] = useState<string | null>(
     getProfilePhotoUrl(user?.id)
   );
+  const [reputation, setReputation] = useState<UserReputation | null>(null);
 
   const loadCerts = useCallback(async () => {
     try {
@@ -42,9 +44,23 @@ export function ProfilePage() {
     }
   }, []);
 
+  const loadReputation = useCallback(async () => {
+    try {
+      const { reputation: data } = await api.user.getReputation();
+      setReputation(data);
+    } catch {
+      setReputation({
+        averageRating: null,
+        reviewCount: 0,
+        completedJobsCount: 0,
+      });
+    }
+  }, []);
+
   useEffect(() => {
     void loadCerts();
-  }, [loadCerts]);
+    void loadReputation();
+  }, [loadCerts, loadReputation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,6 +168,13 @@ export function ProfilePage() {
             {user?.email} · Currículo e certificados pelo celular
           </p>
         </div>
+
+        {reputation && (
+          <ReputationBlock
+            reputation={reputation}
+            subjectLabel="você"
+          />
+        )}
 
         <section className="rounded-2xl border border-sky-100 bg-gradient-to-r from-sky-50 to-blue-50 p-4 shadow-sm sm:p-5">
           <h2 className="font-bold text-papufy-text">Carteira e saque</h2>

@@ -13,6 +13,9 @@ export function normalizeListingType(
   if (value === "JOB_VACANCY" || value === "PROFESSIONAL_PROFILE") {
     return value;
   }
+  if (value === "EMPLOYMENT") {
+    return "JOB_VACANCY";
+  }
   return LEGACY[value];
 }
 
@@ -27,3 +30,4 @@ export function isProfessionalProfileListing(
 ): boolean {
   return normalizeListingType(listingType) === "PROFESSIONAL_PROFILE";
 }
+
