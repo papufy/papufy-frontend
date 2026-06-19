@@ -9,88 +9,14 @@ interface ListingImageGalleryProps {
   imagens?: ListingImage[];
 }
 
-/** Largura máxima da galeria (~75% do container principal), centralizada. */
 const GALLERY_WRAP =
   "mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-0";
-
-/** Mosaico estilo OLX: esquerda alta | centro largo (foto principal) | direita 2 quadrados */
-const MOSAIC_GRID =
-  "grid w-full grid-cols-[1fr_1.5fr_1fr] grid-rows-2 gap-1";
 
 const MOSAIC_HEIGHT =
   "h-[min(68vw,260px)] sm:h-[min(50vw,360px)] lg:h-[min(42vw,420px)]";
 
-const SLOT_CLASS = {
-  left: "col-start-1 row-start-1 row-span-2 min-h-0",
-  center: "col-start-2 row-start-1 row-span-2 min-h-0",
-  rightTop: "col-start-3 row-start-1 row-span-1 min-h-0",
-  rightBottom: "col-start-3 row-start-2 row-span-1 min-h-0",
-} as const;
-
-/** Capa no centro; demais fotos nos outros slots (ordem OLX). */
-const SLOT_SLIDE_INDEX = {
-  left: 1,
-  center: 0,
-  rightTop: 2,
-  rightBottom: 3,
-} as const;
-
-type MosaicSlot = keyof typeof SLOT_CLASS;
-
-function GalleryTile({
-  src,
-  alt,
-  slotClass,
-  overlay,
-  onClick,
-}: {
-  src: string;
-  alt: string;
-  slotClass: string;
-  overlay?: string;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`relative block h-full w-full min-h-0 overflow-hidden rounded-sm bg-slate-100 ${slotClass}`}
-      aria-label={alt}
-    >
-      <img
-        src={src}
-        alt={alt}
-        className="absolute inset-0 h-full w-full object-cover"
-        loading="lazy"
-        decoding="async"
-      />
-      {overlay && (
-        <span className="absolute inset-0 z-10 flex items-center justify-center bg-black/45 text-lg font-bold text-white">
-          {overlay}
-        </span>
-      )}
-    </button>
-  );
-}
-
-function GalleryPlaceholder({ slotClass }: { slotClass: string }) {
-  return (
-    <div
-      className={`h-full w-full min-h-0 rounded-sm bg-slate-100 ${slotClass}`}
-      aria-hidden
-    />
-  );
-}
-
-export function ListingImageGallery({
-  titulo,
-  categoria,
-  imagemCapa,
-  imagens = [],
-}: ListingImageGalleryProps) {
-  const meta = getCategoryMeta(categoria);
-
-  const slides = useMemo(() => {
+function useSlides(imagemCapa?: string | null, imagens: ListingImage[] = []) {
+  return useMemo(() => {
     const sorted = [...imagens].sort((a, b) => a.ordem - b.ordem);
     const urls = sorted
       .map((img) => img.url)
@@ -101,145 +27,376 @@ export function ListingImageGallery({
     }
     return [];
   }, [imagens, imagemCapa]);
+}
 
+function GalleryImage({
+  src,
+  alt,
+  className = "",
+  onClick,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+  onClick?: () => void;
+}) {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return (
+      <div
+        className={`flex items-center justify-center bg-slate-100 text-xs text-slate-400 ${className}`}
+        aria-hidden
+      >
+        Imagem indisponível
+      </div>
+    );
+  }
+
+  const img = (
+    <img
+      src={src}
+      alt={alt}
+      className="h-full w-full object-cover"
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(true)}
+    />
+  );
+
+  if (!onClick) {
+    return <div className={`overflow-hidden ${className}`}>{img}</div>;
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`block overflow-hidden bg-slate-100 ${className}`}
+      aria-label={alt}
+    >
+      {img}
+    </button>
+  );
+}
+
+function EmptyGallery({
+  categoria,
+}: {
+  categoria: string;
+}) {
+  const meta = getCategoryMeta(categoria);
+  return (
+    <div className={`${GALLERY_WRAP} py-3 sm:py-4`}>
+      <div
+        className={`flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br ${meta.imageGradient}`}
+      >
+        <span className="text-5xl sm:text-6xl lg:text-7xl">{meta.icon}</span>
+      </div>
+    </div>
+  );
+}
+
+function SingleImageGallery({
+  src,
+  titulo,
+  onOpen,
+}: {
+  src: string;
+  titulo: string;
+  onOpen: (index: number) => void;
+}) {
+  return (
+    <div className={`${GALLERY_WRAP} py-3 sm:py-4`}>
+      <GalleryImage
+        src={src}
+        alt={titulo}
+        className="aspect-[4/3] w-full rounded-lg"
+        onClick={() => onOpen(0)}
+      />
+    </div>
+  );
+}
+
+function DualImageGallery({
+  slides,
+  titulo,
+  onOpen,
+}: {
+  slides: string[];
+  titulo: string;
+  onOpen: (index: number) => void;
+}) {
+  return (
+    <div className={`${GALLERY_WRAP} py-3 sm:py-4`}>
+      <div className={`grid grid-cols-2 gap-1 ${MOSAIC_HEIGHT} overflow-hidden rounded-lg`}>
+        {slides.slice(0, 2).map((src, index) => (
+          <GalleryImage
+            key={`${src}-${index}`}
+            src={src}
+            alt={`${titulo} — foto ${index + 1}`}
+            className="h-full min-h-0 w-full"
+            onClick={() => onOpen(index)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TripleImageGallery({
+  slides,
+  titulo,
+  onOpen,
+}: {
+  slides: string[];
+  titulo: string;
+  onOpen: (index: number) => void;
+}) {
+  return (
+    <div className={`${GALLERY_WRAP} py-3 sm:py-4`}>
+      <div
+        className={`grid grid-cols-[1fr_1.5fr_1fr] grid-rows-2 gap-1 ${MOSAIC_HEIGHT} overflow-hidden rounded-lg`}
+      >
+        <GalleryImage
+          src={slides[1]}
+          alt={`${titulo} — foto 2`}
+          className="col-start-1 row-span-2 row-start-1 h-full min-h-0 w-full"
+          onClick={() => onOpen(1)}
+        />
+        <GalleryImage
+          src={slides[0]}
+          alt={`${titulo} — foto 1`}
+          className="col-start-2 row-span-2 row-start-1 h-full min-h-0 w-full"
+          onClick={() => onOpen(0)}
+        />
+        <GalleryImage
+          src={slides[2]}
+          alt={`${titulo} — foto 3`}
+          className="col-start-3 row-start-1 row-span-1 h-full min-h-0 w-full"
+          onClick={() => onOpen(2)}
+        />
+        <div className="col-start-3 row-start-2 bg-slate-100" aria-hidden />
+      </div>
+    </div>
+  );
+}
+
+function MosaicGallery({
+  slides,
+  titulo,
+  onOpen,
+}: {
+  slides: string[];
+  titulo: string;
+  onOpen: (index: number) => void;
+}) {
+  const extraCount = slides.length > 4 ? slides.length - 4 : 0;
+
+  return (
+    <div className={`${GALLERY_WRAP} py-3 sm:py-4`}>
+      <div
+        className={`grid grid-cols-[1fr_1.5fr_1fr] grid-rows-2 gap-1 ${MOSAIC_HEIGHT} overflow-hidden rounded-lg`}
+      >
+        <GalleryImage
+          src={slides[1]}
+          alt={`${titulo} — foto 2`}
+          className="col-start-1 row-span-2 row-start-1 h-full min-h-0 w-full"
+          onClick={() => onOpen(1)}
+        />
+        <GalleryImage
+          src={slides[0]}
+          alt={`${titulo} — foto 1`}
+          className="col-start-2 row-span-2 row-start-1 h-full min-h-0 w-full"
+          onClick={() => onOpen(0)}
+        />
+        <GalleryImage
+          src={slides[2]}
+          alt={`${titulo} — foto 3`}
+          className="col-start-3 row-start-1 h-full min-h-0 w-full"
+          onClick={() => onOpen(2)}
+        />
+        {slides[3] ? (
+          <div className="relative col-start-3 row-start-2 h-full min-h-0 w-full">
+            <GalleryImage
+              src={slides[3]}
+              alt={`${titulo} — foto 4`}
+              className="h-full w-full"
+              onClick={() => onOpen(3)}
+            />
+            {extraCount > 0 && (
+              <button
+                type="button"
+                className="absolute inset-0 flex items-center justify-center bg-black/45 text-lg font-bold text-white"
+                onClick={() => onOpen(3)}
+                aria-label={`Ver mais ${extraCount} fotos`}
+              >
+                +{extraCount}
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="col-start-3 row-start-2 bg-slate-100" aria-hidden />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ThumbnailStrip({
+  slides,
+  titulo,
+  onOpen,
+}: {
+  slides: string[];
+  titulo: string;
+  onOpen: (index: number) => void;
+}) {
+  if (slides.length <= 1) return null;
+
+  return (
+    <div
+      className={`${GALLERY_WRAP} mt-2 flex justify-center gap-2 overflow-x-auto pb-1`}
+    >
+      {slides.map((url, index) => (
+        <button
+          key={`${url}-thumb-${index}`}
+          type="button"
+          onClick={() => onOpen(index)}
+          className="aspect-[4/3] h-16 w-[5.5rem] shrink-0 overflow-hidden rounded-md border border-slate-200 sm:h-20 sm:w-28"
+          aria-label={`Ver foto ${index + 1} de ${titulo}`}
+        >
+          <img
+            src={url}
+            alt=""
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Lightbox({
+  slides,
+  titulo,
+  index,
+  onClose,
+  onChange,
+}: {
+  slides: string[];
+  titulo: string;
+  index: number;
+  onClose: () => void;
+  onChange: (next: number) => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+    >
+      <button
+        type="button"
+        className="absolute right-4 top-4 rounded-full bg-white/15 px-3 py-1 text-sm font-semibold text-white"
+        onClick={onClose}
+      >
+        Fechar
+      </button>
+      {slides.length > 1 && (
+        <>
+          <button
+            type="button"
+            className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/15 px-3 py-2 text-white"
+            onClick={(e) => {
+              e.stopPropagation();
+              onChange((index - 1 + slides.length) % slides.length);
+            }}
+            aria-label="Foto anterior"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/15 px-3 py-2 text-white"
+            onClick={(e) => {
+              e.stopPropagation();
+              onChange((index + 1) % slides.length);
+            }}
+            aria-label="Próxima foto"
+          >
+            ›
+          </button>
+        </>
+      )}
+      <img
+        src={slides[index]}
+        alt={titulo}
+        className="max-h-[85vh] max-w-full object-contain"
+        onClick={(e) => e.stopPropagation()}
+      />
+      <span className="absolute bottom-6 text-sm text-white/80">
+        {index + 1} / {slides.length}
+      </span>
+    </div>
+  );
+}
+
+export function ListingImageGallery({
+  titulo,
+  categoria,
+  imagemCapa,
+  imagens = [],
+}: ListingImageGalleryProps) {
+  const slides = useSlides(imagemCapa, imagens);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const openLightbox = (index: number) => setLightboxIndex(index);
   const closeLightbox = () => setLightboxIndex(null);
 
-  const extraCount = slides.length > 4 ? slides.length - 4 : 0;
+  if (slides.length === 0) {
+    return <EmptyGallery categoria={categoria} />;
+  }
 
-  const renderSlot = (slot: MosaicSlot) => {
-    const slideIndex = SLOT_SLIDE_INDEX[slot];
-    const src = slides[slideIndex];
-    const slotClass = SLOT_CLASS[slot];
-    const overlay =
-      slot === "rightBottom" && extraCount > 0 ? `+${extraCount}` : undefined;
-
-    if (!src) {
-      return <GalleryPlaceholder slotClass={slotClass} />;
+  const renderMain = () => {
+    if (slides.length === 1) {
+      return (
+        <SingleImageGallery
+          src={slides[0]}
+          titulo={titulo}
+          onOpen={openLightbox}
+        />
+      );
     }
-
+    if (slides.length === 2) {
+      return (
+        <DualImageGallery slides={slides} titulo={titulo} onOpen={openLightbox} />
+      );
+    }
+    if (slides.length === 3) {
+      return (
+        <TripleImageGallery slides={slides} titulo={titulo} onOpen={openLightbox} />
+      );
+    }
     return (
-      <GalleryTile
-        src={src}
-        alt={`${titulo} — foto ${slideIndex + 1}`}
-        slotClass={slotClass}
-        overlay={overlay}
-        onClick={() => openLightbox(slideIndex)}
-      />
+      <MosaicGallery slides={slides} titulo={titulo} onOpen={openLightbox} />
     );
   };
 
-  const renderMosaic = () => (
-    <div className={`${MOSAIC_GRID} ${MOSAIC_HEIGHT}`}>
-      {renderSlot("left")}
-      {renderSlot("center")}
-      {renderSlot("rightTop")}
-      {renderSlot("rightBottom")}
-    </div>
-  );
-
-  if (slides.length === 0) {
-    return (
-      <div className={`${GALLERY_WRAP} py-3 sm:py-4`}>
-        <div className={`${MOSAIC_GRID} ${MOSAIC_HEIGHT}`}>
-          <div
-            className={`${SLOT_CLASS.center} flex h-full w-full items-center justify-center bg-gradient-to-br ${meta.imageGradient}`}
-          >
-            <span className="text-5xl sm:text-6xl lg:text-7xl">{meta.icon}</span>
-          </div>
-          <GalleryPlaceholder slotClass={SLOT_CLASS.left} />
-          <GalleryPlaceholder slotClass={SLOT_CLASS.rightTop} />
-          <GalleryPlaceholder slotClass={SLOT_CLASS.rightBottom} />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
-      <div className={`${GALLERY_WRAP} py-3 sm:py-4`}>
-        {renderMosaic()}
-      </div>
-
-      {slides.length > 1 && (
-        <div
-          className={`${GALLERY_WRAP} mt-2 flex justify-center gap-2 overflow-x-auto pb-1`}
-        >
-          {slides.map((url, index) => (
-            <button
-              key={`${url}-thumb-${index}`}
-              type="button"
-              onClick={() => openLightbox(index)}
-              className="aspect-[4/3] h-16 w-[5.5rem] shrink-0 overflow-hidden rounded-md border border-slate-200 sm:h-20 sm:w-28"
-              aria-label={`Ver foto ${index + 1}`}
-            >
-              <img
-                src={url}
-                alt=""
-                className="h-full w-full object-cover"
-                loading="lazy"
-              />
-            </button>
-          ))}
-        </div>
-      )}
-
+      {renderMain()}
+      <ThumbnailStrip slides={slides} titulo={titulo} onOpen={openLightbox} />
       {lightboxIndex !== null && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-          role="dialog"
-          aria-modal="true"
-          onClick={closeLightbox}
-        >
-          <button
-            type="button"
-            className="absolute right-4 top-4 rounded-full bg-white/15 px-3 py-1 text-sm font-semibold text-white"
-            onClick={closeLightbox}
-          >
-            Fechar
-          </button>
-          {slides.length > 1 && (
-            <>
-              <button
-                type="button"
-                className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/15 px-3 py-2 text-white"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLightboxIndex((i) =>
-                    i === null ? 0 : (i - 1 + slides.length) % slides.length
-                  );
-                }}
-                aria-label="Foto anterior"
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/15 px-3 py-2 text-white"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLightboxIndex((i) =>
-                    i === null ? 0 : (i + 1) % slides.length
-                  );
-                }}
-                aria-label="Próxima foto"
-              >
-                ›
-              </button>
-            </>
-          )}
-          <img
-            src={slides[lightboxIndex]}
-            alt={titulo}
-            className="max-h-[85vh] max-w-full object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
-          <span className="absolute bottom-6 text-sm text-white/80">
-            {lightboxIndex + 1} / {slides.length}
-          </span>
-        </div>
+        <Lightbox
+          slides={slides}
+          titulo={titulo}
+          index={lightboxIndex}
+          onClose={closeLightbox}
+          onChange={setLightboxIndex}
+        />
       )}
     </>
   );
