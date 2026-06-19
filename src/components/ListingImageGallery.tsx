@@ -13,23 +13,40 @@ interface ListingImageGalleryProps {
 const GALLERY_WRAP =
   "mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-0";
 
-/** Mosaico estilo OLX: esquerda alta | centro largo | direita 2 quadrados empilhados */
+/** Mosaico estilo OLX: esquerda alta | centro largo (foto principal) | direita 2 quadrados */
 const MOSAIC_GRID =
-  "grid grid-cols-[1fr_1.5fr_1fr] grid-rows-2 gap-1";
+  "grid w-full grid-cols-[1fr_1.5fr_1fr] grid-rows-2 gap-1";
 
 const MOSAIC_HEIGHT =
   "h-[min(68vw,260px)] sm:h-[min(50vw,360px)] lg:h-[min(42vw,420px)]";
 
+const SLOT_CLASS = {
+  left: "col-start-1 row-start-1 row-span-2 min-h-0",
+  center: "col-start-2 row-start-1 row-span-2 min-h-0",
+  rightTop: "col-start-3 row-start-1 row-span-1 min-h-0",
+  rightBottom: "col-start-3 row-start-2 row-span-1 min-h-0",
+} as const;
+
+/** Capa no centro; demais fotos nos outros slots (ordem OLX). */
+const SLOT_SLIDE_INDEX = {
+  left: 1,
+  center: 0,
+  rightTop: 2,
+  rightBottom: 3,
+} as const;
+
+type MosaicSlot = keyof typeof SLOT_CLASS;
+
 function GalleryTile({
   src,
   alt,
-  className,
+  slotClass,
   overlay,
   onClick,
 }: {
   src: string;
   alt: string;
-  className?: string;
+  slotClass: string;
   overlay?: string;
   onClick?: () => void;
 }) {
@@ -37,12 +54,18 @@ function GalleryTile({
     <button
       type="button"
       onClick={onClick}
-      className={`relative overflow-hidden rounded-sm bg-slate-100 ${className ?? ""}`}
+      className={`relative block h-full w-full min-h-0 overflow-hidden rounded-sm bg-slate-100 ${slotClass}`}
       aria-label={alt}
     >
-      <img src={src} alt={alt} className="h-full w-full object-cover" loading="lazy" />
+      <img
+        src={src}
+        alt={alt}
+        className="absolute inset-0 h-full w-full object-cover"
+        loading="lazy"
+        decoding="async"
+      />
       {overlay && (
-        <span className="absolute inset-0 flex items-center justify-center bg-black/45 text-lg font-bold text-white">
+        <span className="absolute inset-0 z-10 flex items-center justify-center bg-black/45 text-lg font-bold text-white">
           {overlay}
         </span>
       )}
@@ -50,10 +73,10 @@ function GalleryTile({
   );
 }
 
-function GalleryPlaceholder({ className }: { className?: string }) {
+function GalleryPlaceholder({ slotClass }: { slotClass: string }) {
   return (
     <div
-      className={`rounded-sm bg-slate-100 ${className ?? ""}`}
+      className={`h-full w-full min-h-0 rounded-sm bg-slate-100 ${slotClass}`}
       aria-hidden
     />
   );
@@ -86,44 +109,34 @@ export function ListingImageGallery({
 
   const extraCount = slides.length > 4 ? slides.length - 4 : 0;
 
-  const slotClass = {
-    left: "col-start-1 row-span-2 row-start-1 h-full min-h-0",
-    center: "col-start-2 row-span-2 row-start-1 h-full min-h-0",
-    rightTop: "col-start-3 row-span-1 row-start-1 h-full min-h-0",
-    rightBottom: "col-start-3 row-span-1 row-start-2 h-full min-h-0",
-  };
+  const renderSlot = (slot: MosaicSlot) => {
+    const slideIndex = SLOT_SLIDE_INDEX[slot];
+    const src = slides[slideIndex];
+    const slotClass = SLOT_CLASS[slot];
+    const overlay =
+      slot === "rightBottom" && extraCount > 0 ? `+${extraCount}` : undefined;
 
-  const renderSlot = (
-    index: number,
-    className: string,
-    overlay?: string
-  ) => {
-    const src = slides[index];
     if (!src) {
-      return <GalleryPlaceholder className={className} />;
+      return <GalleryPlaceholder slotClass={slotClass} />;
     }
 
     return (
       <GalleryTile
         src={src}
-        alt={`${titulo} — foto ${index + 1}`}
-        className={className}
+        alt={`${titulo} — foto ${slideIndex + 1}`}
+        slotClass={slotClass}
         overlay={overlay}
-        onClick={() => openLightbox(index)}
+        onClick={() => openLightbox(slideIndex)}
       />
     );
   };
 
   const renderMosaic = () => (
     <div className={`${MOSAIC_GRID} ${MOSAIC_HEIGHT}`}>
-      {renderSlot(0, slotClass.left)}
-      {renderSlot(1, slotClass.center)}
-      {renderSlot(2, slotClass.rightTop)}
-      {renderSlot(
-        3,
-        slotClass.rightBottom,
-        extraCount > 0 ? `+${extraCount}` : undefined
-      )}
+      {renderSlot("left")}
+      {renderSlot("center")}
+      {renderSlot("rightTop")}
+      {renderSlot("rightBottom")}
     </div>
   );
 
@@ -132,13 +145,13 @@ export function ListingImageGallery({
       <div className={`${GALLERY_WRAP} py-3 sm:py-4`}>
         <div className={`${MOSAIC_GRID} ${MOSAIC_HEIGHT}`}>
           <div
-            className={`${slotClass.left} flex items-center justify-center bg-gradient-to-br ${meta.imageGradient}`}
+            className={`${SLOT_CLASS.center} flex h-full w-full items-center justify-center bg-gradient-to-br ${meta.imageGradient}`}
           >
             <span className="text-5xl sm:text-6xl lg:text-7xl">{meta.icon}</span>
           </div>
-          <GalleryPlaceholder className={slotClass.center} />
-          <GalleryPlaceholder className={slotClass.rightTop} />
-          <GalleryPlaceholder className={slotClass.rightBottom} />
+          <GalleryPlaceholder slotClass={SLOT_CLASS.left} />
+          <GalleryPlaceholder slotClass={SLOT_CLASS.rightTop} />
+          <GalleryPlaceholder slotClass={SLOT_CLASS.rightBottom} />
         </div>
       </div>
     );
