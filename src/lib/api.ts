@@ -126,11 +126,18 @@ async function uploadRequest<T>(
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     handleAuthFailure(response.status);
-    throw new Error(
+    const detailMessages = data.details
+      ? Object.values(data.details as Record<string, string[] | undefined>)
+          .flat()
+          .filter((message): message is string => typeof message === "string")
+      : [];
+    const message =
       typeof data.error === "string"
         ? data.error
-        : "Erro no envio do arquivo."
-    );
+        : detailMessages.length > 0
+          ? detailMessages.join(" ")
+          : "Erro no envio do arquivo.";
+    throw new Error(message);
   }
   return data as T;
 }
@@ -240,6 +247,25 @@ export const api = {
           listings: data.listings.map(normalizeListing),
         })
       ),
+
+    update: (
+      id: string,
+      body: {
+        titulo?: string;
+        descricao?: string;
+        preco?: number | null;
+        aCombinar?: boolean;
+        cidade?: string;
+        bairro?: string | null;
+        uf?: string;
+        telefone?: string;
+        semQualificacao?: boolean;
+      }
+    ) =>
+      request<{ listing: Listing }>(`/listings/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+      }).then((data) => ({ listing: normalizeListing(data.listing) })),
 
     close: (id: string) =>
       request<{ listing: Listing }>(`/listings/${id}/close`, {
