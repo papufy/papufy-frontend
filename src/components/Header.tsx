@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useChat } from "../context/ChatContext";
 import { useToast } from "../context/ToastContext";
+import { Button } from "@/components/ui/button";
 import { IconChat, IconPlus } from "./icons/NavIcons";
 import { HeaderNavItem } from "./HeaderNavItem";
 import { NotificationsMenu } from "./NotificationsMenu";
@@ -40,7 +41,7 @@ export function Header({ onSearch }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-papufy-border bg-white shadow-sm">
+    <header className="sticky top-0 z-50 border-b border-border/80 bg-card/95 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-card/80">
       <div className="page-container flex items-center gap-2 py-3 sm:gap-3 lg:gap-4">
         <Link to="/" className="shrink-0 py-0.5" aria-label="Papufy — início">
           <PapufyLogo className="h-10 w-auto max-w-[12rem] object-contain drop-shadow-[0_2px_8px_rgba(14,116,144,0.15)] sm:h-12 sm:max-w-[14rem]" />
@@ -76,14 +77,16 @@ export function Header({ onSearch }: HeaderProps) {
             </Link>
           )}
 
-          <button
+          <Button
             type="button"
+            variant="papufy"
+            size="pill"
             onClick={handleAnunciar}
-            className="touch-target hidden shrink-0 items-center gap-2 rounded-full bg-papufy-orange px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-papufy-orange-dark lg:flex"
+            className="hidden shrink-0 gap-2 lg:inline-flex"
           >
             <IconPlus className="h-4 w-4" />
             Anunciar grátis
-          </button>
+          </Button>
 
           {isAuthenticated && <NotificationsMenu variant="mobile" />}
         </div>

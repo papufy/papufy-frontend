@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { FadeContent } from "@/components/effects/FadeContent";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getCategoryMeta } from "../../constants/categories";
 import type { Listing } from "../../types";
 import { formatPrice, formatRelativeTime } from "../../utils/format";
@@ -20,21 +22,23 @@ export function FeaturedProfessionalsScroll({
 
   return (
     <section className="w-full">
+      <FadeContent>
       <header className="mb-3">
-        <h2 className="text-lg font-bold tracking-tight text-papufy-text sm:text-xl">
+        <h2 className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
           Profissionais em Destaque
         </h2>
-        <p className="mt-0.5 text-xs text-papufy-muted">
+        <p className="mt-0.5 text-xs text-muted-foreground">
           Perfis reais em {locationLabel}
         </p>
       </header>
+      </FadeContent>
 
       {loading && listings.length === 0 ? (
         <div className="scrollbar-hide -mx-5 flex gap-3 overflow-x-auto px-5 pb-1">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div
+            <Skeleton
               key={i}
-              className="h-[168px] w-[148px] shrink-0 animate-pulse rounded-2xl bg-slate-200"
+              className="h-[168px] w-[148px] shrink-0 rounded-2xl"
             />
           ))}
         </div>

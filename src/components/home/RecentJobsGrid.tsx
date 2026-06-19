@@ -1,4 +1,6 @@
 import type { Listing } from "../../types";
+import { FadeContent } from "@/components/effects/FadeContent";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ListingCardMobile } from "../mobile/ListingCardMobile";
 
 const FEATURED_SKELETON_COUNT = 6;
@@ -31,26 +33,28 @@ export function RecentJobsGrid({
 
   return (
     <section className="w-full">
-      <header className="mb-3">
-        <h2 className="text-lg font-bold tracking-tight text-papufy-text sm:text-xl">
-          {title}
-        </h2>
-        {subtitle != null && (
-          <p className="mt-0.5 text-xs text-papufy-muted">{subtitle}</p>
-        )}
-      </header>
+      <FadeContent>
+        <header className="mb-3">
+          <h2 className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
+            {title}
+          </h2>
+          {subtitle != null && (
+            <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
+          )}
+        </header>
+      </FadeContent>
 
       {loading && listings.length === 0 ? (
         <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 sm:gap-2">
           {Array.from({ length: FEATURED_SKELETON_COUNT }).map((_, i) => (
-            <div
+            <Skeleton
               key={i}
-              className="aspect-square animate-pulse rounded-lg bg-slate-200"
+              className="aspect-square rounded-lg"
             />
           ))}
         </div>
       ) : listings.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-papufy-border bg-slate-50 px-3 py-4 text-center text-xs text-papufy-muted">
+        <p className="rounded-xl border border-dashed border-border bg-muted/40 px-3 py-4 text-center text-xs text-muted-foreground">
           Nenhum anúncio perto de {locationLabel} no momento.
         </p>
       ) : (

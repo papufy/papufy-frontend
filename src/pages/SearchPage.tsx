@@ -1,4 +1,6 @@
 import { useMemo } from "react";
+import { FadeContent } from "@/components/effects/FadeContent";
+import { Skeleton } from "@/components/ui/skeleton";
 import { MobileShell } from "../components/mobile/MobileShell";
 import { SearchBar } from "../components/mobile/SearchBar";
 import { ListingCardMobile } from "../components/mobile/ListingCardMobile";
@@ -44,30 +46,29 @@ export function SearchPage() {
 
       <div className="mobile-gutter space-y-4 py-4">
         {!hasQuery && (
-          <p className="text-center text-sm text-papufy-muted">
+          <p className="text-center text-sm text-muted-foreground">
             Digite o que procura. A busca usa sua localização (
             {locationDetecting ? "detectando..." : locationLabel}).
           </p>
         )}
 
         {hasQuery && (
-          <header>
-            <h1 className="text-lg font-bold text-papufy-text">Busca</h1>
-            <p className="mt-1 text-xs text-papufy-muted">
-              {locationDetecting
-                ? "Detectando localização..."
-                : `"${debouncedSearch}" em ${locationLabel}`}
-            </p>
-          </header>
+          <FadeContent>
+            <header>
+              <h1 className="text-lg font-bold text-foreground">Busca</h1>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {locationDetecting
+                  ? "Detectando localização..."
+                  : `"${debouncedSearch}" em ${locationLabel}`}
+              </p>
+            </header>
+          </FadeContent>
         )}
 
         {hasQuery && loading && (
           <div className="grid grid-cols-2 gap-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div
-                key={i}
-                className="aspect-square animate-pulse rounded-lg bg-slate-200"
-              />
+              <Skeleton key={i} className="aspect-square rounded-lg" />
             ))}
           </div>
         )}
@@ -79,7 +80,7 @@ export function SearchPage() {
         )}
 
         {hasQuery && !loading && listings.length === 0 && !error && (
-          <p className="text-center text-sm text-papufy-muted">
+          <p className="text-center text-sm text-muted-foreground">
             Nenhum resultado em {locationLabel}.
           </p>
         )}

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { MobileShell } from "../components/mobile/MobileShell";
 import { BRAZIL_STATES } from "../constants/categories";
 import { useAuth } from "../context/AuthContext";
@@ -587,37 +588,40 @@ export function CreateJobPage() {
             </div>
           )}
 
-          <div className="sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] -mx-4 mt-6 flex gap-3 border-t border-papufy-border bg-white/95 p-4 backdrop-blur-md sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+          <div className="sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] -mx-4 mt-6 flex gap-3 border-t border-border bg-card/95 p-4 backdrop-blur-md sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
             {step > 1 && (
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                className="flex-1"
                 onClick={() => {
                   setShowValidation(false);
                   setError(null);
                   setStep(1);
                 }}
-                className="flex-1 rounded-lg border border-papufy-border py-3 text-sm font-semibold text-papufy-muted hover:bg-gray-50"
               >
                 Voltar
-              </button>
+              </Button>
             )}
             {step < 2 ? (
-              <button
+              <Button
                 type="button"
+                variant="papufy"
+                className="flex-1"
                 onClick={handleNext}
-                className="flex-1 rounded-lg bg-gradient-to-r from-sky-400 to-blue-500 py-3 text-sm font-bold text-white"
               >
                 Continuar
-              </button>
+              </Button>
             ) : (
-              <button
+              <Button
                 type="button"
+                variant="papufy"
+                className="flex-1"
                 disabled={submitting}
                 onClick={() => void handleSubmit()}
-                className="flex-1 rounded-lg bg-gradient-to-r from-sky-400 to-blue-500 py-3 text-sm font-bold text-white disabled:opacity-50"
               >
                 {submitting ? "Publicando..." : labels.submitLabel}
-              </button>
+              </Button>
             )}
           </div>
         </div>

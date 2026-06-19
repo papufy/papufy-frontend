@@ -1,5 +1,9 @@
 import { useState, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ShineBorder } from "@/components/effects/ShineBorder";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { PapufyLogo } from "../components/PapufyLogo";
 import { useAuth } from "../context/AuthContext";
 import { useFilters } from "../context/FilterContext";
@@ -14,7 +18,7 @@ import {
 type AuthMode = "login" | "register";
 
 const inputClass =
-  "w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100";
+  "h-11 rounded-xl border-input bg-muted/40 pl-11 text-sm shadow-none focus-visible:border-sky-400 focus-visible:ring-sky-100/80";
 
 function AuthField({
   label,
@@ -26,13 +30,11 @@ function AuthField({
   children: ReactNode;
 }) {
   return (
-    <div>
-      <label className="mb-1.5 block text-sm font-semibold text-slate-700">
-        {label}
-      </label>
+    <div className="space-y-1.5">
+      <Label className="text-sm font-semibold text-foreground">{label}</Label>
       <div className="relative">
         <span
-          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sky-500"
+          className="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-sky-500"
           aria-hidden
         >
           {icon}
@@ -175,8 +177,10 @@ export function LoginPage() {
           </p>
         </header>
 
-        <div className="w-full rounded-2xl border border-sky-100/80 bg-white p-6 shadow-xl shadow-sky-100/50 sm:p-8">
-          <div className="flex rounded-xl bg-slate-100/80 p-1">
+        <ShineBorder borderRadius="1rem" className="w-full shadow-xl shadow-sky-100/40">
+          <Card className="border-0 py-0 shadow-none ring-0">
+            <CardContent className="p-6 sm:p-8">
+          <div className="flex rounded-xl bg-muted/80 p-1">
             <button
               type="button"
               onClick={() => switchMode("login")}
@@ -291,17 +295,19 @@ export function LoginPage() {
               </p>
             )}
 
-            <button
+            <Button
               type="submit"
+              variant="papufy"
+              size="cta"
               disabled={loading}
-              className="w-full rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 py-3.5 text-sm font-bold text-white shadow-md shadow-sky-200/60 transition active:scale-95 disabled:opacity-60"
+              className="w-full"
             >
               {loading
                 ? "Aguarde..."
                 : mode === "login"
                   ? "Entrar"
                   : "Cadastrar"}
-            </button>
+            </Button>
           </form>
 
           <Link
@@ -310,7 +316,9 @@ export function LoginPage() {
           >
             Voltar para a Home
           </Link>
-        </div>
+            </CardContent>
+          </Card>
+        </ShineBorder>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Card } from "@/components/ui/card";
 import { getCategoryMeta } from "../constants/categories";
 import type { Job } from "../types";
 import { formatLocation, formatPrice, formatRelativeTime } from "../utils/format";
@@ -14,8 +15,12 @@ export function JobCard({ job }: JobCardProps) {
   return (
     <Link
       to={`/trabalho/${job.id}`}
-      className="group flex overflow-hidden rounded-xl border border-papufy-border bg-white shadow-sm transition active:bg-gray-50 sm:flex-col sm:active:bg-white sm:hover:-translate-y-0.5 sm:hover:border-papufy-orange/40 sm:hover:shadow-md"
+      className="group block active:scale-[0.99]"
     >
+      <Card
+        size="sm"
+        className="flex-row overflow-hidden py-0 shadow-sm transition hover:shadow-md sm:flex-col"
+      >
       <div
         className={`relative flex h-28 w-32 shrink-0 items-center justify-center bg-gradient-to-br sm:h-36 sm:w-full ${meta.imageGradient}`}
       >
@@ -55,6 +60,7 @@ export function JobCard({ job }: JobCardProps) {
           )}
         </div>
       </div>
+      </Card>
     </Link>
   );
 }

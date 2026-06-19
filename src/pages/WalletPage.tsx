@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
+import { FadeContent } from "@/components/effects/FadeContent";
+import { ShineBorder } from "@/components/effects/ShineBorder";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { MobileShell } from "../components/mobile/MobileShell";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
@@ -191,7 +198,10 @@ export function WalletPage() {
           </p>
         </header>
 
-        <section className="rounded-2xl border border-sky-100 bg-gradient-to-br from-sky-50 to-blue-50 p-5 shadow-sm">
+        <FadeContent>
+        <ShineBorder borderRadius="1rem">
+        <Card className="border-0 bg-gradient-to-br from-sky-50 to-blue-50 py-0 shadow-sm ring-0">
+          <CardContent className="p-5">
           <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
             Saldo disponível (subconta Asaas)
           </p>
@@ -262,14 +272,16 @@ export function WalletPage() {
             )}
           </div>
 
-          <button
+          <Button
             type="button"
+            variant="papufy"
+            size="cta"
             disabled={loading || balanceUnavailable || !canWithdraw}
             onClick={() => setShowWithdrawForm((v) => !v)}
-            className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 text-sm font-bold text-white shadow-md transition hover:from-sky-500 hover:to-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-4 w-full"
           >
             {showWithdrawForm ? "Fechar formulário de saque" : "Solicitar saque via Pix"}
-          </button>
+          </Button>
           {!loading && !balanceUnavailable && !canWithdraw && (
             <p className="mt-2 text-center text-xs text-sky-700">
               {papufyWithdrawable < 1
@@ -277,23 +289,23 @@ export function WalletPage() {
                 : "Saldo na subconta ainda insuficiente para o valor liberado no Papufy."}
             </p>
           )}
-        </section>
+          </CardContent>
+        </Card>
+        </ShineBorder>
+        </FadeContent>
 
         {showWithdrawForm && (
-          <form
-            onSubmit={handleSubaccountWithdraw}
-            className="space-y-3 rounded-2xl border border-sky-100 bg-white p-4 shadow-sm"
-          >
-            <h2 className="text-sm font-bold text-slate-900">Saque da subconta</h2>
+          <form onSubmit={handleSubaccountWithdraw}>
+          <Card className="py-0 shadow-sm">
+            <CardContent className="space-y-3 p-4">
+            <h2 className="text-sm font-bold text-foreground">Saque da subconta</h2>
             <p className="text-xs text-slate-500">
               Chave Pix do mesmo CPF da subconta. Limite:{" "}
               {formatPrice(maxWithdraw, false)}.
             </p>
             <div>
-              <label htmlFor="wallet-withdraw-value" className="text-xs font-medium text-slate-700">
-                Valor (R$)
-              </label>
-              <input
+              <Label htmlFor="wallet-withdraw-value">Valor (R$)</Label>
+              <Input
                 id="wallet-withdraw-value"
                 type="text"
                 inputMode="decimal"
@@ -301,37 +313,32 @@ export function WalletPage() {
                 value={withdrawValue}
                 onChange={(e) => setWithdrawValue(e.target.value)}
                 disabled={withdrawing}
-                className="mt-1 w-full rounded-xl border border-sky-200 px-3 py-2.5 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-200"
+                className="mt-1"
               />
             </div>
             <div>
-              <label htmlFor="wallet-withdraw-pix" className="text-xs font-medium text-slate-700">
-                Chave Pix de destino
-              </label>
-              <input
+              <Label htmlFor="wallet-withdraw-pix">Chave Pix de destino</Label>
+              <Input
                 id="wallet-withdraw-pix"
                 type="text"
                 placeholder="CPF, e-mail, telefone ou aleatória"
                 value={pixAddressKey}
                 onChange={(e) => setPixAddressKey(e.target.value)}
                 disabled={withdrawing}
-                className="mt-1 w-full rounded-xl border border-sky-200 px-3 py-2.5 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-200"
+                className="mt-1"
               />
             </div>
-            <button
+            <Button
               type="submit"
+              variant="papufy"
+              size="cta"
               disabled={withdrawing}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 py-3 text-sm font-bold text-white disabled:opacity-60"
+              className="w-full"
             >
-              {withdrawing ? (
-                <>
-                  <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                  Processando…
-                </>
-              ) : (
-                "Confirmar saque"
-              )}
-            </button>
+              {withdrawing ? "Processando…" : "Confirmar saque"}
+            </Button>
+            </CardContent>
+          </Card>
           </form>
         )}
 
@@ -361,12 +368,13 @@ export function WalletPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center gap-2 py-12 text-sm text-sky-600">
-            <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-sky-200 border-t-sky-600" />
-            Carregando lançamentos…
+          <div className="space-y-3 py-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-20 rounded-xl" />
+            ))}
           </div>
         ) : filtered.length === 0 ? (
-          <p className="rounded-xl border border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
+          <p className="rounded-xl border border-border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
             Nenhum lançamento nesta aba.
           </p>
         ) : (
@@ -374,10 +382,9 @@ export function WalletPage() {
             {filtered.map((tx) => {
               const isPro = tx.professionalId === user.id;
               return (
-                <li
-                  key={tx.id}
-                  className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
-                >
+                <li key={tx.id}>
+                  <Card size="sm" className="py-0 shadow-sm">
+                    <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <p className="text-sm font-semibold text-slate-900">
@@ -408,6 +415,8 @@ export function WalletPage() {
                       Chave Pix: {tx.withdrawPixKey}
                     </p>
                   )}
+                    </CardContent>
+                  </Card>
                 </li>
               );
             })}

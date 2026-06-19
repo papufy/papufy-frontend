@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import type { TransactionReview } from "../../types";
 
 interface TransactionReviewPanelProps {
@@ -103,8 +104,10 @@ export function TransactionReviewPanel({
         className="mt-2 w-full rounded-lg border border-amber-100 bg-white px-3 py-2 text-xs outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
       />
 
-      <button
+      <Button
         type="button"
+        variant="papufy"
+        className="mt-2 w-full"
         disabled={rating < 1 || submitting}
         onClick={() =>
           void onSubmit({
@@ -112,10 +115,9 @@ export function TransactionReviewPanel({
             comment: comment.trim() || undefined,
           })
         }
-        className="mt-2 w-full rounded-lg bg-gradient-to-r from-sky-400 to-blue-500 px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
       >
         {submitting ? "Enviando avaliação..." : "Enviar avaliação"}
-      </button>
+      </Button>
       <p className="sr-only" aria-live="polite">
         Transação {transactionId}
       </p>

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { ListingImageGallery } from "../components/ListingImageGallery";
 import { ListingSellerCard } from "../components/ListingSellerCard";
 import { SafeText } from "../components/SafeText";
@@ -19,6 +21,7 @@ import {
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100";
+
 
 export function ListingDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -367,21 +370,23 @@ export function ListingDetailPage() {
                 )}
 
                 <div className="flex flex-wrap gap-2">
-                  <button
+                  <Button
                     type="button"
+                    variant="papufy"
                     onClick={() => void handleSave()}
                     disabled={saving}
-                    className="rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+                    className="rounded-xl px-4"
                   >
                     {saving ? "Salvando..." : "Salvar alterações"}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="outline"
                     onClick={cancelEditing}
-                    className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600"
+                    className="rounded-xl px-4"
                   >
                     Cancelar
-                  </button>
+                  </Button>
                 </div>
               </section>
             ) : (
@@ -395,46 +400,54 @@ export function ListingDetailPage() {
                   </p>
                 </div>
 
-                <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:p-5">
-                  <h2 className="font-bold text-slate-900">Descrição</h2>
+                <Card className="py-0 shadow-sm">
+                  <CardContent className="p-4 lg:p-5">
+                  <h2 className="font-bold text-foreground">Descrição</h2>
                   <SafeText
                     as="p"
                     className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-700"
                   >
                     {listing.descricao}
                   </SafeText>
-                </section>
+                  </CardContent>
+                </Card>
               </>
             )}
           </div>
 
           <aside className="mt-6 space-y-4 lg:mt-0 lg:sticky lg:top-24">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <Card className="py-0 shadow-sm">
+              <CardContent className="p-5">
               <p className="text-3xl font-extrabold text-slate-900">
                 {formatPrice(listing.preco ?? null, listing.aCombinar)}
               </p>
 
               {!isOwner && (
-                <button
+                <Button
                   type="button"
+                  variant="papufy"
+                  size="cta"
                   onClick={() => void handleContact()}
                   disabled={contactLoading || listing.status !== "OPEN"}
-                  className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-base font-bold text-white shadow-md active:scale-[0.98] disabled:opacity-60"
+                  className="mt-4 w-full rounded-xl"
                 >
                   {contactLoading ? "Abrindo chat..." : ctaLabel}
-                </button>
+                </Button>
               )}
 
               {isOwner && !editing && (
-                <button
+                <Button
                   type="button"
+                  variant="papufy"
+                  size="cta"
                   onClick={() => startEditing(listing)}
-                  className="mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-base font-bold text-white shadow-md"
+                  className="mt-4 w-full rounded-xl"
                 >
                   Editar anúncio
-                </button>
+                </Button>
               )}
-            </div>
+              </CardContent>
+            </Card>
 
             {listing.criador && (
               <ListingSellerCard
@@ -448,41 +461,45 @@ export function ListingDetailPage() {
             )}
 
             {isOwner && (
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p className="text-sm font-bold text-slate-900">Gerenciar anúncio</p>
+              <Card className="py-0 shadow-sm">
+              <CardContent className="p-5">
+                <p className="text-sm font-bold text-foreground">Gerenciar anúncio</p>
                 <div className="mt-3 flex flex-col gap-2">
                   {listing.status === "OPEN" ? (
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      className="border-amber-300 text-amber-800"
                       onClick={() => void handleClose()}
-                      className="rounded-lg border border-amber-300 px-3 py-2 text-sm font-semibold text-amber-800"
                     >
                       Encerrar anúncio
-                    </button>
+                    </Button>
                   ) : (
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      className="border-green-300 text-green-800"
                       onClick={() => void handleReopen()}
-                      className="rounded-lg border border-green-300 px-3 py-2 text-sm font-semibold text-green-800"
                     >
                       Reabrir anúncio
-                    </button>
+                    </Button>
                   )}
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
+                    className="border-red-200 text-red-700"
                     onClick={() => void handleDelete()}
-                    className="rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-700"
                   >
                     Excluir anúncio
-                  </button>
-                  <Link
-                    to="/minhas-publicacoes"
-                    className="rounded-lg border border-slate-200 px-3 py-2 text-center text-sm font-semibold text-slate-600"
-                  >
-                    Ver todos os meus anúncios
-                  </Link>
+                  </Button>
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link to="/minhas-publicacoes">
+                      Ver todos os meus anúncios
+                    </Link>
+                  </Button>
                 </div>
-              </div>
+              </CardContent>
+              </Card>
             )}
           </aside>
         </div>
@@ -490,14 +507,16 @@ export function ListingDetailPage() {
 
       {!isOwner && (
         <div className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] left-0 right-0 z-40 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-md lg:hidden">
-          <button
+          <Button
             type="button"
+            variant="papufy"
+            size="cta"
             onClick={() => void handleContact()}
             disabled={contactLoading || listing.status !== "OPEN"}
-            className="h-12 w-full rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-base font-bold text-white shadow-lg disabled:opacity-70"
+            className="w-full rounded-2xl"
           >
             {contactLoading ? "Abrindo chat..." : ctaLabel}
-          </button>
+          </Button>
         </div>
       )}
     </MobileShell>

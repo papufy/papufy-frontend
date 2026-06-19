@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { FadeContent } from "@/components/effects/FadeContent";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ListingCardMobile } from "../components/mobile/ListingCardMobile";
 import { MobileShell } from "../components/mobile/MobileShell";
 import { ReputationBlock } from "../components/ReputationBlock";
@@ -49,11 +52,11 @@ export function UserPublicProfilePage() {
   if (loading) {
     return (
       <MobileShell>
-        <div className="mobile-gutter animate-pulse space-y-4 py-6">
-          <div className="h-24 rounded-2xl bg-slate-200" />
+        <div className="mobile-gutter space-y-4 py-6">
+          <Skeleton className="h-24 rounded-2xl" />
           <div className="grid grid-cols-2 gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="aspect-square rounded-xl bg-slate-200" />
+              <Skeleton key={i} className="aspect-square rounded-xl" />
             ))}
           </div>
         </div>
@@ -84,7 +87,9 @@ export function UserPublicProfilePage() {
   return (
     <MobileShell>
       <div className="mobile-gutter mx-auto max-w-5xl space-y-6 py-5">
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <FadeContent>
+        <Card className="py-0 shadow-sm">
+          <CardContent className="p-5">
           <div className="flex items-start gap-4">
             <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-200 text-lg font-bold text-slate-600">
               {photoUrl ? (
@@ -120,7 +125,9 @@ export function UserPublicProfilePage() {
               />
             </div>
           )}
-        </section>
+          </CardContent>
+        </Card>
+        </FadeContent>
 
         <section>
           <div className="mb-3 flex items-end justify-between gap-3">

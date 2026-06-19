@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ContactInfo } from "../types";
 
 interface ContactModalProps {
@@ -24,71 +26,68 @@ export function ContactModal({
       aria-modal="true"
       aria-labelledby="contact-modal-title"
     >
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-        <div className="mb-4 flex items-start justify-between">
-          <h2
-            id="contact-modal-title"
-            className="text-lg font-bold text-papufy-text"
-          >
+      <Card className="w-full max-w-md border-0 py-0 shadow-xl ring-0">
+        <CardHeader className="flex flex-row items-start justify-between gap-2">
+          <CardTitle id="contact-modal-title" className="text-lg">
             Contato do contratante
-          </h2>
-          <button
+          </CardTitle>
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-sm"
             onClick={onClose}
-            className="rounded-full p-1 text-papufy-muted hover:bg-gray-100"
             aria-label="Fechar"
           >
             ✕
-          </button>
-        </div>
+          </Button>
+        </CardHeader>
 
-        {mensagem && (
-          <p className="mb-4 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800">
-            {mensagem}
-          </p>
-        )}
+        <CardContent className="space-y-3">
+          {mensagem && (
+            <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800">
+              {mensagem}
+            </p>
+          )}
 
-        {contact.contratante && (
-          <p className="mb-2 text-sm text-papufy-muted">
-            <span className="font-semibold text-papufy-text">
-              {contact.contratante.nome}
-            </span>
-            {contact.contratante.cidade && contact.contratante.uf && (
-              <> · {contact.contratante.cidade}, {contact.contratante.uf}</>
-            )}
-          </p>
-        )}
+          {contact.contratante && (
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">
+                {contact.contratante.nome}
+              </span>
+              {contact.contratante.cidade && contact.contratante.uf && (
+                <> · {contact.contratante.cidade}, {contact.contratante.uf}</>
+              )}
+            </p>
+          )}
 
-        <div className="space-y-3">
           {onOpenChat && (
-            <button
+            <Button
               type="button"
+              variant="papufy"
+              size="cta"
+              className="w-full"
               onClick={() => {
                 onOpenChat();
                 onClose();
               }}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-papufy-orange py-3 font-bold text-white transition hover:bg-papufy-orange-dark"
             >
               Abrir chat em tempo real
-            </button>
+            </Button>
           )}
-          <div className="rounded-xl border border-papufy-border bg-sky-50 p-4 text-sm text-papufy-text">
+
+          <div className="rounded-xl border border-border bg-sky-50 p-4 text-sm text-foreground">
             <p className="font-bold">Contatos protegidos</p>
-            <p className="mt-1 text-papufy-muted">
+            <p className="mt-1 text-muted-foreground">
               Para sua segurança, telefone e endereço não ficam disponíveis no
               chat. Use o chat interno para combinar detalhes.
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-full rounded-lg border border-papufy-border py-2.5 text-sm font-medium text-papufy-muted hover:bg-gray-50"
-          >
+          <Button type="button" variant="outline" className="w-full" onClick={onClose}>
             Fechar
-          </button>
-        </div>
-      </div>
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }

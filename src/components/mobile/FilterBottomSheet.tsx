@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   JOB_VACANCY_CATEGORIES,
   PROFESSIONAL_PROFILE_CATEGORIES,
@@ -175,9 +176,11 @@ export function FilterBottomSheet({
           </div>
         </div>
 
-        <div className="flex shrink-0 gap-2 border-t border-papufy-border px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:py-3.5">
-          <button
+        <div className="flex shrink-0 gap-2 border-t border-border px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:py-3.5">
+          <Button
             type="button"
+            variant="outline"
+            className="h-10 flex-1 sm:h-9"
             onClick={() => {
               resetFilters();
               setMin("");
@@ -187,17 +190,17 @@ export function FilterBottomSheet({
               onApply();
               onClose();
             }}
-            className="h-10 flex-1 rounded-xl border border-papufy-border text-sm font-semibold text-papufy-muted active:scale-95 sm:h-9"
           >
             Limpar
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="papufy"
+            className="h-10 flex-[2] sm:h-9"
             onClick={apply}
-            className="h-10 flex-[2] rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 text-sm font-bold text-white active:scale-95 sm:h-9"
           >
             Aplicar
-          </button>
+          </Button>
         </div>
       </div>
     </div>

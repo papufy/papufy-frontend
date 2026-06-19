@@ -1,4 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface Props {
   children: ReactNode;
@@ -22,20 +24,26 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.error) {
       return (
-        <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-4 bg-[#f5f5f5] p-6 text-center">
-          <p className="text-lg font-bold text-papufy-text">
-            Algo deu errado ao carregar o app
-          </p>
-          <p className="max-w-sm text-sm text-papufy-muted">
-            {this.state.error.message}
-          </p>
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-            className="h-11 rounded-xl bg-papufy-orange px-6 text-sm font-bold text-white active:scale-95"
-          >
-            Recarregar página
-          </button>
+        <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-4 bg-background p-6 text-center">
+          <Card className="max-w-sm border-0 py-0 shadow-sm ring-border/80">
+            <CardContent className="px-6 py-8">
+              <p className="text-lg font-bold text-foreground">
+                Algo deu errado ao carregar o app
+              </p>
+              <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+                {this.state.error.message}
+              </p>
+              <Button
+                type="button"
+                variant="papufy"
+                size="cta"
+                className="mt-6"
+                onClick={() => window.location.reload()}
+              >
+                Recarregar página
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       );
     }

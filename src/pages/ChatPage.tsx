@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { Layout } from "../components/Layout";
 import { SafeText } from "../components/SafeText";
 import { TransactionReviewPanel } from "../components/chat/TransactionReviewPanel";
@@ -672,13 +673,14 @@ export function ChatPage() {
                   </p>
                 </div>
                 {canSendProposal && (
-                  <button
+                  <Button
                     type="button"
+                    variant="papufy"
+                    size="sm"
                     onClick={() => setProposalModalOpen(true)}
-                    className="rounded-xl bg-sky-500 px-3 py-2 text-xs font-semibold text-white transition active:scale-95"
                   >
                     Enviar Proposta
-                  </button>
+                  </Button>
                 )}
                 {canReportProblem && (
                   <button
@@ -717,15 +719,17 @@ export function ChatPage() {
                           (!m.transactionId ||
                             transactionsById[m.transactionId]?.status ===
                               "PENDING") && (
-                          <button
+                          <Button
                             type="button"
+                            variant="papufy"
+                            size="sm"
+                            className="mt-3"
                             onClick={() => void openCheckout(m)}
-                            className="mt-3 rounded-xl bg-sky-500 px-4 py-2 text-sm font-medium text-white transition-transform active:scale-95"
                           >
                             {m.transactionId
                               ? "Continuar pagamento Pix"
                               : "Aceitar e Pagar Seguro"}
-                          </button>
+                          </Button>
                         )}
                         {m.transactionId && (
                           <>
@@ -872,13 +876,14 @@ export function ChatPage() {
                         : "border-papufy-border focus:border-sky-400"
                     }`}
                   />
-                  <button
+                  <Button
                     type="submit"
+                    variant="papufy"
                     disabled={!draft.trim() || draftHasContactLeak || uploadingImage}
-                    className="touch-target shrink-0 rounded-xl bg-sky-500 px-4 text-sm font-bold text-white disabled:opacity-50"
+                    className="shrink-0"
                   >
                     Enviar
-                  </button>
+                  </Button>
                 </div>
               </form>
             </>
@@ -945,25 +950,27 @@ export function ChatPage() {
               </>
             )}
             <div className="mt-4 flex gap-2">
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                className="flex-1"
                 onClick={() => setProposalModalOpen(false)}
-                className="flex-1 rounded-xl border border-slate-200 py-2 text-sm font-medium text-slate-600"
               >
                 Cancelar
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="papufy"
+                className="flex-1"
                 disabled={
                   !proposalValue ||
                   sendingProposal ||
                   (needsReceiverPhone && proposalReceiverPhone.replace(/\D/g, "").length < 10)
                 }
                 onClick={() => void submitProposal()}
-                className="flex-1 rounded-xl bg-sky-500 py-2 text-sm font-semibold text-white disabled:opacity-50"
               >
                 {sendingProposal ? "Enviando..." : "Confirmar"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -995,21 +1002,23 @@ export function ChatPage() {
               />
             </label>
             <div className="mt-4 flex gap-2">
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                className="flex-1"
                 onClick={() => setReportOpen(false)}
-                className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-medium text-slate-600"
               >
                 Cancelar
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="papufy"
+                className="flex-1"
                 disabled={reportSending || reportDescription.trim().length < 10}
                 onClick={() => void submitReport()}
-                className="flex-1 rounded-xl bg-sky-500 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
               >
                 {reportSending ? "Enviando..." : "Enviar para o Suporte"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

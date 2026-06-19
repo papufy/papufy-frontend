@@ -1,6 +1,8 @@
 import { SafeText } from "../components/SafeText";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { JobDetailMobileBar } from "../components/JobDetailMobileBar";
 import { JobDetailSidebar } from "../components/JobDetailSidebar";
 import { JobImageGallery } from "../components/JobImageGallery";
@@ -146,11 +148,13 @@ export function JobDetailPage() {
   if (loading) {
     return (
       <Layout showCategories={false}>
-        <div className="page-container animate-pulse py-4 sm:py-6">
-          <div className="mb-4 h-4 w-1/2 rounded bg-gray-200" />
+        <div className="page-container py-4 sm:py-6">
+          <div className="mb-4">
+            <Skeleton className="h-4 w-1/2" />
+          </div>
           <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-            <div className="h-[420px] rounded-xl bg-gray-200" />
-            <div className="h-80 rounded-xl bg-gray-200" />
+            <Skeleton className="h-[420px] rounded-xl" />
+            <Skeleton className="h-80 rounded-xl" />
           </div>
         </div>
       </Layout>
@@ -266,20 +270,22 @@ export function JobDetailPage() {
               </p>
             </div>
 
-            <section className="rounded-xl border border-papufy-border bg-white p-4 shadow-sm sm:p-6">
-              <h2 className="text-base font-bold text-papufy-text sm:text-lg">
+            <Card className="py-0 shadow-sm">
+              <CardContent className="p-4 sm:p-6">
+              <h2 className="text-base font-bold text-foreground sm:text-lg">
                 Descrição
               </h2>
               <SafeText
                 as="p"
-                className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-papufy-text sm:mt-4 sm:text-base"
+                className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-foreground sm:mt-4 sm:text-base"
               >
                 {job.descricao}
               </SafeText>
               {job.cep && (
-                <p className="mt-4 text-sm text-papufy-muted">CEP: {job.cep}</p>
+                <p className="mt-4 text-sm text-muted-foreground">CEP: {job.cep}</p>
               )}
-            </section>
+              </CardContent>
+            </Card>
           </div>
 
           <div className="hidden lg:block">

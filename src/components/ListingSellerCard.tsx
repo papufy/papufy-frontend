@@ -1,4 +1,7 @@
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import type { ListingPublisher } from "../types";
 import { formatLastAccess, formatMemberSince } from "../utils/format";
 import { getProfilePhotoUrl } from "../lib/profilePhoto";
@@ -47,7 +50,8 @@ export function ListingSellerCard({
     [publisher.cidade, publisher.uf].filter(Boolean).join(", ");
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <Card className="py-0 shadow-sm">
+      <CardContent className="p-5">
       <div className="flex items-start gap-3">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-200 text-sm font-bold text-slate-600">
           {photoUrl ? (
@@ -97,14 +101,14 @@ export function ListingSellerCard({
         )}
       </ul>
 
-      <Link
-        to={`/usuario/${publisher.id}`}
-        className="mt-4 flex h-11 w-full items-center justify-center rounded-xl border border-slate-300 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 active:scale-[0.99]"
-      >
-        Acessar perfil do anunciante
-      </Link>
+      <Button variant="outline" className="mt-4 h-11 w-full rounded-xl" asChild>
+        <Link to={`/usuario/${publisher.id}`}>
+          Acessar perfil do anunciante
+        </Link>
+      </Button>
 
-      <div className="mt-5 border-t border-slate-100 pt-4">
+      <Separator className="mt-5" />
+      <div className="pt-4">
         <p className="text-sm font-semibold text-slate-700">
           Informações verificadas
         </p>
@@ -113,6 +117,7 @@ export function ListingSellerCard({
           <VerifiedRow ok={publisher.verifiedPhone ?? false} label="Telefone" />
         </ul>
       </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FilterBottomSheet } from "../mobile/FilterBottomSheet";
 import { ListingCardMobile } from "../mobile/ListingCardMobile";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { FadeContent } from "@/components/effects/FadeContent";
 import { useFilters } from "../../context/FilterContext";
 import { useDebounce } from "../../hooks/useDebounce";
 import { useInfiniteListings } from "../../hooks/useInfiniteListings";
@@ -124,13 +127,15 @@ export function AppPageHome() {
         <HomeHeroCarousel />
         <div className="flex items-center justify-end gap-2 sm:justify-between">
           <span className="sr-only">Filtros de listagem</span>
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="pill"
             onClick={() => setFiltersOpen(true)}
-            className="h-10 shrink-0 rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 shadow-sm active:scale-95"
+            className="h-10 shrink-0 font-bold"
           >
             Filtros
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -151,6 +156,7 @@ export function AppPageHome() {
         />
 
         {showMoreSection && (
+          <FadeContent delay={120}>
           <section>
             <header className="mb-3">
               <h2 className="text-base font-extrabold text-slate-900">
@@ -162,10 +168,7 @@ export function AppPageHome() {
             {loading && moreListings.length === 0 && featuredListings.length === 0 && (
               <div className="grid grid-cols-2 gap-2">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="aspect-square animate-pulse rounded-lg bg-slate-200"
-                  />
+                  <Skeleton key={i} className="aspect-square rounded-lg" />
                 ))}
               </div>
             )}
@@ -177,13 +180,15 @@ export function AppPageHome() {
                   API:{" "}
                   <code className="rounded bg-red-100 px-1">{getApiBase()}</code>
                 </p>
-                <button
+                <Button
                   type="button"
+                  variant="papufy"
+                  size="cta"
                   onClick={handleRefresh}
-                  className="mt-3 h-11 rounded-xl bg-gradient-to-r from-sky-500 to-blue-500 px-4 text-sm font-bold text-white active:scale-95"
+                  className="mt-3 h-11"
                 >
                   Tentar novamente
-                </button>
+                </Button>
               </div>
             )}
 
@@ -211,6 +216,7 @@ export function AppPageHome() {
               </p>
             )}
           </section>
+          </FadeContent>
         )}
       </div>
 

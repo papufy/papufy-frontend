@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { FadeContent } from "@/components/effects/FadeContent";
+import { ShineBorder } from "@/components/effects/ShineBorder";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Layout } from "../components/Layout";
 import { ReputationBlock } from "../components/ReputationBlock";
 import { UploadZone } from "../components/mobile/UploadZone";
@@ -176,21 +182,25 @@ export function ProfilePage() {
           />
         )}
 
-        <section className="rounded-2xl border border-sky-100 bg-gradient-to-r from-sky-50 to-blue-50 p-4 shadow-sm sm:p-5">
-          <h2 className="font-bold text-papufy-text">Carteira e saque</h2>
-          <p className="mt-1 text-sm text-papufy-muted">
+        <FadeContent>
+        <ShineBorder borderRadius="1rem">
+        <Card className="border-0 bg-gradient-to-br from-card to-sky-50/80 py-0 shadow-none ring-0">
+          <CardContent className="p-4 sm:p-5">
+          <h2 className="font-bold text-foreground">Carteira e saque</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             Consulte o saldo da sua subconta Asaas e solicite transferência Pix.
           </p>
-          <Link
-            to="/carteira"
-            className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 px-4 py-3 text-sm font-bold text-white shadow-md transition hover:from-sky-500 hover:to-blue-600 sm:w-auto"
-          >
-            Abrir carteira e sacar
-          </Link>
-        </section>
+          <Button variant="papufy" size="cta" className="mt-4 w-full sm:w-auto" asChild>
+            <Link to="/carteira">Abrir carteira e sacar</Link>
+          </Button>
+          </CardContent>
+        </Card>
+        </ShineBorder>
+        </FadeContent>
 
-        <section className="space-y-4 rounded-2xl border border-papufy-border bg-white p-4 shadow-sm sm:p-6">
-          <h2 className="font-bold text-papufy-text">Foto de perfil</h2>
+        <Card className="py-0 shadow-sm">
+          <CardContent className="space-y-4 p-4 sm:p-6">
+          <h2 className="font-bold text-foreground">Foto de perfil</h2>
           <div className="flex items-center gap-4">
             <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-200 text-slate-500">
               {profilePhoto ? (
@@ -204,8 +214,10 @@ export function ProfilePage() {
               )}
             </span>
             <div className="space-y-2">
-              <label className="inline-flex cursor-pointer items-center rounded-lg border border-sky-300 px-3 py-2 text-sm font-semibold text-sky-700">
-                {photoUploading ? "Enviando..." : "Escolher foto"}
+              <label className="inline-flex cursor-pointer items-center">
+                <Button type="button" variant="outline" size="sm" asChild>
+                  <span>{photoUploading ? "Enviando..." : "Escolher foto"}</span>
+                </Button>
                 <input
                   type="file"
                   accept="image/*"
@@ -225,10 +237,12 @@ export function ProfilePage() {
               )}
             </div>
           </div>
-        </section>
+          </CardContent>
+        </Card>
 
-        <section className="space-y-4 rounded-2xl border border-papufy-border bg-white p-4 shadow-sm sm:p-6">
-          <h2 className="font-bold text-papufy-text">Documentos</h2>
+        <Card className="py-0 shadow-sm">
+          <CardContent className="space-y-4 p-4 sm:p-6">
+          <h2 className="font-bold text-foreground">Documentos</h2>
           {user?.curriculoUrl && (
             <p className="text-xs text-papufy-muted">
               Currículo atual:{" "}
@@ -274,15 +288,15 @@ export function ProfilePage() {
               ))}
             </ul>
           )}
-        </section>
+          </CardContent>
+        </Card>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 rounded-2xl border border-papufy-border bg-white p-4 shadow-sm sm:p-6"
-        >
-          <h2 className="font-bold text-papufy-text">Dados pessoais</h2>
+        <form onSubmit={handleSubmit}>
+        <Card className="py-0 shadow-sm">
+          <CardContent className="space-y-4 p-4 sm:p-6">
+          <h2 className="font-bold text-foreground">Dados pessoais</h2>
           <div>
-            <label className="text-sm font-medium">Nome</label>
+            <Label>Nome</Label>
             <input
               required
               value={nome}
@@ -291,7 +305,7 @@ export function ProfilePage() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium">Telefone</label>
+            <Label>Telefone</Label>
             <input
               value={telefone}
               onChange={(e) => setTelefone(e.target.value)}
@@ -301,7 +315,7 @@ export function ProfilePage() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm font-medium">Cidade</label>
+              <Label>Cidade</Label>
               <input
                 value={cidade}
                 onChange={(e) => setCidade(e.target.value)}
@@ -309,7 +323,7 @@ export function ProfilePage() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">UF</label>
+              <Label>UF</Label>
               <select
                 value={uf}
                 onChange={(e) => setUf(e.target.value)}
@@ -324,12 +338,12 @@ export function ProfilePage() {
             </div>
           </div>
 
-          <hr className="border-papufy-border" />
-          <p className="text-sm font-medium text-papufy-muted">
+          <Separator />
+          <p className="text-sm font-medium text-muted-foreground">
             Alterar senha (opcional)
           </p>
           <div>
-            <label className="text-sm font-medium">Senha atual</label>
+            <Label>Senha atual</Label>
             <input
               type="password"
               value={senhaAtual}
@@ -338,7 +352,7 @@ export function ProfilePage() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium">Nova senha</label>
+            <Label>Nova senha</Label>
             <input
               type="password"
               minLength={8}
@@ -348,13 +362,17 @@ export function ProfilePage() {
             />
           </div>
 
-          <button
+          <Button
             type="submit"
+            variant="papufy"
+            size="cta"
             disabled={loading}
-            className="h-12 w-full rounded-xl bg-gradient-to-r from-sky-500 to-blue-500 font-bold text-white active:scale-95 disabled:opacity-60"
+            className="w-full"
           >
             {loading ? "Salvando..." : "Salvar alterações"}
-          </button>
+          </Button>
+          </CardContent>
+        </Card>
         </form>
       </div>
     </Layout>

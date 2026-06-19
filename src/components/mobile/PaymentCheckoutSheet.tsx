@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { QrCodePlaceholder } from "../home/QrCodePlaceholder";
 
 export interface PaymentCardPayload {
@@ -326,11 +327,12 @@ export function PaymentCheckoutSheet({
 
           {method === "PIX" ? (
             <>
-              <button
+              <Button
                 type="button"
+                variant="papufy"
+                className="h-11 w-full"
                 onClick={handleGeneratePix}
                 disabled={busy}
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-sky-500 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {busy ? (
                   <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
@@ -340,7 +342,7 @@ export function PaymentCheckoutSheet({
                   : hasPixData
                     ? "Atualizar QR Code Pix"
                     : "Gerar cobrança Pix"}
-              </button>
+              </Button>
 
               <div className="flex w-full flex-col items-center rounded-2xl border border-sky-100 bg-sky-50/60 p-4 shadow-inner">
                 {pixImageSrc ? (
@@ -365,14 +367,16 @@ export function PaymentCheckoutSheet({
                     {pixCopyPaste}
                   </p>
 
-                  <button
+                  <Button
                     type="button"
+                    variant="papufy"
+                    size="cta"
+                    className="w-full rounded-2xl"
                     onClick={() => void copyPix()}
                     disabled={busy || !pixCopyPaste.trim()}
-                    className="touch-target flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-500 text-sm font-bold text-white shadow-lg shadow-sky-200/60 transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {copied ? "Código copiado!" : "Copiar Código Pix"}
-                  </button>
+                  </Button>
                 </>
               )}
             </>
@@ -471,17 +475,18 @@ export function PaymentCheckoutSheet({
                 autoComplete="email"
                 className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm disabled:bg-slate-50"
               />
-              <button
+              <Button
                 type="button"
+                variant="papufy"
+                className="h-11 w-full"
                 disabled={busy}
                 onClick={handlePayCard}
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-sky-600 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {busy ? (
                   <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
                 ) : null}
                 {busy ? "Processando..." : "Pagar com Cartão"}
-              </button>
+              </Button>
             </>
           )}
 

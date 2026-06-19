@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { BRAZIL_STATES } from "../constants/categories";
 import { useFilters } from "../context/FilterContext";
 import { getCitiesByUf } from "../lib/brazilCities";
@@ -128,14 +129,15 @@ export function SearchBar({ onSearch, variant = "full" }: SearchBarProps) {
             )}
           </select>
         </div>
-        <button
+        <Button
           type="button"
+          variant="papufy"
+          className="rounded-r-full rounded-l-none px-4"
           onClick={openSearchPage}
-          className="flex items-center justify-center rounded-r-full bg-papufy-orange px-4 text-white transition-colors hover:bg-papufy-orange-dark"
           aria-label="Abrir busca"
         >
           <IconSearch className="h-5 w-5" />
-        </button>
+        </Button>
       </form>
     );
   }
@@ -188,13 +190,14 @@ export function SearchBar({ onSearch, variant = "full" }: SearchBarProps) {
           )}
         </select>
       </div>
-      <button
+      <Button
         type="submit"
-        className="flex items-center justify-center rounded-r-full bg-papufy-orange px-5 text-white transition-colors hover:bg-papufy-orange-dark"
+        variant="papufy"
+        className="rounded-r-full rounded-l-none px-5"
         aria-label="Buscar"
       >
         <IconSearch className="h-5 w-5" />
-      </button>
+      </Button>
     </form>
   );
 }
