@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ListingImageGallery } from "../components/ListingImageGallery";
@@ -26,6 +26,7 @@ const inputClass =
 export function ListingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated, user } = useAuth();
   const { showToast } = useToast();
   const [listing, setListing] = useState<Listing | null>(null);
@@ -73,6 +74,13 @@ export function ListingDetailPage() {
     setEditError(null);
     setEditing(true);
   };
+
+  useEffect(() => {
+    if (!listing || !user || searchParams.get("edit") !== "1") return;
+    if (listing.userId !== user.id) return;
+    startEditing(listing);
+    setSearchParams({}, { replace: true });
+  }, [listing, user, searchParams, setSearchParams]);
 
   const cancelEditing = () => {
     setEditing(false);

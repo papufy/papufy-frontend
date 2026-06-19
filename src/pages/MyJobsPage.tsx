@@ -142,6 +142,11 @@ export function MyJobsPage() {
                       <Button variant="outline" size="sm" asChild>
                         <Link to={`/anuncio/${listing.id}`}>Ver</Link>
                       </Button>
+                      <Button variant="papufy" size="sm" asChild>
+                        <Link to={`/anuncio/${listing.id}?edit=1`}>
+                          Alterar
+                        </Link>
+                      </Button>
                       {listing.status === "OPEN" ? (
                         <Button
                           type="button"
