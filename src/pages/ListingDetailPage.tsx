@@ -243,7 +243,7 @@ export function ListingDetailPage() {
     <MobileShell>
       <article className="pb-28 lg:pb-8">
         <div className="border-b border-slate-100 bg-white">
-          <div className="mobile-gutter flex items-center justify-between gap-3 py-2 text-xs text-slate-500">
+          <div className="mobile-gutter mx-auto flex max-w-6xl items-center justify-between gap-3 py-2 text-xs text-slate-500">
             <p className="truncate">{breadcrumb}</p>
             <span className="shrink-0">{formatRelativeTime(listing.createdAt)}</span>
           </div>

@@ -9,6 +9,17 @@ interface ListingImageGalleryProps {
   imagens?: ListingImage[];
 }
 
+/** Largura máxima da galeria (~75% do container principal), centralizada. */
+const GALLERY_WRAP =
+  "mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-0";
+
+/** Mosaico estilo OLX: esquerda alta | centro largo | direita 2 quadrados empilhados */
+const MOSAIC_GRID =
+  "grid grid-cols-[1fr_1.5fr_1fr] grid-rows-2 gap-1";
+
+const MOSAIC_HEIGHT =
+  "h-[min(68vw,260px)] sm:h-[min(50vw,360px)] lg:h-[min(42vw,420px)]";
+
 function GalleryTile({
   src,
   alt,
@@ -26,7 +37,7 @@ function GalleryTile({
     <button
       type="button"
       onClick={onClick}
-      className={`relative overflow-hidden bg-slate-100 ${className ?? ""}`}
+      className={`relative overflow-hidden rounded-sm bg-slate-100 ${className ?? ""}`}
       aria-label={alt}
     >
       <img src={src} alt={alt} className="h-full w-full object-cover" loading="lazy" />
@@ -40,7 +51,12 @@ function GalleryTile({
 }
 
 function GalleryPlaceholder({ className }: { className?: string }) {
-  return <div className={`bg-slate-100 ${className ?? ""}`} aria-hidden />;
+  return (
+    <div
+      className={`rounded-sm bg-slate-100 ${className ?? ""}`}
+      aria-hidden
+    />
+  );
 }
 
 export function ListingImageGallery({
@@ -68,10 +84,14 @@ export function ListingImageGallery({
   const openLightbox = (index: number) => setLightboxIndex(index);
   const closeLightbox = () => setLightboxIndex(null);
 
-  const mosaicHeight =
-    "h-[min(72vw,280px)] sm:h-[min(52vw,380px)] lg:h-[min(40vw,440px)]";
-
   const extraCount = slides.length > 4 ? slides.length - 4 : 0;
+
+  const slotClass = {
+    left: "col-start-1 row-span-2 row-start-1 h-full min-h-0",
+    center: "col-start-2 row-span-2 row-start-1 h-full min-h-0",
+    rightTop: "col-start-3 row-span-1 row-start-1 h-full min-h-0",
+    rightBottom: "col-start-3 row-span-1 row-start-2 h-full min-h-0",
+  };
 
   const renderSlot = (
     index: number,
@@ -95,13 +115,13 @@ export function ListingImageGallery({
   };
 
   const renderMosaic = () => (
-    <div className={`grid grid-cols-3 grid-rows-2 gap-1 ${mosaicHeight}`}>
-      {renderSlot(0, "col-span-1 row-span-2 h-full min-h-0")}
-      {renderSlot(1, "col-span-1 row-span-2 h-full min-h-0")}
-      {renderSlot(2, "col-span-1 row-span-1 h-full min-h-0")}
+    <div className={`${MOSAIC_GRID} ${MOSAIC_HEIGHT}`}>
+      {renderSlot(0, slotClass.left)}
+      {renderSlot(1, slotClass.center)}
+      {renderSlot(2, slotClass.rightTop)}
       {renderSlot(
         3,
-        "col-span-1 row-span-1 h-full min-h-0",
+        slotClass.rightBottom,
         extraCount > 0 ? `+${extraCount}` : undefined
       )}
     </div>
@@ -109,15 +129,16 @@ export function ListingImageGallery({
 
   if (slides.length === 0) {
     return (
-      <div className="w-full overflow-hidden bg-white">
-        <div className={`grid grid-cols-3 grid-rows-2 gap-1 ${mosaicHeight}`}>
+      <div className={`${GALLERY_WRAP} py-3 sm:py-4`}>
+        <div className={`${MOSAIC_GRID} ${MOSAIC_HEIGHT}`}>
           <div
-            className={`col-span-2 row-span-2 flex items-center justify-center bg-gradient-to-br ${meta.imageGradient}`}
+            className={`${slotClass.left} flex items-center justify-center bg-gradient-to-br ${meta.imageGradient}`}
           >
-            <span className="text-6xl sm:text-7xl">{meta.icon}</span>
+            <span className="text-5xl sm:text-6xl lg:text-7xl">{meta.icon}</span>
           </div>
-          <GalleryPlaceholder className="col-span-1 row-span-1 h-full min-h-0" />
-          <GalleryPlaceholder className="col-span-1 row-span-1 h-full min-h-0" />
+          <GalleryPlaceholder className={slotClass.center} />
+          <GalleryPlaceholder className={slotClass.rightTop} />
+          <GalleryPlaceholder className={slotClass.rightBottom} />
         </div>
       </div>
     );
@@ -125,10 +146,14 @@ export function ListingImageGallery({
 
   return (
     <>
-      <div className="w-full overflow-hidden bg-white">{renderMosaic()}</div>
+      <div className={`${GALLERY_WRAP} py-3 sm:py-4`}>
+        {renderMosaic()}
+      </div>
 
       {slides.length > 1 && (
-        <div className="mt-2 flex gap-2 overflow-x-auto px-4 pb-1 lg:px-0">
+        <div
+          className={`${GALLERY_WRAP} mt-2 flex justify-center gap-2 overflow-x-auto pb-1`}
+        >
           {slides.map((url, index) => (
             <button
               key={`${url}-thumb-${index}`}
@@ -137,7 +162,12 @@ export function ListingImageGallery({
               className="aspect-[4/3] h-16 w-[5.5rem] shrink-0 overflow-hidden rounded-md border border-slate-200 sm:h-20 sm:w-28"
               aria-label={`Ver foto ${index + 1}`}
             >
-              <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" />
+              <img
+                src={url}
+                alt=""
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
             </button>
           ))}
         </div>
