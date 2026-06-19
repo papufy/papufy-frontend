@@ -61,6 +61,7 @@ export function ChatPage() {
   const [proposalModalOpen, setProposalModalOpen] = useState(false);
   const [proposalValue, setProposalValue] = useState("");
   const [proposalReceiverPhone, setProposalReceiverPhone] = useState("");
+  const [proposalBirthDate, setProposalBirthDate] = useState("");
   const needsPayerCpf = useMemo(() => {
     const doc = user?.cpfCnpj?.replace(/\D/g, "") ?? "";
     return doc.length < 11;
@@ -69,6 +70,10 @@ export function ChatPage() {
     const phone = user?.telefone?.replace(/\D/g, "") ?? "";
     return phone.length < 10;
   }, [user?.telefone]);
+  const needsReceiverBirthDate = useMemo(() => {
+    const doc = user?.cpfCnpj?.replace(/\D/g, "") ?? "";
+    return doc.length === 11 && !user?.dataNascimento;
+  }, [user?.cpfCnpj, user?.dataNascimento]);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutMessage, setCheckoutMessage] = useState<ChatMessage | null>(null);
@@ -345,14 +350,20 @@ export function ChatPage() {
     if (!value || value <= 0) return;
     setSendingProposal(true);
     try {
-      const receiverProfile =
-        needsReceiverPhone && proposalReceiverPhone.trim()
-          ? { telefone: proposalReceiverPhone.replace(/\D/g, "") }
-          : undefined;
+      const receiverProfile: {
+        telefone?: string;
+        dataNascimento?: string;
+      } = {};
+      if (needsReceiverPhone && proposalReceiverPhone.trim()) {
+        receiverProfile.telefone = proposalReceiverPhone.replace(/\D/g, "");
+      }
+      if (needsReceiverBirthDate && proposalBirthDate) {
+        receiverProfile.dataNascimento = proposalBirthDate;
+      }
       const { message } = await api.chat.sendProposal(
         activeId,
         value,
-        receiverProfile
+        Object.keys(receiverProfile).length > 0 ? receiverProfile : undefined
       );
       setMessages((prev) => [...prev, message]);
       setProposalModalOpen(false);
@@ -361,7 +372,9 @@ export function ChatPage() {
     } catch (err) {
       const e = err as Error & { missingFields?: string[] };
       const msg =
-        e.missingFields?.includes("telefone")
+        e.missingFields?.includes("dataNascimento")
+          ? "Informe sua data de nascimento para receber pagamentos."
+          : e.missingFields?.includes("telefone")
           ? "Informe seu telefone para receber pagamentos."
           : e instanceof Error
             ? e.message
@@ -949,6 +962,20 @@ export function ChatPage() {
                 />
               </>
             )}
+            {needsReceiverBirthDate && (
+              <>
+                <p className="mt-3 text-xs text-sky-700">
+                  Informe sua data de nascimento (exigência do Asaas para receber
+                  pagamentos).
+                </p>
+                <input
+                  type="date"
+                  value={proposalBirthDate}
+                  onChange={(e) => setProposalBirthDate(e.target.value)}
+                  className="mt-2 w-full rounded-xl border border-sky-200 px-3 py-2.5 text-sm outline-none focus:border-sky-400"
+                />
+              </>
+            )}
             <div className="mt-4 flex gap-2">
               <Button
                 type="button"
@@ -965,7 +992,9 @@ export function ChatPage() {
                 disabled={
                   !proposalValue ||
                   sendingProposal ||
-                  (needsReceiverPhone && proposalReceiverPhone.replace(/\D/g, "").length < 10)
+                  (needsReceiverPhone &&
+                    proposalReceiverPhone.replace(/\D/g, "").length < 10) ||
+                  (needsReceiverBirthDate && !proposalBirthDate)
                 }
                 onClick={() => void submitProposal()}
               >

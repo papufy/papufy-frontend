@@ -22,6 +22,7 @@ export interface User {
   nome: string;
   email: string;
   cpfCnpj?: string | null;
+  dataNascimento?: string | null;
   telefone?: string | null;
   cidade?: string | null;
   uf?: string | null;

@@ -460,7 +460,11 @@ export const api = {
     sendProposal: (
       conversationId: string,
       value: number,
-      receiverProfile?: { cpfCnpj?: string; telefone?: string }
+      receiverProfile?: {
+        cpfCnpj?: string;
+        telefone?: string;
+        dataNascimento?: string;
+      }
     ) =>
       request<{ message: ChatMessage }>(
         `/chat/conversations/${conversationId}/proposal`,
