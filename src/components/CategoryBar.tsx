@@ -23,9 +23,9 @@ export function CategoryBar({ onCategorySelect }: CategoryBarProps) {
   };
 
   return (
-    <section className="border-b border-papufy-border bg-white shadow-sm">
-      <div className="page-container py-2.5 lg:py-3">
-        <div className="scrollbar-hide snap-x-mandatory flex gap-2.5 overflow-x-auto pb-1 sm:gap-3">
+    <section className="border-y border-slate-200/80 bg-white">
+      <div className="page-container py-3 lg:py-3.5">
+        <div className="scrollbar-hide snap-x-mandatory flex justify-center gap-5 overflow-x-auto pb-0.5 sm:gap-7">
           {JOB_VACANCY_CATEGORIES.map((category) => {
             const meta = getCategoryMeta(category);
             const isActive = filters.category === category;
@@ -35,27 +35,19 @@ export function CategoryBar({ onCategorySelect }: CategoryBarProps) {
                 key={category}
                 type="button"
                 onClick={() => handleClick(category)}
-                className={`snap-start flex min-w-[80px] shrink-0 flex-col items-center gap-1.5 rounded-2xl border px-2.5 py-2.5 transition sm:min-w-[88px] sm:gap-2 sm:px-3 sm:py-3 ${
-                  isActive
-                    ? "border-papufy-orange bg-sky-50 shadow-sm"
-                    : "border-papufy-border bg-white hover:border-papufy-orange/50 hover:bg-gray-50"
-                }`}
+                className="snap-start flex min-w-[4.5rem] shrink-0 flex-col items-center gap-1.5 transition active:opacity-70 sm:min-w-[5rem]"
               >
-                <span
-                  className={`flex h-10 w-10 items-center justify-center rounded-full sm:h-11 sm:w-11 ${
-                    isActive
-                      ? "bg-papufy-orange text-white"
-                      : `${meta.color}`
+                <CategoryIcon
+                  name={meta.iconKey}
+                  className={`h-7 w-7 sm:h-8 sm:w-8 ${
+                    isActive ? "text-sky-700" : "text-sky-600"
                   }`}
-                >
-                  <CategoryIcon
-                    name={meta.iconKey}
-                    className="h-5 w-5 sm:h-6 sm:w-6"
-                  />
-                </span>
+                />
                 <span
-                  className={`max-w-[90px] text-center text-xs font-medium leading-tight ${
-                    isActive ? "text-papufy-orange" : "text-papufy-text"
+                  className={`max-w-[5.5rem] text-center text-[11px] leading-tight sm:text-xs ${
+                    isActive
+                      ? "font-semibold text-sky-700"
+                      : "font-medium text-sky-600"
                   }`}
                 >
                   {category}

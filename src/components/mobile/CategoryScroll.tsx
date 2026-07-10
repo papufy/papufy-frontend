@@ -42,12 +42,12 @@ export function CategoryScroll({ onChange }: CategoryScrollProps) {
   };
 
   return (
-    <section aria-label="Categorias" className="border-b border-slate-100/80 bg-white">
+    <section aria-label="Categorias" className="border-y border-slate-200/80 bg-white">
       <div
-        className="scrollbar-hide overflow-x-auto px-4 py-2 touch-pan-x"
+        className="scrollbar-hide overflow-x-auto px-3 py-3 touch-pan-x"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
-        <div className="mx-auto flex w-max min-w-full flex-nowrap justify-center gap-4">
+        <div className="mx-auto flex w-max min-w-full flex-nowrap justify-center gap-5 sm:gap-6">
           {MACRO_SCROLL_CATEGORIES.map((item) => {
             const isActive = activeId === item.id;
             return (
@@ -55,22 +55,19 @@ export function CategoryScroll({ onChange }: CategoryScrollProps) {
                 key={item.id}
                 type="button"
                 onClick={() => applyMacro(item.listingType, item.category)}
-                className="flex w-[4.25rem] shrink-0 flex-col items-center gap-1.5 active:scale-95"
+                className="flex w-[4.5rem] shrink-0 flex-col items-center gap-1.5 active:opacity-70"
               >
-                <span
-                  className={`flex h-12 w-12 items-center justify-center rounded-full border transition ${
-                    isActive
-                      ? "border-sky-300 bg-sky-50 text-sky-600"
-                      : "border-slate-100 bg-white text-sky-600"
+                <CategoryIcon
+                  name={item.iconKey}
+                  className={`h-7 w-7 ${
+                    isActive ? "text-sky-700" : "text-sky-600"
                   }`}
-                >
-                  <CategoryIcon name={item.iconKey} className="h-6 w-6" />
-                </span>
+                />
                 <span
                   className={`line-clamp-2 w-full text-center text-[11px] leading-tight ${
                     isActive
-                      ? "font-semibold text-sky-600"
-                      : "font-medium text-slate-500"
+                      ? "font-semibold text-sky-700"
+                      : "font-medium text-sky-600"
                   }`}
                 >
                   {item.label}
