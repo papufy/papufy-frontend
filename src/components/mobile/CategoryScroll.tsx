@@ -55,19 +55,31 @@ export function CategoryScroll({ onChange }: CategoryScrollProps) {
                 key={item.id}
                 type="button"
                 onClick={() => applyMacro(item.listingType, item.category)}
-                className="flex w-[4.5rem] shrink-0 flex-col items-center gap-1.5 active:opacity-70"
+                className="group flex w-[4.5rem] shrink-0 flex-col items-center gap-1.5 outline-none"
               >
-                <CategoryIcon
-                  name={item.iconKey}
-                  className={`h-7 w-7 ${
-                    isActive ? "text-sky-700" : "text-sky-600"
-                  }`}
-                />
+                <span className="relative flex h-11 w-11 items-center justify-center">
+                  <span
+                    aria-hidden
+                    className={`pointer-events-none absolute inset-0 rounded-2xl transition duration-300 ease-out ${
+                      isActive
+                        ? "scale-100 bg-sky-400/20 opacity-100 shadow-[0_0_18px_rgba(56,189,248,0.35)]"
+                        : "scale-75 bg-sky-400/0 opacity-0 group-hover:scale-100 group-hover:bg-sky-400/18 group-hover:opacity-100 group-hover:shadow-[0_0_18px_rgba(56,189,248,0.3)] group-focus-visible:scale-100 group-focus-visible:bg-sky-400/18 group-focus-visible:opacity-100"
+                    }`}
+                  />
+                  <CategoryIcon
+                    name={item.iconKey}
+                    className={`relative z-10 h-7 w-7 transition duration-300 ease-out ${
+                      isActive
+                        ? "scale-105 text-sky-700"
+                        : "text-sky-600 group-hover:scale-110 group-hover:text-sky-700 group-focus-visible:scale-110 group-focus-visible:text-sky-700"
+                    }`}
+                  />
+                </span>
                 <span
-                  className={`line-clamp-2 w-full text-center text-[11px] leading-tight ${
+                  className={`line-clamp-2 w-full text-center text-[11px] leading-tight transition duration-300 ${
                     isActive
                       ? "font-semibold text-sky-700"
-                      : "font-medium text-sky-600"
+                      : "font-medium text-sky-600 group-hover:font-semibold group-hover:text-sky-700"
                   }`}
                 >
                   {item.label}
