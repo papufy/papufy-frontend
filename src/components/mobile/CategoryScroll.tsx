@@ -1,3 +1,4 @@
+import { CategoryIcon } from "../icons/CategoryIcons";
 import {
   MACRO_SCROLL_CATEGORIES,
   type ListingTypeFilter,
@@ -47,36 +48,36 @@ export function CategoryScroll({ onChange }: CategoryScrollProps) {
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         <div className="mx-auto flex w-max min-w-full flex-nowrap justify-center gap-4">
-        {MACRO_SCROLL_CATEGORIES.map((item) => {
-          const isActive = activeId === item.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => applyMacro(item.listingType, item.category)}
-              className="flex w-[4.25rem] shrink-0 flex-col items-center gap-1.5 active:scale-95"
-            >
-              <span
-                className={`flex h-12 w-12 items-center justify-center rounded-full border text-xl transition ${
-                  isActive
-                    ? "border-sky-300 bg-sky-50"
-                    : "border-slate-100 bg-white"
-                }`}
+          {MACRO_SCROLL_CATEGORIES.map((item) => {
+            const isActive = activeId === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => applyMacro(item.listingType, item.category)}
+                className="flex w-[4.25rem] shrink-0 flex-col items-center gap-1.5 active:scale-95"
               >
-                {item.icon}
-              </span>
-              <span
-                className={`line-clamp-2 w-full text-center text-[11px] leading-tight ${
-                  isActive
-                    ? "font-semibold text-sky-600"
-                    : "font-medium text-slate-500"
-                }`}
-              >
-                {item.label}
-              </span>
-            </button>
-          );
-        })}
+                <span
+                  className={`flex h-12 w-12 items-center justify-center rounded-full border transition ${
+                    isActive
+                      ? "border-sky-300 bg-sky-50 text-sky-600"
+                      : "border-slate-100 bg-white text-sky-600"
+                  }`}
+                >
+                  <CategoryIcon name={item.iconKey} className="h-6 w-6" />
+                </span>
+                <span
+                  className={`line-clamp-2 w-full text-center text-[11px] leading-tight ${
+                    isActive
+                      ? "font-semibold text-sky-600"
+                      : "font-medium text-slate-500"
+                  }`}
+                >
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </section>

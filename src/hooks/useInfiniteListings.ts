@@ -43,11 +43,29 @@ export function useInfiniteListings(
       }
 
       try {
-        const data = await api.listings.list({
+        let data = await api.listings.list({
           ...q,
           limit: PAGE_SIZE,
           offset,
         });
+
+        // Se a cidade filtrada não tem anúncios, amplia para o Brasil
+        // (evita home vazia quando o GPS aponta para outra região).
+        if (
+          reset &&
+          data.listings.length === 0 &&
+          (q.cidade || q.uf || q.location)
+        ) {
+          data = await api.listings.list({
+            search: q.search,
+            category: q.category,
+            listingType: q.listingType,
+            minPrice: q.minPrice,
+            maxPrice: q.maxPrice,
+            limit: PAGE_SIZE,
+            offset: 0,
+          });
+        }
 
         setListings((prev) =>
           reset ? data.listings : [...prev, ...data.listings]

@@ -1,3 +1,4 @@
+import { CategoryIcon } from "./icons/CategoryIcons";
 import {
   JOB_VACANCY_CATEGORIES,
   getCategoryMeta,
@@ -41,11 +42,16 @@ export function CategoryBar({ onCategorySelect }: CategoryBarProps) {
                 }`}
               >
                 <span
-                  className={`flex h-10 w-10 items-center justify-center rounded-full text-lg sm:h-11 sm:w-11 sm:text-xl ${
-                    isActive ? "bg-papufy-orange text-white" : meta.color
+                  className={`flex h-10 w-10 items-center justify-center rounded-full sm:h-11 sm:w-11 ${
+                    isActive
+                      ? "bg-papufy-orange text-white"
+                      : `${meta.color}`
                   }`}
                 >
-                  {meta.icon}
+                  <CategoryIcon
+                    name={meta.iconKey}
+                    className="h-5 w-5 sm:h-6 sm:w-6"
+                  />
                 </span>
                 <span
                   className={`max-w-[90px] text-center text-xs font-medium leading-tight ${
