@@ -17,7 +17,6 @@ export function SearchPage() {
       search: debouncedSearch || undefined,
       category: filters.category || undefined,
       listingType: filters.listingType || undefined,
-      location: `${filters.cidade}, ${filters.uf}`,
       uf: filters.uf,
       cidade: filters.cidade,
       minPrice: filters.minPrice ?? undefined,
@@ -35,7 +34,7 @@ export function SearchPage() {
   );
 
   const { listings, loading, error } = useInfiniteListings(query, {
-    enabled: !locationDetecting && debouncedSearch.trim().length > 0,
+    enabled: !locationDetecting,
   });
 
   const hasQuery = debouncedSearch.trim().length > 0;
@@ -45,27 +44,22 @@ export function SearchPage() {
       <SearchBar autoFocusFullscreen />
 
       <div className="mobile-gutter space-y-4 py-4">
-        {!hasQuery && (
-          <p className="text-center text-sm text-muted-foreground">
-            Digite o que procura. A busca usa sua localização (
-            {locationDetecting ? "detectando..." : locationLabel}).
-          </p>
-        )}
+        <FadeContent>
+          <header>
+            <h1 className="text-lg font-bold text-foreground">
+              {hasQuery ? "Busca" : "Na sua região"}
+            </h1>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {locationDetecting
+                ? "Detectando localização..."
+                : hasQuery
+                  ? `"${debouncedSearch}" em ${locationLabel}`
+                  : `Anúncios em ${locationLabel}`}
+            </p>
+          </header>
+        </FadeContent>
 
-        {hasQuery && (
-          <FadeContent>
-            <header>
-              <h1 className="text-lg font-bold text-foreground">Busca</h1>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {locationDetecting
-                  ? "Detectando localização..."
-                  : `"${debouncedSearch}" em ${locationLabel}`}
-              </p>
-            </header>
-          </FadeContent>
-        )}
-
-        {hasQuery && loading && (
+        {loading && (
           <div className="grid grid-cols-2 gap-2">
             {Array.from({ length: 4 }).map((_, i) => (
               <Skeleton key={i} className="aspect-square rounded-lg" />
@@ -73,19 +67,19 @@ export function SearchPage() {
           </div>
         )}
 
-        {hasQuery && error && !loading && (
+        {error && !loading && (
           <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-center text-sm text-red-700">
             {error}
           </p>
         )}
 
-        {hasQuery && !loading && listings.length === 0 && !error && (
+        {!loading && listings.length === 0 && !error && (
           <p className="text-center text-sm text-muted-foreground">
-            Nenhum resultado em {locationLabel}.
+            Nenhum anúncio em {locationLabel}.
           </p>
         )}
 
-        {hasQuery && listings.length > 0 && (
+        {listings.length > 0 && (
           <div className="grid grid-cols-2 gap-2">
             {listings.map((listing) => (
               <ListingCardMobile key={listing.id} listing={listing} compact />

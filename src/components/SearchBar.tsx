@@ -40,9 +40,14 @@ export function SearchBar({ onSearch, variant = "full" }: SearchBarProps) {
         if (cancelled) return;
 
         setCities(ufCities);
-        if (ufCities.length > 0 && !ufCities.includes(cidade)) {
-          setCidade(ufCities[0]);
-        }
+        if (ufCities.length === 0) return;
+
+        setCidade((current) => {
+          if (ufCities.includes(current)) return current;
+          const nextCity = ufCities[0];
+          setLocation(nextCity, uf);
+          return nextCity;
+        });
       } catch {
         if (!cancelled) setCities([]);
       }
@@ -52,95 +57,35 @@ export function SearchBar({ onSearch, variant = "full" }: SearchBarProps) {
     return () => {
       cancelled = true;
     };
-  }, [uf, cidade]);
+  }, [uf, setLocation]);
+
+  const applyRegion = (nextCidade: string, nextUf: string) => {
+    const city = nextCidade.trim() || filters.cidade;
+    const state = (nextUf || filters.uf).toUpperCase();
+    setCidade(city);
+    setUf(state);
+    setLocation(city, state);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const nextCidade = cidade.trim() || filters.cidade;
-    const nextUf = uf || filters.uf;
-    setLocation(nextCidade, nextUf);
+    applyRegion(cidade, uf);
     applySearch(localSearch.trim());
-    if (variant === "header") {
-      navigate("/");
-      setTimeout(() => onSearch?.(), 0);
+    navigate("/");
+    setTimeout(() => onSearch?.(), 0);
+  };
+
+  const openSearchOrHome = () => {
+    applyRegion(cidade, uf);
+    const term = localSearch.trim();
+    applySearch(term);
+    if (term) {
+      navigate("/buscar");
     } else {
-      onSearch?.();
+      navigate("/");
     }
+    onSearch?.();
   };
-
-  const openSearchPage = () => {
-    const nextCidade = cidade.trim() || filters.cidade;
-    const nextUf = uf || filters.uf;
-    setLocation(nextCidade, nextUf);
-    applySearch(localSearch.trim());
-    navigate("/buscar");
-  };
-
-  if (variant === "header") {
-    return (
-      <form
-        onSubmit={handleSubmit}
-        className="flex w-full max-w-3xl flex-1 items-stretch overflow-hidden rounded-full border border-papufy-border bg-white shadow-sm"
-      >
-        <input
-          type="text"
-          value={localSearch}
-          onChange={(e) => {
-            setLocalSearch(e.target.value);
-            setSearch(e.target.value);
-          }}
-          placeholder={
-            locationDetecting
-              ? "Detectando localização..."
-              : `Buscar em ${locationLabel}...`
-          }
-          className="min-w-0 flex-1 px-4 py-2.5 text-sm text-papufy-text outline-none placeholder:text-papufy-muted"
-          aria-label="Buscar"
-        />
-        <div className="flex items-center border-l border-papufy-border bg-gray-50/80 px-2">
-          <select
-            value={uf}
-            onChange={(e) => setUf(e.target.value)}
-            className="max-w-[4rem] cursor-pointer border-0 bg-transparent py-2.5 text-sm font-semibold text-papufy-text outline-none"
-            aria-label="Estado"
-          >
-            {BRAZIL_STATES.map((state) => (
-              <option key={state} value={state}>
-                {state}
-              </option>
-            ))}
-          </select>
-          <select
-            value={cidade}
-            onChange={(e) => setCidade(e.target.value)}
-            className="w-28 cursor-pointer border-0 bg-transparent py-2.5 pl-1 text-sm text-papufy-text outline-none sm:w-36"
-            aria-label="Cidade"
-            title={locationLabel}
-            disabled={cities.length === 0}
-          >
-            {cities.length === 0 ? (
-              <option value={cidade}>{cidade || "Cidade"}</option>
-            ) : (
-              cities.map((city) => (
-                <option key={city} value={city}>
-                  {city}
-                </option>
-              ))
-            )}
-          </select>
-        </div>
-        <Button
-          type="button"
-          variant="papufy"
-          className="rounded-r-full rounded-l-none px-4"
-          onClick={openSearchPage}
-          aria-label="Abrir busca"
-        >
-          <IconSearch className="h-5 w-5" />
-        </Button>
-      </form>
-    );
-  }
 
   return (
     <form
@@ -154,15 +99,29 @@ export function SearchBar({ onSearch, variant = "full" }: SearchBarProps) {
           setLocalSearch(e.target.value);
           setSearch(e.target.value);
         }}
-        placeholder="Ex: Encanador, Pintor, Designer..."
-        className="min-w-0 flex-1 px-5 py-3 text-sm text-papufy-text outline-none placeholder:text-papufy-muted"
-        aria-label="Buscar serviços"
+        placeholder={
+          variant === "header"
+            ? locationDetecting
+              ? "Detectando localização..."
+              : `Buscar em ${locationLabel}...`
+            : "Ex: Encanador, Pintor, Designer..."
+        }
+        className={`min-w-0 flex-1 px-4 text-sm text-papufy-text outline-none placeholder:text-papufy-muted ${
+          variant === "header" ? "py-2.5" : "px-5 py-3"
+        }`}
+        aria-label={variant === "header" ? "Buscar" : "Buscar serviços"}
       />
       <div className="flex items-center border-l border-papufy-border bg-gray-50/80 px-2">
         <select
           value={uf}
-          onChange={(e) => setUf(e.target.value)}
-          className="max-w-[4rem] cursor-pointer border-0 bg-transparent py-3 text-sm font-semibold text-papufy-text outline-none"
+          onChange={(e) => {
+            const nextUf = e.target.value;
+            setUf(nextUf);
+            // Cidade será ajustada pelo efeito das cidades do UF
+          }}
+          className={`max-w-[4rem] cursor-pointer border-0 bg-transparent text-sm font-semibold text-papufy-text outline-none ${
+            variant === "header" ? "py-2.5" : "py-3"
+          }`}
           aria-label="Estado"
         >
           {BRAZIL_STATES.map((state) => (
@@ -173,8 +132,10 @@ export function SearchBar({ onSearch, variant = "full" }: SearchBarProps) {
         </select>
         <select
           value={cidade}
-          onChange={(e) => setCidade(e.target.value)}
-          className="w-28 cursor-pointer border-0 bg-transparent py-3 pl-1 text-sm text-papufy-text outline-none sm:w-36"
+          onChange={(e) => applyRegion(e.target.value, uf)}
+          className={`cursor-pointer border-0 bg-transparent pl-1 text-sm text-papufy-text outline-none ${
+            variant === "header" ? "w-28 py-2.5 sm:w-36" : "w-28 py-3 sm:w-36"
+          }`}
           aria-label="Cidade"
           title={locationLabel}
           disabled={cities.length === 0}
@@ -191,10 +152,13 @@ export function SearchBar({ onSearch, variant = "full" }: SearchBarProps) {
         </select>
       </div>
       <Button
-        type="submit"
+        type={variant === "header" ? "button" : "submit"}
         variant="papufy"
-        className="rounded-r-full rounded-l-none px-5"
-        aria-label="Buscar"
+        className={`rounded-r-full rounded-l-none ${
+          variant === "header" ? "px-4" : "px-5"
+        }`}
+        onClick={variant === "header" ? openSearchOrHome : undefined}
+        aria-label={variant === "header" ? "Buscar na região" : "Buscar"}
       >
         <IconSearch className="h-5 w-5" />
       </Button>

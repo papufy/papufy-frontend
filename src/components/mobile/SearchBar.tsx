@@ -66,9 +66,14 @@ export function SearchBar({
         if (cancelled) return;
 
         setCities(ufCities);
-        if (ufCities.length > 0 && !ufCities.includes(cidade)) {
-          setCidade(ufCities[0]);
-        }
+        if (ufCities.length === 0) return;
+
+        setCidade((current) => {
+          if (ufCities.includes(current)) return current;
+          const nextCity = ufCities[0];
+          setLocation(nextCity, uf);
+          return nextCity;
+        });
       } catch {
         if (!cancelled) setCities([]);
       }
@@ -78,7 +83,7 @@ export function SearchBar({
     return () => {
       cancelled = true;
     };
-  }, [uf, cidade]);
+  }, [uf, setLocation]);
 
   useEffect(() => {
     if (fullscreen) {
@@ -98,10 +103,12 @@ export function SearchBar({
     if (autoFocusFullscreen) setFullscreen(true);
   }, [autoFocusFullscreen]);
 
-  const applyLocationFromForm = () => {
-    const nextCidade = cidade.trim() || filters.cidade;
-    const nextUf = uf || filters.uf;
-    setLocation(nextCidade, nextUf);
+  const applyLocationFromForm = (nextCidade = cidade, nextUf = uf) => {
+    const city = nextCidade.trim() || filters.cidade;
+    const state = (nextUf || filters.uf).toUpperCase();
+    setCidade(city);
+    setUf(state);
+    setLocation(city, state);
   };
 
   const commitSearch = (term: string) => {
@@ -201,7 +208,10 @@ export function SearchBar({
             <div className="mt-3 flex gap-2">
               <select
                 value={uf}
-                onChange={(e) => setUf(e.target.value)}
+                onChange={(e) => {
+                  const nextUf = e.target.value;
+                  setUf(nextUf);
+                }}
                 className="h-11 shrink-0 rounded-xl border border-papufy-border bg-gray-50 px-2 text-sm font-semibold outline-none"
                 aria-label="Estado"
               >
@@ -213,7 +223,7 @@ export function SearchBar({
               </select>
               <select
                 value={cidade}
-                onChange={(e) => setCidade(e.target.value)}
+                onChange={(e) => applyLocationFromForm(e.target.value, uf)}
                 className="input-field h-11 min-w-0 flex-1 rounded-xl"
                 aria-label="Cidade"
                 disabled={cities.length === 0}
