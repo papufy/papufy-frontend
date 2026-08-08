@@ -333,7 +333,8 @@ export function CreateJobPage() {
       imagens.forEach((img) => formData.append("imagens", img));
       const { listing } = await api.listings.create(formData);
       showToast("Publicado com sucesso!", "success");
-      navigate(`/anuncio/${listing.id}`, { replace: true });
+      // Full reload evita chunk antigo após deploy (Failed to fetch dynamically imported module).
+      window.location.replace(`/anuncio/${listing.id}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro ao publicar.";
       setError(msg);

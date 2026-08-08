@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { PageLoader } from "./components/PageLoader";
@@ -8,58 +8,59 @@ import { AuthProvider } from "./context/AuthContext";
 import { ChatProvider } from "./context/ChatContext";
 import { FilterProvider } from "./context/FilterContext";
 import { ToastProvider } from "./context/ToastContext";
+import { lazyWithRetry } from "./lib/lazyWithRetry";
 
-const HomePage = lazy(() =>
+const HomePage = lazyWithRetry(() =>
   import("./pages/HomePage").then((m) => ({ default: m.HomePage }))
 );
-const SearchPage = lazy(() =>
+const SearchPage = lazyWithRetry(() =>
   import("./pages/SearchPage").then((m) => ({ default: m.SearchPage }))
 );
-const ListingDetailPage = lazy(() =>
+const ListingDetailPage = lazyWithRetry(() =>
   import("./pages/ListingDetailPage").then((m) => ({
     default: m.ListingDetailPage,
   }))
 );
-const LoginPage = lazy(() =>
+const LoginPage = lazyWithRetry(() =>
   import("./pages/LoginPage").then((m) => ({ default: m.LoginPage }))
 );
-const AnunciarTipoPage = lazy(() =>
+const AnunciarTipoPage = lazyWithRetry(() =>
   import("./pages/AnunciarTipoPage").then((m) => ({ default: m.AnunciarTipoPage }))
 );
-const CreateJobPage = lazy(() =>
+const CreateJobPage = lazyWithRetry(() =>
   import("./pages/CreateJobPage").then((m) => ({ default: m.CreateJobPage }))
 );
-const JobDetailPage = lazy(() =>
+const JobDetailPage = lazyWithRetry(() =>
   import("./pages/JobDetailPage").then((m) => ({ default: m.JobDetailPage }))
 );
-const ChatPage = lazy(() =>
+const ChatPage = lazyWithRetry(() =>
   import("./pages/ChatPage").then((m) => ({ default: m.ChatPage }))
 );
-const MyJobsPage = lazy(() =>
+const MyJobsPage = lazyWithRetry(() =>
   import("./pages/MyJobsPage").then((m) => ({ default: m.MyJobsPage }))
 );
-const ProfilePage = lazy(() =>
+const ProfilePage = lazyWithRetry(() =>
   import("./pages/ProfilePage").then((m) => ({ default: m.ProfilePage }))
 );
-const ProfileWalletPage = lazy(() =>
+const ProfileWalletPage = lazyWithRetry(() =>
   import("./pages/ProfileWalletPage").then((m) => ({
     default: m.ProfileWalletPage,
   }))
 );
-const UserPublicProfilePage = lazy(() =>
+const UserPublicProfilePage = lazyWithRetry(() =>
   import("./pages/UserPublicProfilePage").then((m) => ({
     default: m.UserPublicProfilePage,
   }))
 );
-const WalletPage = lazy(() =>
+const WalletPage = lazyWithRetry(() =>
   import("./pages/WalletPage").then((m) => ({ default: m.WalletPage }))
 );
-const NotificationsPage = lazy(() =>
+const NotificationsPage = lazyWithRetry(() =>
   import("./pages/NotificationsPage").then((m) => ({
     default: m.NotificationsPage,
   }))
 );
-const NotFoundPage = lazy(() =>
+const NotFoundPage = lazyWithRetry(() =>
   import("./pages/NotFoundPage").then((m) => ({ default: m.NotFoundPage }))
 );
 

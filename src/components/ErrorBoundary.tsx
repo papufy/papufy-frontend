@@ -1,6 +1,10 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  isChunkLoadError,
+  reloadOnceForStaleChunk,
+} from "../lib/lazyWithRetry";
 
 interface Props {
   children: ReactNode;
@@ -19,19 +23,27 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("Papufy render error:", error, info.componentStack);
+    if (isChunkLoadError(error)) {
+      reloadOnceForStaleChunk();
+    }
   }
 
   render() {
     if (this.state.error) {
+      const chunkError = isChunkLoadError(this.state.error);
       return (
         <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-4 bg-background p-6 text-center">
           <Card className="max-w-sm border-0 py-0 shadow-sm ring-border/80">
             <CardContent className="px-6 py-8">
               <p className="text-lg font-bold text-foreground">
-                Algo deu errado ao carregar o app
+                {chunkError
+                  ? "Atualização em andamento"
+                  : "Algo deu errado ao carregar o app"}
               </p>
               <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-                {this.state.error.message}
+                {chunkError
+                  ? "Há uma versão nova do site. Toque em recarregar para continuar."
+                  : this.state.error.message}
               </p>
               <Button
                 type="button"
