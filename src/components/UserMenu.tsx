@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { getProfilePhotoUrl } from "../lib/profilePhoto";
+import { resolveProfilePhotoUrl } from "../lib/profilePhoto";
 import { IconChevronDown, IconUser } from "./icons/NavIcons";
 
 interface UserMenuProps {
@@ -27,7 +27,7 @@ export function UserMenu({ variant = "header" }: UserMenuProps) {
   if (!user) return null;
 
   const displayName = user.nome.split(" ")[0];
-  const profilePhoto = getProfilePhotoUrl(user.id);
+  const profilePhoto = resolveProfilePhotoUrl(user);
 
   return (
     <div className="relative" ref={ref}>

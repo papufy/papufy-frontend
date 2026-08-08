@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { getProfilePhotoUrl } from "../../lib/profilePhoto";
+import { resolveProfilePhotoUrl } from "../../lib/profilePhoto";
 import { NotificationsMenu } from "../NotificationsMenu";
 import { PapufyLogo } from "../PapufyLogo";
 import { IconSearch, IconUser } from "../icons/NavIcons";
@@ -38,7 +38,7 @@ export function HeaderMobile() {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const [ctaIndex, setCtaIndex] = useState(0);
-  const profilePhoto = getProfilePhotoUrl(user?.id);
+  const profilePhoto = resolveProfilePhotoUrl(user);
 
   const firstName = displayFirstName(user?.nome);
 

@@ -311,6 +311,20 @@ export const api = {
       );
     },
 
+    uploadFoto: (file: File) => {
+      const fd = new FormData();
+      fd.append("foto", file);
+      return uploadRequest<{ user: User; url: string; message: string }>(
+        "/user/upload-foto",
+        fd
+      );
+    },
+
+    removeFoto: () =>
+      request<{ user: User; message: string }>("/user/foto", {
+        method: "DELETE",
+      }),
+
     uploadCertificados: (
       files: File[],
       nomes?: string[],

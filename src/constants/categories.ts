@@ -8,6 +8,7 @@ export const JOB_VACANCY_CATEGORIES = [
   "Design e Tecnologia",
   "Aulas e Consultoria",
   "Eventos",
+  "Outros",
 ] as const;
 
 /** Categorias para perfil profissional (PROFESSIONAL_PROFILE) */
@@ -182,6 +183,11 @@ export const DEFAULT_CATEGORY_META: CategoryMeta = {
 
 export function getCategoryMeta(categoria: string): CategoryMeta {
   return CATEGORY_META[categoria] ?? DEFAULT_CATEGORY_META;
+}
+
+/** Opção que permite digitar o tipo livremente. */
+export function isCustomCategoryOption(categoria: string): boolean {
+  return categoria === "Outros" || categoria === "Outros Serviços";
 }
 
 /** Macro-categorias do carrossel da home */

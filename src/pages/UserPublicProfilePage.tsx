@@ -7,7 +7,7 @@ import { ListingCardMobile } from "../components/mobile/ListingCardMobile";
 import { MobileShell } from "../components/mobile/MobileShell";
 import { ReputationBlock } from "../components/ReputationBlock";
 import { api } from "../lib/api";
-import { getProfilePhotoUrl } from "../lib/profilePhoto";
+import { resolveProfilePhotoUrl } from "../lib/profilePhoto";
 import type { Listing, ListingPublisher } from "../types";
 import {
   formatLastAccess,
@@ -77,7 +77,7 @@ export function UserPublicProfilePage() {
     );
   }
 
-  const photoUrl = getProfilePhotoUrl(publisher.id);
+  const photoUrl = resolveProfilePhotoUrl(publisher);
   const location = formatLocation(
     publisher.cidade ?? "",
     publisher.uf ?? "",

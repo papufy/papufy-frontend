@@ -29,6 +29,7 @@ export interface User {
   pagarmeRecipientId?: string | null;
   pagarmeCustomerId?: string | null;
   curriculoUrl?: string | null;
+  fotoUrl?: string | null;
   createdAt?: string;
 }
 
@@ -43,6 +44,7 @@ export interface ListingPublisher {
   nome: string;
   cidade?: string | null;
   uf?: string | null;
+  fotoUrl?: string | null;
   memberSince?: string;
   lastSeenAt?: string;
   verifiedEmail?: boolean;

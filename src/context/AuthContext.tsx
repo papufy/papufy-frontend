@@ -27,6 +27,7 @@ interface AuthContextValue {
     dataNascimento?: string;
   }) => Promise<void>;
   logout: () => void;
+  updateUser: (nextUser: User) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -73,6 +74,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+  }, []);
+
+  const updateUser = useCallback((nextUser: User) => {
+    setUser(nextUser);
+    localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
   }, []);
 
   useEffect(() => {
@@ -136,8 +142,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       logout,
+      updateUser,
     }),
-    [user, token, isLoading, login, register, logout]
+    [user, token, isLoading, login, register, logout, updateUser]
   );
 
   return (

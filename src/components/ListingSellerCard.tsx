@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { ListingPublisher } from "../types";
 import { formatLastAccess, formatMemberSince } from "../utils/format";
-import { getProfilePhotoUrl } from "../lib/profilePhoto";
+import { resolveProfilePhotoUrl } from "../lib/profilePhoto";
 
 function getInitials(nome: string): string {
   const parts = nome.trim().split(/\s+/).filter(Boolean);
@@ -43,7 +43,7 @@ export function ListingSellerCard({
   publisher,
   locationLabel,
 }: ListingSellerCardProps) {
-  const photoUrl = getProfilePhotoUrl(publisher.id);
+  const photoUrl = resolveProfilePhotoUrl(publisher);
   const location =
     locationLabel ??
     [publisher.cidade, publisher.uf].filter(Boolean).join(", ");

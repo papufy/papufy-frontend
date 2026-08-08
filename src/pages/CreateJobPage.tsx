@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   ArrowLeft,
@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AnunciarTipoPicker } from "../components/AnunciarTipoPicker";
 import { CategoryIcon } from "../components/icons/CategoryIcons";
 import { MobileShell } from "../components/mobile/MobileShell";
 import { MotionPressButton } from "../components/motion/MotionPrimitives";
@@ -20,6 +21,7 @@ import {
   CATEGORY_META,
   JOB_VACANCY_CATEGORIES,
   PROFESSIONAL_PROFILE_CATEGORIES,
+  isCustomCategoryOption,
 } from "../constants/categories";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
@@ -52,23 +54,25 @@ type LocationState = {
   categoria?: string;
 };
 
+function parseListingType(value: string | null | undefined): ListingType | null {
+  if (value === "JOB_VACANCY" || value === "PROFESSIONAL_PROFILE") return value;
+  return null;
+}
+
 export function CreateJobPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { showToast } = useToast();
   const reduce = useReducedMotion();
 
   const routeState = (location.state as LocationState | null) ?? null;
-  const initialType = routeState?.listingType;
+  const seededType =
+    parseListingType(searchParams.get("tipo")) ??
+    parseListingType(routeState?.listingType);
 
-  useEffect(() => {
-    if (!initialType) {
-      navigate("/anunciar/tipo", { replace: true });
-    }
-  }, [initialType, navigate]);
-
-  const [listingType] = useState<ListingType>(initialType ?? "JOB_VACANCY");
+  const [listingType, setListingType] = useState<ListingType | null>(seededType);
   const [step, setStep] = useState<Step>(1);
   const [direction, setDirection] = useState(1);
   const [submitting, setSubmitting] = useState(false);
@@ -88,8 +92,9 @@ export function CreateJobPage() {
       : "";
 
   const [categoria, setCategoria] = useState<string>(seededCategory);
+  const [categoriaCustom, setCategoriaCustom] = useState("");
   const [titulo, setTitulo] = useState(
-    listingType === "PROFESSIONAL_PROFILE" ? `${user?.nome ?? ""} - ` : ""
+    seededType === "PROFESSIONAL_PROFILE" ? `${user?.nome ?? ""} - ` : ""
   );
   const [descricao, setDescricao] = useState("");
   const [semQualificacao, setSemQualificacao] = useState(false);
@@ -115,6 +120,41 @@ export function CreateJobPage() {
       urls.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [imagens]);
+
+  const selectListingType = (type: ListingType) => {
+    setListingType(type);
+    setStep(1);
+    setDirection(1);
+    setShowValidation(false);
+    setError(null);
+    setCategoria("");
+    setCategoriaCustom("");
+    setTitulo(type === "PROFESSIONAL_PROFILE" ? `${user?.nome ?? ""} - ` : "");
+    setSearchParams({ tipo: type }, { replace: true });
+    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+  };
+
+  const backToTypeChoice = () => {
+    setListingType(null);
+    setStep(1);
+    setDirection(-1);
+    setShowValidation(false);
+    setError(null);
+    setSearchParams({}, { replace: true });
+    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+  };
+
+  const handleBack = () => {
+    if (!listingType) {
+      navigate("/", { replace: true });
+      return;
+    }
+    if (step > 1) {
+      goTo((step - 1) as Step);
+      return;
+    }
+    backToTypeChoice();
+  };
 
   const isPro = listingType === "PROFESSIONAL_PROFILE";
 
@@ -161,8 +201,21 @@ export function CreateJobPage() {
     };
   };
 
+  const resolvedCategoria = isCustomCategoryOption(categoria)
+    ? categoriaCustom.trim()
+    : categoria.trim();
+
   const getStepIssues = (s: Step): string[] => {
-    if (s === 1) return categoria ? [] : ["Escolha uma categoria"];
+    if (s === 1) {
+      if (!categoria) return ["Escolha uma categoria"];
+      if (isCustomCategoryOption(categoria) && !categoriaCustom.trim()) {
+        return ["Digite o tipo de serviço"];
+      }
+      if (isCustomCategoryOption(categoria) && categoriaCustom.trim().length < 2) {
+        return ["Tipo de serviço muito curto"];
+      }
+      return [];
+    }
     if (s === 2) {
       const issues: string[] = [];
       if (titulo.trim().length < 5) issues.push("Título (mín. 5 caracteres)");
@@ -236,6 +289,7 @@ export function CreateJobPage() {
   };
 
   const handleSubmit = async () => {
+    if (!listingType) return;
     const issues = getStepIssues(3);
     if (issues.length > 0) {
       setShowValidation(true);
@@ -259,7 +313,7 @@ export function CreateJobPage() {
           "\n\nNão é necessária qualificação para realizar este serviço.";
       }
       formData.append("descricao", finalDescription);
-      formData.append("categoria", categoria.trim() || "Geral");
+      formData.append("categoria", resolvedCategoria || "Geral");
       formData.append("cep", cep.trim());
       formData.append("cidade", cidade.trim());
       formData.append("bairro", bairro.trim());
@@ -303,7 +357,16 @@ export function CreateJobPage() {
       ? "mt-1.5 w-full rounded-2xl border border-red-300 bg-white px-4 py-3.5 text-base outline-none focus:border-red-400 focus:ring-4 focus:ring-red-100 sm:text-sm"
       : inputClass;
 
-  if (!initialType) return null;
+  if (!listingType) {
+    return (
+      <MobileShell showCategories={false}>
+        <AnunciarTipoPicker
+          onSelect={selectListingType}
+          onBack={() => navigate("/", { replace: true })}
+        />
+      </MobileShell>
+    );
+  }
 
   return (
     <MobileShell showCategories={false}>
@@ -313,9 +376,7 @@ export function CreateJobPage() {
           <div className="flex items-center gap-2 px-3 py-2.5">
             <button
               type="button"
-              onClick={() =>
-                step > 1 ? goTo((step - 1) as Step) : navigate("/anunciar/tipo")
-              }
+              onClick={handleBack}
               className="touch-target flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-700 active:bg-slate-100"
               aria-label="Voltar"
             >
@@ -386,6 +447,9 @@ export function CreateJobPage() {
                           type="button"
                           onClick={() => {
                             setCategoria(cat);
+                            if (!isCustomCategoryOption(cat)) {
+                              setCategoriaCustom("");
+                            }
                             setError(null);
                           }}
                           className={`flex w-full items-center gap-3 rounded-2xl border-2 px-3 py-3 text-left transition ${
@@ -422,6 +486,34 @@ export function CreateJobPage() {
                       );
                     })}
                   </div>
+
+                  {isCustomCategoryOption(categoria) && (
+                    <div className="rounded-2xl border border-slate-200 bg-white p-3.5">
+                      <label
+                        htmlFor="categoria-custom"
+                        className="text-sm font-semibold text-slate-700"
+                      >
+                        Qual serviço?
+                      </label>
+                      <input
+                        id="categoria-custom"
+                        value={categoriaCustom}
+                        onChange={(e) => {
+                          setCategoriaCustom(e.target.value.slice(0, 60));
+                          setError(null);
+                        }}
+                        placeholder="Ex.: Babá, Montador de móveis, Manicure…"
+                        autoFocus
+                        className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100"
+                      />
+                      {showValidation && !categoriaCustom.trim() && (
+                        <p className="mt-2 text-sm text-red-600">
+                          Digite o tipo de serviço.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   {showValidation && !categoria && (
                     <p className="text-sm text-red-600">
                       Escolha uma categoria para continuar.
@@ -555,7 +647,7 @@ export function CreateJobPage() {
                       <p className="mt-1 line-clamp-3 text-sm text-slate-600">
                         {descricao.trim() || "A descrição aparece aqui…"}
                       </p>
-                      {categoria && (
+                      {resolvedCategoria && (
                         <span
                           className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold ${
                             isPro
@@ -563,7 +655,7 @@ export function CreateJobPage() {
                               : "bg-teal-100 text-teal-800"
                           }`}
                         >
-                          {categoria}
+                          {resolvedCategoria}
                         </span>
                       )}
                     </div>
@@ -854,11 +946,7 @@ export function CreateJobPage() {
               type="button"
               variant="outline"
               className="h-12 min-w-[5.5rem] flex-1 rounded-2xl text-sm"
-              onClick={() =>
-                step > 1
-                  ? goTo((step - 1) as Step)
-                  : navigate("/anunciar/tipo")
-              }
+              onClick={handleBack}
             >
               Voltar
             </Button>

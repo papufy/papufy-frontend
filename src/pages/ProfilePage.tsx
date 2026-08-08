@@ -22,9 +22,8 @@ import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { api } from "../lib/api";
 import {
-  getProfilePhotoUrl,
   removeProfilePhotoUrl,
-  setProfilePhotoUrl,
+  resolveProfilePhotoUrl,
 } from "../lib/profilePhoto";
 import type { Certificate, UserReputation } from "../types";
 
@@ -89,7 +88,7 @@ function initials(name?: string) {
 }
 
 export function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -111,7 +110,7 @@ export function ProfilePage() {
   const [senhaAtual, setSenhaAtual] = useState("");
   const [novaSenha, setNovaSenha] = useState("");
   const [profilePhoto, setProfilePhoto] = useState<string | null>(
-    getProfilePhotoUrl(user?.id)
+    resolveProfilePhotoUrl(user)
   );
   const [reputation, setReputation] = useState<UserReputation | null>(null);
 
@@ -149,7 +148,7 @@ export function ProfilePage() {
     setDataNascimento(user.dataNascimento?.slice(0, 10) ?? "");
     setCidade(user.cidade ?? "");
     setUf(user.uf ?? "PB");
-    setProfilePhoto(getProfilePhotoUrl(user.id));
+    setProfilePhoto(resolveProfilePhotoUrl(user));
   }, [user]);
 
   const isCpfProfile =
@@ -176,12 +175,11 @@ export function ProfilePage() {
         senhaAtual: novaSenha ? senhaAtual : undefined,
         novaSenha: novaSenha || undefined,
       });
-      localStorage.setItem("papufy_user", JSON.stringify(updated));
+      updateUser(updated);
       showToast("Perfil atualizado!", "success");
       setSenhaAtual("");
       setNovaSenha("");
       setSection("menu");
-      window.location.reload();
     } catch (err) {
       showToast(
         err instanceof Error ? err.message : "Erro ao salvar perfil.",
@@ -197,7 +195,11 @@ export function ProfilePage() {
     if (!file) return;
     setCurriculoProgress(10);
     try {
-      await api.user.uploadCurriculo(file, setCurriculoProgress);
+      const { user: updated } = await api.user.uploadCurriculo(
+        file,
+        setCurriculoProgress
+      );
+      updateUser(updated);
       setCurriculoProgress(100);
       showToast("Currículo enviado!", "success");
       setTimeout(() => setCurriculoProgress(undefined), 800);
@@ -234,29 +236,44 @@ export function ProfilePage() {
       showToast("Selecione uma imagem válida.", "error");
       return;
     }
+    if (file.type !== "image/jpeg" && file.type !== "image/png") {
+      showToast("Use uma foto JPEG ou PNG.", "error");
+      return;
+    }
     setPhotoUploading(true);
     try {
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result));
-        reader.onerror = () => reject(new Error("Erro ao ler imagem"));
-        reader.readAsDataURL(file);
-      });
-      setProfilePhoto(dataUrl);
-      setProfilePhotoUrl(user.id, dataUrl);
+      const { user: updated, url } = await api.user.uploadFoto(file);
+      updateUser(updated);
+      setProfilePhoto(url);
+      removeProfilePhotoUrl(user.id);
       showToast("Foto atualizada.", "success");
-    } catch {
-      showToast("Não foi possível salvar a foto.", "error");
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : "Não foi possível salvar a foto.",
+        "error"
+      );
     } finally {
       setPhotoUploading(false);
     }
   };
 
-  const clearProfilePhoto = () => {
+  const clearProfilePhoto = async () => {
     if (!user?.id) return;
-    removeProfilePhotoUrl(user.id);
-    setProfilePhoto(null);
-    showToast("Foto removida.", "info");
+    setPhotoUploading(true);
+    try {
+      const { user: updated } = await api.user.removeFoto();
+      updateUser(updated);
+      removeProfilePhotoUrl(user.id);
+      setProfilePhoto(null);
+      showToast("Foto removida.", "info");
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : "Não foi possível remover a foto.",
+        "error"
+      );
+    } finally {
+      setPhotoUploading(false);
+    }
   };
 
   const handleLogout = () => {
