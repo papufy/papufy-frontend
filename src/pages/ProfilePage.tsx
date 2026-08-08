@@ -1,18 +1,25 @@
-import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { MotionEnter } from "../components/motion/MotionPrimitives";
-import { ShineBorder } from "@/components/effects/ShineBorder";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Briefcase,
+  Camera,
+  ChevronRight,
+  FileText,
+  Lock,
+  LogOut,
+  MapPin,
+  MessageCircle,
+  Star,
+  UserRound,
+  Wallet,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Layout } from "../components/Layout";
-import { ReputationBlock } from "../components/ReputationBlock";
 import { UploadZone } from "../components/mobile/UploadZone";
-import { IconUser } from "../components/icons/NavIcons";
+import { MotionEnter, MotionPressButton } from "../components/motion/MotionPrimitives";
+import { BRAZIL_STATES } from "../constants/categories";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
-import { BRAZIL_STATES } from "../constants/categories";
 import { api } from "../lib/api";
 import {
   getProfilePhotoUrl,
@@ -21,9 +28,21 @@ import {
 } from "../lib/profilePhoto";
 import type { Certificate, UserReputation } from "../types";
 
+type Section = "menu" | "dados" | "docs" | "senha";
+
+function initials(name?: string) {
+  if (!name?.trim()) return "?";
+  const parts = name.trim().split(/\s+/).slice(0, 2);
+  return parts.map((p) => p[0]?.toUpperCase() ?? "").join("");
+}
+
 export function ProfilePage() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  const [section, setSection] = useState<Section>("menu");
   const [loading, setLoading] = useState(false);
   const [curriculoProgress, setCurriculoProgress] = useState<number | undefined>();
   const [certProgress, setCertProgress] = useState<number | undefined>();
@@ -78,10 +97,15 @@ export function ProfilePage() {
     setDataNascimento(user.dataNascimento?.slice(0, 10) ?? "");
     setCidade(user.cidade ?? "");
     setUf(user.uf ?? "PB");
+    setProfilePhoto(getProfilePhotoUrl(user.id));
   }, [user]);
 
   const isCpfProfile =
     (user?.cpfCnpj?.replace(/\D/g, "") ?? "").length === 11;
+
+  const locationLabel = [cidade || user?.cidade, uf || user?.uf]
+    .filter(Boolean)
+    .join(", ");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,9 +125,10 @@ export function ProfilePage() {
         novaSenha: novaSenha || undefined,
       });
       localStorage.setItem("papufy_user", JSON.stringify(updated));
-      showToast("Perfil atualizado com sucesso!", "success");
+      showToast("Perfil atualizado!", "success");
       setSenhaAtual("");
       setNovaSenha("");
+      setSection("menu");
       window.location.reload();
     } catch (err) {
       showToast(
@@ -157,7 +182,6 @@ export function ProfilePage() {
       showToast("Selecione uma imagem válida.", "error");
       return;
     }
-
     setPhotoUploading(true);
     try {
       const dataUrl = await new Promise<string>((resolve, reject) => {
@@ -168,9 +192,9 @@ export function ProfilePage() {
       });
       setProfilePhoto(dataUrl);
       setProfilePhotoUrl(user.id, dataUrl);
-      showToast("Foto de perfil atualizada.", "success");
+      showToast("Foto atualizada.", "success");
     } catch {
-      showToast("Não foi possível salvar a foto de perfil.", "error");
+      showToast("Não foi possível salvar a foto.", "error");
     } finally {
       setPhotoUploading(false);
     }
@@ -180,236 +204,448 @@ export function ProfilePage() {
     if (!user?.id) return;
     removeProfilePhotoUrl(user.id);
     setProfilePhoto(null);
-    showToast("Foto de perfil removida.", "info");
+    showToast("Foto removida.", "info");
   };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
+  const inputClass =
+    "mt-1.5 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100 sm:text-sm";
+
+  const sectionTitle =
+    section === "dados"
+      ? "Dados pessoais"
+      : section === "docs"
+        ? "Documentos"
+        : section === "senha"
+          ? "Senha"
+          : null;
 
   return (
     <Layout showCategories={false}>
-      <div className="page-container mx-auto max-w-lg space-y-6 py-5 sm:py-8">
+      <div className="mx-auto w-full max-w-lg overflow-x-hidden pb-4">
+        {/* Hero */}
         <MotionEnter>
-          <h1 className="text-xl font-extrabold text-papufy-text sm:text-2xl">
-            Configurações
-          </h1>
-          <p className="mt-1 text-sm text-papufy-muted">
-            {user?.email} · Currículo e certificados pelo celular
-          </p>
+          <div className="relative overflow-hidden bg-gradient-to-br from-sky-500 via-sky-600 to-blue-700 px-4 pb-8 pt-5 text-white">
+            <div
+              className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/15 blur-2xl"
+              aria-hidden
+            />
+            <div
+              className="pointer-events-none absolute bottom-0 left-6 h-20 w-20 rounded-full bg-cyan-300/20 blur-xl"
+              aria-hidden
+            />
+
+            <div className="relative flex items-center gap-3.5">
+              <button
+                type="button"
+                onClick={() => photoInputRef.current?.click()}
+                disabled={photoUploading}
+                className="group relative shrink-0"
+                aria-label="Alterar foto de perfil"
+              >
+                <span className="flex h-[4.5rem] w-[4.5rem] items-center justify-center overflow-hidden rounded-full bg-white/20 text-xl font-extrabold ring-4 ring-white/30">
+                  {profilePhoto ? (
+                    <img
+                      src={profilePhoto}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    initials(user?.nome)
+                  )}
+                </span>
+                <span className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-white text-sky-600 shadow-md ring-2 ring-sky-500">
+                  <Camera className="h-4 w-4" />
+                </span>
+              </button>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={photoUploading}
+                onChange={(e) => void handleProfilePhoto(e.target.files?.[0])}
+              />
+
+              <div className="min-w-0 flex-1">
+                <h1 className="truncate text-xl font-extrabold tracking-tight">
+                  {user?.nome ?? "Sua conta"}
+                </h1>
+                <p className="mt-0.5 truncate text-sm text-white/80">
+                  {user?.email}
+                </p>
+                {locationLabel && (
+                  <p className="mt-1.5 inline-flex max-w-full items-center gap-1 text-xs font-semibold text-white/90">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{locationLabel}</span>
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {profilePhoto && (
+              <button
+                type="button"
+                onClick={clearProfilePhoto}
+                className="relative mt-3 text-xs font-semibold text-white/80 underline-offset-2 active:underline"
+              >
+                Remover foto
+              </button>
+            )}
+          </div>
         </MotionEnter>
 
-        {reputation && (
-          <ReputationBlock
-            reputation={reputation}
-            subjectLabel="você"
-          />
-        )}
+        {/* Stats + quick actions overlapping hero */}
+        <div className="relative z-10 -mt-5 space-y-3 px-4">
+          <MotionEnter delay={40}>
+            <div className="grid grid-cols-3 gap-2 rounded-2xl border border-slate-100 bg-white p-3 shadow-[0_12px_40px_-24px_rgba(15,23,42,0.45)]">
+              <div className="text-center">
+                <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-amber-50 text-amber-500">
+                  <Star className="h-4 w-4 fill-amber-400" />
+                </div>
+                <p className="mt-1.5 text-base font-extrabold text-slate-900">
+                  {reputation?.averageRating != null
+                    ? reputation.averageRating.toFixed(1)
+                    : "—"}
+                </p>
+                <p className="text-[10px] font-semibold text-slate-400">Nota</p>
+              </div>
+              <div className="border-x border-slate-100 text-center">
+                <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-sky-600">
+                  <MessageCircle className="h-4 w-4" />
+                </div>
+                <p className="mt-1.5 text-base font-extrabold text-slate-900">
+                  {reputation?.reviewCount ?? 0}
+                </p>
+                <p className="text-[10px] font-semibold text-slate-400">
+                  Avaliações
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-teal-50 text-teal-600">
+                  <Briefcase className="h-4 w-4" />
+                </div>
+                <p className="mt-1.5 text-base font-extrabold text-slate-900">
+                  {reputation?.completedJobsCount ?? 0}
+                </p>
+                <p className="text-[10px] font-semibold text-slate-400">
+                  Feitos
+                </p>
+              </div>
+            </div>
+          </MotionEnter>
 
-        <MotionEnter delay={40}>
-        <ShineBorder borderRadius="1rem">
-        <Card className="border-0 bg-gradient-to-br from-card to-sky-50/80 py-0 shadow-none ring-0">
-          <CardContent className="p-4 sm:p-5">
-          <h2 className="font-bold text-foreground">Carteira e saque</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Consulte o saldo e solicite saque para a conta bancária cadastrada.
-          </p>
-          <Button variant="papufy" size="cta" className="mt-4 w-full sm:w-auto" asChild>
-            <Link to="/carteira">Abrir carteira e sacar</Link>
-          </Button>
-          </CardContent>
-        </Card>
-        </ShineBorder>
-        </MotionEnter>
+          {section === "menu" ? (
+            <>
+              <MotionEnter delay={70}>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {[
+                    {
+                      to: "/carteira",
+                      label: "Carteira",
+                      hint: "Saldo e saque",
+                      icon: Wallet,
+                      tone: "from-sky-500 to-blue-600",
+                    },
+                    {
+                      to: "/minhas-publicacoes",
+                      label: "Anúncios",
+                      hint: "Seus posts",
+                      icon: Briefcase,
+                      tone: "from-teal-500 to-cyan-600",
+                    },
+                    {
+                      to: "/chat",
+                      label: "Mensagens",
+                      hint: "Conversas",
+                      icon: MessageCircle,
+                      tone: "from-indigo-500 to-sky-600",
+                    },
+                    {
+                      to: "/anunciar/tipo",
+                      label: "Anunciar",
+                      hint: "Publicar grátis",
+                      icon: Camera,
+                      tone: "from-blue-500 to-sky-500",
+                    },
+                  ].map((item) => (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm active:scale-[0.98]"
+                    >
+                      <span
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white ${item.tone}`}
+                      >
+                        <item.icon className="h-5 w-5" />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-bold text-slate-900">
+                          {item.label}
+                        </span>
+                        <span className="block text-[11px] text-slate-500">
+                          {item.hint}
+                        </span>
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </MotionEnter>
 
-        <Card className="py-0 shadow-sm">
-          <CardContent className="space-y-4 p-4 sm:p-6">
-          <h2 className="font-bold text-foreground">Foto de perfil</h2>
-          <div className="flex items-center gap-4">
-            <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-200 text-slate-500">
-              {profilePhoto ? (
-                <img
-                  src={profilePhoto}
-                  alt="Foto de perfil"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <IconUser className="h-8 w-8" />
-              )}
-            </span>
-            <div className="space-y-2">
-              <label className="inline-flex cursor-pointer items-center">
-                <Button type="button" variant="outline" size="sm" asChild>
-                  <span>{photoUploading ? "Enviando..." : "Escolher foto"}</span>
-                </Button>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  disabled={photoUploading}
-                  onChange={(e) => void handleProfilePhoto(e.target.files?.[0])}
-                />
-              </label>
-              {profilePhoto && (
+              <MotionEnter delay={100}>
+                <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+                  <p className="px-4 pb-1 pt-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    Conta
+                  </p>
+                  {(
+                    [
+                      {
+                        id: "dados" as const,
+                        label: "Dados pessoais",
+                        hint: "Nome, telefone e cidade",
+                        icon: UserRound,
+                      },
+                      {
+                        id: "docs" as const,
+                        label: "Documentos",
+                        hint: "Currículo e certificados",
+                        icon: FileText,
+                      },
+                      {
+                        id: "senha" as const,
+                        label: "Alterar senha",
+                        hint: "Proteja sua conta",
+                        icon: Lock,
+                      },
+                    ] as const
+                  ).map((row, i, arr) => (
+                    <MotionPressButton
+                      key={row.id}
+                      type="button"
+                      onClick={() => setSection(row.id)}
+                      className={`flex w-full items-center gap-3 px-4 py-3.5 text-left active:bg-slate-50 ${
+                        i < arr.length - 1 ? "border-b border-slate-50" : ""
+                      }`}
+                    >
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+                        <row.icon className="h-5 w-5" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-bold text-slate-900">
+                          {row.label}
+                        </span>
+                        <span className="block text-xs text-slate-500">
+                          {row.hint}
+                        </span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />
+                    </MotionPressButton>
+                  ))}
+                </div>
+              </MotionEnter>
+
+              <MotionEnter delay={130}>
                 <button
                   type="button"
-                  onClick={clearProfilePhoto}
-                  className="block text-xs font-semibold text-red-600"
+                  onClick={handleLogout}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-3.5 text-sm font-bold text-red-600 active:bg-red-100"
                 >
-                  Remover foto
+                  <LogOut className="h-4 w-4" />
+                  Sair da conta
                 </button>
-              )}
-            </div>
-          </div>
-          </CardContent>
-        </Card>
-
-        <Card className="py-0 shadow-sm">
-          <CardContent className="space-y-4 p-4 sm:p-6">
-          <h2 className="font-bold text-foreground">Documentos</h2>
-          {user?.curriculoUrl && (
-            <p className="text-xs text-papufy-muted">
-              Currículo atual:{" "}
-              <a
-                href={user.curriculoUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="font-semibold text-sky-600"
-              >
-                abrir PDF
-              </a>
-            </p>
-          )}
-          <UploadZone
-            label="Currículo (PDF)"
-            hint="Toque para enviar seu Currículo (PDF) ou fotos de seus Certificados"
-            accept="application/pdf"
-            progress={curriculoProgress}
-            onFiles={handleCurriculo}
-          />
-          <UploadZone
-            label="Certificados e diplomas"
-            hint="Toque para enviar fotos de seus Certificados (câmera ou galeria)"
-            accept="image/*"
-            multiple
-            capture="environment"
-            progress={certProgress}
-            onFiles={handleCertificados}
-          />
-          {certificates.length > 0 && (
-            <ul className="space-y-2">
-              {certificates.map((c) => (
-                <li key={c.id}>
-                  <a
-                    href={c.arquivoUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-sm font-medium text-papufy-orange"
+              </MotionEnter>
+            </>
+          ) : (
+            <MotionEnter>
+              <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+                <div className="mb-4 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSection("menu")}
+                    className="touch-target -ml-1 rounded-full px-2 py-1.5 text-sm font-semibold text-sky-700 active:bg-sky-50"
                   >
-                    {c.nome}
-                  </a>
-                </li>
-              ))}
-            </ul>
+                    ← Voltar
+                  </button>
+                  <h2 className="text-base font-extrabold text-slate-900">
+                    {sectionTitle}
+                  </h2>
+                </div>
+
+                {section === "dados" && (
+                  <form onSubmit={(e) => void handleSubmit(e)} className="space-y-3.5">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-500">
+                        Nome
+                      </label>
+                      <input
+                        required
+                        value={nome}
+                        onChange={(e) => setNome(e.target.value)}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-500">
+                        Telefone
+                      </label>
+                      <input
+                        value={telefone}
+                        onChange={(e) => setTelefone(e.target.value)}
+                        className={inputClass}
+                        inputMode="tel"
+                        placeholder="(83) 99999-9999"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-500">
+                        Data de nascimento{isCpfProfile ? " *" : ""}
+                      </label>
+                      <input
+                        type="date"
+                        value={dataNascimento}
+                        onChange={(e) => setDataNascimento(e.target.value)}
+                        className={inputClass}
+                        required={isCpfProfile}
+                      />
+                      <p className="mt-1 text-[11px] text-slate-400">
+                        Necessária para pagamentos e propostas (CPF).
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-[1fr_5.5rem] gap-2.5">
+                      <div>
+                        <label className="text-xs font-semibold text-slate-500">
+                          Cidade
+                        </label>
+                        <input
+                          value={cidade}
+                          onChange={(e) => setCidade(e.target.value)}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-slate-500">
+                          UF
+                        </label>
+                        <select
+                          value={uf}
+                          onChange={(e) => setUf(e.target.value)}
+                          className={inputClass}
+                        >
+                          {BRAZIL_STATES.map((s) => (
+                            <option key={s} value={s}>
+                              {s}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <Button
+                      type="submit"
+                      variant="papufy"
+                      disabled={loading}
+                      className="mt-2 h-12 w-full rounded-2xl"
+                    >
+                      {loading ? "Salvando..." : "Salvar alterações"}
+                    </Button>
+                  </form>
+                )}
+
+                {section === "docs" && (
+                  <div className="space-y-4">
+                    {user?.curriculoUrl && (
+                      <a
+                        href={user.curriculoUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-3 rounded-2xl bg-sky-50 px-3.5 py-3 text-sm font-semibold text-sky-700"
+                      >
+                        <FileText className="h-4 w-4" />
+                        Abrir currículo atual
+                        <ChevronRight className="ml-auto h-4 w-4" />
+                      </a>
+                    )}
+                    <UploadZone
+                      label="Currículo (PDF)"
+                      hint="Toque para enviar PDF"
+                      accept="application/pdf"
+                      progress={curriculoProgress}
+                      onFiles={handleCurriculo}
+                    />
+                    <UploadZone
+                      label="Certificados"
+                      hint="Fotos da câmera ou galeria"
+                      accept="image/*"
+                      multiple
+                      capture="environment"
+                      progress={certProgress}
+                      onFiles={handleCertificados}
+                    />
+                    {certificates.length > 0 && (
+                      <ul className="space-y-2">
+                        {certificates.map((c) => (
+                          <li key={c.id}>
+                            <a
+                              href={c.arquivoUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2.5 text-sm font-medium text-sky-700"
+                            >
+                              <FileText className="h-4 w-4 shrink-0" />
+                              <span className="truncate">{c.nome}</span>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+
+                {section === "senha" && (
+                  <form onSubmit={(e) => void handleSubmit(e)} className="space-y-3.5">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-500">
+                        Senha atual
+                      </label>
+                      <input
+                        type="password"
+                        value={senhaAtual}
+                        onChange={(e) => setSenhaAtual(e.target.value)}
+                        className={inputClass}
+                        autoComplete="current-password"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-500">
+                        Nova senha
+                      </label>
+                      <input
+                        type="password"
+                        minLength={8}
+                        value={novaSenha}
+                        onChange={(e) => setNovaSenha(e.target.value)}
+                        className={inputClass}
+                        autoComplete="new-password"
+                        placeholder="Mínimo 8 caracteres"
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      variant="papufy"
+                      disabled={loading || !novaSenha}
+                      className="mt-2 h-12 w-full rounded-2xl"
+                    >
+                      {loading ? "Salvando..." : "Atualizar senha"}
+                    </Button>
+                  </form>
+                )}
+              </div>
+            </MotionEnter>
           )}
-          </CardContent>
-        </Card>
-
-        <form onSubmit={handleSubmit}>
-        <Card className="py-0 shadow-sm">
-          <CardContent className="space-y-4 p-4 sm:p-6">
-          <h2 className="font-bold text-foreground">Dados pessoais</h2>
-          <div>
-            <Label>Nome</Label>
-            <input
-              required
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              className="input-field mt-1"
-            />
-          </div>
-          <div>
-            <Label>Telefone</Label>
-            <input
-              value={telefone}
-              onChange={(e) => setTelefone(e.target.value)}
-              className="input-field mt-1"
-              inputMode="tel"
-            />
-          </div>
-          <div>
-            <Label>
-              Data de nascimento
-              {isCpfProfile ? " *" : ""}
-            </Label>
-            <input
-              type="date"
-              value={dataNascimento}
-              onChange={(e) => setDataNascimento(e.target.value)}
-              className="input-field mt-1"
-              required={isCpfProfile}
-            />
-            <p className="mt-1 text-xs text-muted-foreground">
-              Necessária para receber pagamentos e enviar propostas (CPF).
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Cidade</Label>
-              <input
-                value={cidade}
-                onChange={(e) => setCidade(e.target.value)}
-                className="input-field mt-1"
-              />
-            </div>
-            <div>
-              <Label>UF</Label>
-              <select
-                value={uf}
-                onChange={(e) => setUf(e.target.value)}
-                className="input-field mt-1"
-              >
-                {BRAZIL_STATES.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <Separator />
-          <p className="text-sm font-medium text-muted-foreground">
-            Alterar senha (opcional)
-          </p>
-          <div>
-            <Label>Senha atual</Label>
-            <input
-              type="password"
-              value={senhaAtual}
-              onChange={(e) => setSenhaAtual(e.target.value)}
-              className="input-field mt-1"
-            />
-          </div>
-          <div>
-            <Label>Nova senha</Label>
-            <input
-              type="password"
-              minLength={8}
-              value={novaSenha}
-              onChange={(e) => setNovaSenha(e.target.value)}
-              className="input-field mt-1"
-            />
-          </div>
-
-          <Button
-            type="submit"
-            variant="papufy"
-            size="cta"
-            disabled={loading}
-            className="w-full"
-          >
-            {loading ? "Salvando..." : "Salvar alterações"}
-          </Button>
-          </CardContent>
-        </Card>
-        </form>
+        </div>
       </div>
     </Layout>
   );
