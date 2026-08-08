@@ -418,7 +418,7 @@ export function CreateJobPage() {
         <div className="flex-1 overflow-x-hidden px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-4">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
-              key={step}
+              key={`${listingType}-${step}`}
               custom={direction}
               variants={slide}
               initial="enter"
@@ -609,7 +609,7 @@ export function CreateJobPage() {
                     </p>
                   </div>
 
-                  {!isPro && (
+                  {listingType === "JOB_VACANCY" ? (
                     <MotionPressButton
                       type="button"
                       onClick={() => setSemQualificacao((v) => !v)}
@@ -637,7 +637,7 @@ export function CreateJobPage() {
                         </span>
                       </span>
                     </MotionPressButton>
-                  )}
+                  ) : null}
 
                   {(titulo.trim() || descricao.trim()) && (
                     <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-3.5">
