@@ -131,7 +131,8 @@ export function ListingDetailPage() {
         bairro: editBairro.trim() || null,
         uf: editUf,
         telefone: digitsOnly(editTelefone),
-        semQualificacao: editSemQualificacao,
+        semQualificacao:
+          listing.listingType === "JOB_VACANCY" ? editSemQualificacao : false,
       });
       setListing(updated);
       setEditing(false);
@@ -276,7 +277,7 @@ export function ListingDetailPage() {
                 {typeBadge}
               </span>
               <StatusBadge status={listing.status} />
-              {listing.semQualificacao && (
+              {isBico && listing.semQualificacao && (
                 <span className="inline-block rounded-lg bg-sky-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-sky-800">
                   Sem qualificação exigida
                 </span>
@@ -363,17 +364,19 @@ export function ListingDetailPage() {
                   />
                 </div>
 
-                <label className="flex items-start gap-3 rounded-xl border border-sky-100 bg-sky-50/60 px-4 py-3">
-                  <input
-                    type="checkbox"
-                    checked={editSemQualificacao}
-                    onChange={(e) => setEditSemQualificacao(e.target.checked)}
-                    className="mt-0.5 h-5 w-5 rounded border-sky-300 text-sky-600"
-                  />
-                  <span className="text-sm text-slate-700">
-                    Não é necessária qualificação para este serviço
-                  </span>
-                </label>
+                {isBico && (
+                  <label className="flex items-start gap-3 rounded-xl border border-sky-100 bg-sky-50/60 px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={editSemQualificacao}
+                      onChange={(e) => setEditSemQualificacao(e.target.checked)}
+                      className="mt-0.5 h-5 w-5 rounded border-sky-300 text-sky-600"
+                    />
+                    <span className="text-sm text-slate-700">
+                      Não é necessária qualificação para este serviço
+                    </span>
+                  </label>
+                )}
 
                 {editError && (
                   <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
