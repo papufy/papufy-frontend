@@ -9,9 +9,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MobileShell } from "../components/mobile/MobileShell";
 import { AutoAnimateList } from "../components/motion/AutoAnimateList";
 import { MotionEnter } from "../components/motion/MotionPrimitives";
+import { bankLabel, BRAZIL_BANKS } from "../constants/banks";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { api } from "../lib/api";
+import { lookupCep, normalizeCep } from "../lib/cep";
 import type { Transaction, TransactionStatus } from "../types";
 import { formatPrice } from "../utils/format";
 
@@ -85,7 +87,6 @@ export function WalletPage() {
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [summary, setSummary] = useState<WalletSummary | null>(null);
   const [availableBalance, setAvailableBalance] = useState<number | null>(null);
-  const [recipientId, setRecipientId] = useState<string | null>(null);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [papufyWithdrawable, setPapufyWithdrawable] = useState(0);
   const [maxWithdraw, setMaxWithdraw] = useState(0);
@@ -115,6 +116,7 @@ export function WalletPage() {
   const [obCity, setObCity] = useState("");
   const [obState, setObState] = useState("");
   const [obZip, setObZip] = useState("");
+  const [cepLoading, setCepLoading] = useState(false);
 
   const loadWallet = useCallback(async () => {
     if (!user?.id) return;
@@ -129,7 +131,6 @@ export function WalletPage() {
       setSummary(summaryData);
       if (balanceData) {
         setAvailableBalance(balanceData.balance);
-        setRecipientId(balanceData.walletId);
         setPapufyWithdrawable(balanceData.papufyWithdrawable);
         setMaxWithdraw(balanceData.maxWithdraw);
         setWaitingFunds(balanceData.waitingFunds ?? 0);
@@ -138,7 +139,6 @@ export function WalletPage() {
         );
       } else {
         setAvailableBalance(null);
-        setRecipientId(null);
         setPapufyWithdrawable(0);
         setMaxWithdraw(0);
         setWaitingFunds(0);
@@ -180,6 +180,34 @@ export function WalletPage() {
     );
   }, [transactions, tab, user?.id]);
 
+  const handleCepChange = async (value: string) => {
+    const masked = value
+      .replace(/\D/g, "")
+      .slice(0, 8)
+      .replace(/(\d{5})(\d{0,3})/, (_m, p1, p2) => (p2 ? `${p1}-${p2}` : p1));
+    setObZip(masked);
+
+    const normalized = normalizeCep(masked);
+    if (normalized.length !== 8) return;
+
+    setCepLoading(true);
+    try {
+      const result = await lookupCep(normalized);
+      if (!result) {
+        showToast("CEP não encontrado. Preencha o endereço manualmente.", "info");
+        return;
+      }
+      if (result.logradouro) setObStreet(result.logradouro);
+      if (result.bairro) setObNeighborhood(result.bairro);
+      if (result.cidade) setObCity(result.cidade);
+      if (result.uf) setObState(result.uf);
+    } catch {
+      showToast("Não foi possível buscar o CEP. Tente novamente.", "error");
+    } finally {
+      setCepLoading(false);
+    }
+  };
+
   const handleOnboard = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -197,8 +225,12 @@ export function WalletPage() {
       showToast("Informe a data de nascimento (DD/MM/AAAA).", "error");
       return;
     }
-    if (onlyDigits(obBank).length < 1 || onlyDigits(obBranch).length < 1) {
-      showToast("Informe banco e agência.", "error");
+    if (!obBank.trim()) {
+      showToast("Selecione o banco.", "error");
+      return;
+    }
+    if (onlyDigits(obBranch).length < 1) {
+      showToast("Informe a agência.", "error");
       return;
     }
     if (!obAccountDigit.trim() || onlyDigits(obAccount).length < 1) {
@@ -299,7 +331,7 @@ export function WalletPage() {
           <header>
             <h1 className="text-xl font-bold text-slate-900">Carteira</h1>
             <p className="mt-1 text-sm text-slate-500">
-              Conta bancária, saldo e saque via Pagar.me
+              Conta bancária, saldo e saque
             </p>
           </header>
         </MotionEnter>
@@ -313,8 +345,8 @@ export function WalletPage() {
                     Cadastre sua conta para receber
                   </h2>
                   <p className="text-xs text-slate-500">
-                    Necessário para receber pagamentos e sacar. Os dados vão para a
-                    Pagar.me (conta bancária do titular).
+                    Necessário para receber pagamentos e sacar. Use a conta
+                    bancária do titular do CPF/CNPJ.
                   </p>
 
                   <div className="grid gap-3 sm:grid-cols-2">
@@ -365,16 +397,23 @@ export function WalletPage() {
                     Conta bancária
                   </p>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <div>
-                      <Label htmlFor="ob-bank">Banco (código)</Label>
-                      <Input
+                    <div className="sm:col-span-2">
+                      <Label htmlFor="ob-bank">Banco</Label>
+                      <select
                         id="ob-bank"
-                        placeholder="341"
+                        className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                         value={obBank}
                         onChange={(e) => setObBank(e.target.value)}
                         disabled={onboardingSaving}
-                        className="mt-1"
-                      />
+                        required
+                      >
+                        <option value="">Selecione seu banco</option>
+                        {BRAZIL_BANKS.map((bank) => (
+                          <option key={bank.code} value={bank.code}>
+                            {bankLabel(bank.code, bank.name)}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <Label htmlFor="ob-type">Tipo</Label>
@@ -437,6 +476,34 @@ export function WalletPage() {
                     Endereço
                   </p>
                   <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <Label htmlFor="ob-zip">CEP</Label>
+                      <Input
+                        id="ob-zip"
+                        value={obZip}
+                        onChange={(e) => void handleCepChange(e.target.value)}
+                        disabled={onboardingSaving || cepLoading}
+                        inputMode="numeric"
+                        placeholder="00000-000"
+                        className="mt-1"
+                      />
+                      {cepLoading && (
+                        <p className="mt-1 text-xs text-slate-500">
+                          Buscando endereço…
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="ob-uf">UF</Label>
+                      <Input
+                        id="ob-uf"
+                        maxLength={2}
+                        value={obState}
+                        onChange={(e) => setObState(e.target.value)}
+                        disabled={onboardingSaving}
+                        className="mt-1"
+                      />
+                    </div>
                     <div className="sm:col-span-2">
                       <Label htmlFor="ob-street">Rua</Label>
                       <Input
@@ -467,33 +534,12 @@ export function WalletPage() {
                         className="mt-1"
                       />
                     </div>
-                    <div>
+                    <div className="sm:col-span-2">
                       <Label htmlFor="ob-city">Cidade</Label>
                       <Input
                         id="ob-city"
                         value={obCity}
                         onChange={(e) => setObCity(e.target.value)}
-                        disabled={onboardingSaving}
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="ob-uf">UF</Label>
-                      <Input
-                        id="ob-uf"
-                        maxLength={2}
-                        value={obState}
-                        onChange={(e) => setObState(e.target.value)}
-                        disabled={onboardingSaving}
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="ob-zip">CEP</Label>
-                      <Input
-                        id="ob-zip"
-                        value={obZip}
-                        onChange={(e) => setObZip(e.target.value)}
                         disabled={onboardingSaving}
                         className="mt-1"
                       />
@@ -520,7 +566,7 @@ export function WalletPage() {
             <Card className="border-0 bg-gradient-to-br from-sky-50 to-blue-50 py-0 shadow-sm ring-0">
               <CardContent className="p-5">
                 <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
-                  Saldo disponível na Pagar.me
+                  Saldo disponível
                 </p>
                 {loading ? (
                   <div className="mt-3 flex items-center gap-2 text-sm text-sky-600">
@@ -540,16 +586,10 @@ export function WalletPage() {
                     {formatPrice(availableBalance ?? 0, false)}
                   </p>
                 )}
-                {recipientId && (
-                  <p className="mt-2 truncate text-[10px] text-sky-600/80">
-                    Recebedor: {recipientId}
-                  </p>
-                )}
-
                 <p className="mt-4 rounded-xl border border-sky-100 bg-white/80 px-3 py-2.5 text-xs leading-relaxed text-slate-600">
-                  O saque envia o valor para a <strong className="text-sky-800">conta bancária cadastrada</strong>.
-                  Só é possível sacar o menor entre o saldo na Pagar.me e o valor liberado no Papufy
-                  (após confirmação mútua do serviço).
+                  O saque envia o valor para a{" "}
+                  <strong className="text-sky-800">conta bancária cadastrada</strong>.
+                  Valores ficam disponíveis após a confirmação mútua do serviço.
                 </p>
 
                 {!loading && !needsOnboarding && (
@@ -560,7 +600,7 @@ export function WalletPage() {
 
                 <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
                   <div className="rounded-xl bg-white/70 px-3 py-2">
-                    <p className="text-slate-500">Liberado no Papufy</p>
+                    <p className="text-slate-500">Liberado para saque</p>
                     <p className="font-semibold text-slate-800">
                       {formatPrice(
                         needsOnboarding
@@ -571,7 +611,7 @@ export function WalletPage() {
                     </p>
                   </div>
                   <div className="rounded-xl bg-white/70 px-3 py-2">
-                    <p className="text-slate-500">A liberar (Pagar.me)</p>
+                    <p className="text-slate-500">Em processamento</p>
                     <p className="font-semibold text-slate-800">
                       {formatPrice(waitingFunds, false)}
                     </p>
@@ -604,7 +644,7 @@ export function WalletPage() {
                   <p className="mt-2 text-center text-xs text-sky-700">
                     {papufyWithdrawable < 1
                       ? "Confirme a conclusão dos serviços no chat para liberar o saque."
-                      : "Saldo na Pagar.me ainda insuficiente para o valor liberado no Papufy."}
+                      : "Aguarde a liberação do saldo para sacar este valor."}
                   </p>
                 )}
               </CardContent>
