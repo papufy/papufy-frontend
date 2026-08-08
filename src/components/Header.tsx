@@ -22,10 +22,10 @@ export function Header({ onSearch }: HeaderProps) {
 
   const handleAnunciar = () => {
     if (!isAuthenticated) {
-      navigate("/entrar", { state: { redirect: "/anunciar" } });
+      navigate("/entrar", { state: { redirect: "/anunciar/tipo" } });
       return;
     }
-    navigate("/anunciar");
+    navigate("/anunciar/tipo");
   };
 
   const handleChat = () => {

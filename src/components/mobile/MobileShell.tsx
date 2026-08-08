@@ -13,7 +13,7 @@ interface MobileShellProps {
   showCategories?: boolean;
 }
 
-const HIDE_BOTTOM = ["/entrar"];
+const HIDE_BOTTOM = ["/entrar", "/anunciar"];
 
 export function MobileShell({
   children,
