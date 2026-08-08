@@ -13,7 +13,8 @@ interface MobileShellProps {
   showCategories?: boolean;
 }
 
-const HIDE_BOTTOM = ["/entrar", "/anunciar"];
+/** Fluxos full-screen no mobile (sem bottom nav / header global). */
+const HIDE_CHROME = ["/entrar", "/anunciar"];
 
 export function MobileShell({
   children,
@@ -22,12 +23,12 @@ export function MobileShell({
 }: MobileShellProps) {
   const { pathname } = useLocation();
   const { isAuthenticated } = useAuth();
-  const hideBottom =
-    HIDE_BOTTOM.some((p) => pathname.startsWith(p)) || !isAuthenticated;
+  const hideChrome = HIDE_CHROME.some((p) => pathname.startsWith(p));
+  const hideBottom = hideChrome || !isAuthenticated;
 
   return (
-    <div className="min-h-[100dvh] bg-papufy-bg">
-      <div className="lg:hidden">
+    <div className="min-h-[100dvh] overflow-x-hidden bg-papufy-bg">
+      <div className={`lg:hidden ${hideChrome ? "hidden" : ""}`}>
         <HeaderMobile />
         {showCategories && (
           <CategoryScroll onChange={onRefreshListings} />
