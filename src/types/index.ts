@@ -59,6 +59,8 @@ export interface Listing {
   titulo: string;
   descricao: string;
   preco: number | null;
+  precoMin?: number | null;
+  precoMax?: number | null;
   aCombinar: boolean;
   categoria: string;
   semQualificacao?: boolean;

@@ -12,6 +12,24 @@ export function formatPrice(preco: number | null, aCombinar: boolean): string {
   return "Preço não informado";
 }
 
+/** Faixa de preço (profissional) ou preço único (pedido). */
+export function formatListingPrice(listing: {
+  preco?: number | null;
+  precoMin?: number | null;
+  precoMax?: number | null;
+  aCombinar?: boolean;
+}): string {
+  const min = listing.precoMin ?? null;
+  const max = listing.precoMax ?? null;
+  if (min != null && max != null && min > 0 && max > 0) {
+    if (min === max) return formatPrice(min, false);
+    return `${formatPrice(min, false)} – ${formatPrice(max, false)}`;
+  }
+  if (min != null && min > 0) return `A partir de ${formatPrice(min, false)}`;
+  if (max != null && max > 0) return `Até ${formatPrice(max, false)}`;
+  return formatPrice(listing.preco ?? null, listing.aCombinar ?? false);
+}
+
 export function formatLocation(cidade: string, uf: string, bairro?: string | null): string {
   const base = `${cidade}, ${uf}`;
   return bairro ? `${bairro} · ${base}` : base;

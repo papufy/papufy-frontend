@@ -306,9 +306,6 @@ export function CreateJobPage() {
       formData.append("titulo", titulo.trim());
       const { min, max } = parsedRange();
       let finalDescription = descricao.trim();
-      if (isPro) {
-        finalDescription += `\n\nFaixa de preço: R$ ${min.toFixed(2)} até R$ ${max.toFixed(2)}.`;
-      }
       if (!isPro && semQualificacao) {
         finalDescription +=
           "\n\nNão é necessária qualificação para realizar este serviço.";
@@ -682,44 +679,71 @@ export function CreateJobPage() {
                     <div className="mb-2.5 flex items-center gap-2">
                       <Wallet className={`h-4 w-4 ${theme.text}`} />
                       <p className="text-sm font-bold text-slate-800">
-                        {isPro ? "Faixa de preço" : "Orçamento estimado"}
+                        {isPro
+                          ? "Valor do seu serviço"
+                          : "Orçamento estimado"}
                       </p>
                     </div>
 
                     {isPro ? (
-                      <div className="grid grid-cols-2 gap-2.5">
-                        <div>
-                          <label className="text-xs font-semibold text-slate-500">
-                            Mín. (R$)
-                          </label>
-                          <input
-                            type="number"
-                            inputMode="decimal"
-                            min={1}
-                            value={precoMin}
-                            onChange={(e) => setPrecoMin(e.target.value)}
-                            placeholder="100"
-                            className={inputError(
-                              showValidation && parsedRange().min <= 0
-                            )}
-                          />
+                      <div className="space-y-2.5">
+                        <p className="text-xs leading-relaxed text-slate-600">
+                          Informe quanto você cobra por esse serviço — valor
+                          mínimo e máximo.
+                        </p>
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <div>
+                            <label
+                              htmlFor="preco-min"
+                              className="text-xs font-semibold text-slate-600"
+                            >
+                              Valor mínimo (R$)
+                            </label>
+                            <input
+                              id="preco-min"
+                              type="number"
+                              inputMode="decimal"
+                              min={1}
+                              value={precoMin}
+                              onChange={(e) => setPrecoMin(e.target.value)}
+                              placeholder="Ex: 80"
+                              className={inputError(
+                                showValidation && parsedRange().min <= 0
+                              )}
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="preco-max"
+                              className="text-xs font-semibold text-slate-600"
+                            >
+                              Valor máximo (R$)
+                            </label>
+                            <input
+                              id="preco-max"
+                              type="number"
+                              inputMode="decimal"
+                              min={1}
+                              value={precoMax}
+                              onChange={(e) => setPrecoMax(e.target.value)}
+                              placeholder="Ex: 350"
+                              className={inputError(
+                                showValidation &&
+                                  (parsedRange().max <= 0 ||
+                                    (parsedRange().min > 0 &&
+                                      parsedRange().max < parsedRange().min))
+                              )}
+                            />
+                          </div>
                         </div>
-                        <div>
-                          <label className="text-xs font-semibold text-slate-500">
-                            Máx. (R$)
-                          </label>
-                          <input
-                            type="number"
-                            inputMode="decimal"
-                            min={1}
-                            value={precoMax}
-                            onChange={(e) => setPrecoMax(e.target.value)}
-                            placeholder="350"
-                            className={inputError(
-                              showValidation && parsedRange().max <= 0
-                            )}
-                          />
-                        </div>
+                        {parsedRange().min > 0 &&
+                          parsedRange().max >= parsedRange().min && (
+                            <p className={`text-xs font-semibold ${theme.text}`}>
+                              Faixa: R${" "}
+                              {parsedRange().min.toFixed(0)} – R${" "}
+                              {parsedRange().max.toFixed(0)}
+                            </p>
+                          )}
                       </div>
                     ) : (
                       <>

@@ -1,27 +1,14 @@
-import { useCallback, useState, type MouseEvent } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, type MouseEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { getCategoryMeta } from "../../constants/categories";
+import { useAuth } from "../../context/AuthContext";
+import { useFavorites } from "../../context/FavoritesContext";
 import type { Listing } from "../../types";
-import { formatPrice, formatRelativeTime } from "../../utils/format";
+import { formatListingPrice, formatRelativeTime } from "../../utils/format";
 import { AnimatedLordIcon, useLordPlay } from "../icons/AnimatedLordIcon";
 import { MotionPressButton } from "../motion/MotionPrimitives";
-
-const FAVORITES_KEY = "papufy_favorites";
-
-function loadFavorites(): Set<string> {
-  try {
-    const raw = localStorage.getItem(FAVORITES_KEY);
-    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
-  } catch {
-    return new Set();
-  }
-}
-
-function saveFavorites(ids: Set<string>) {
-  localStorage.setItem(FAVORITES_KEY, JSON.stringify([...ids]));
-}
 
 interface ListingCardMobileProps {
   listing: Listing;
@@ -37,24 +24,24 @@ export function ListingCardMobile({
   const isBico = listing.listingType === "JOB_VACANCY";
   const cover = listing.imagemCapa;
   const showImage = Boolean(cover && !cover.includes("placeholders/"));
-
-  const [favorited, setFavorited] = useState(() =>
-    loadFavorites().has(listing.id)
-  );
+  const { isAuthenticated } = useAuth();
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const navigate = useNavigate();
+  const favorited = isFavorite(listing.id);
   const { playToken: heartPlay, trigger: triggerHeart } = useLordPlay();
 
-  const toggleFavorite = useCallback(
+  const handleFavorite = useCallback(
     (e: MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
       triggerHeart();
-      const next = loadFavorites();
-      if (next.has(listing.id)) next.delete(listing.id);
-      else next.add(listing.id);
-      saveFavorites(next);
-      setFavorited(next.has(listing.id));
+      if (!isAuthenticated) {
+        navigate("/entrar", { state: { redirect: "/" } });
+        return;
+      }
+      void toggleFavorite(listing.id);
     },
-    [listing.id, triggerHeart]
+    [isAuthenticated, listing.id, navigate, toggleFavorite, triggerHeart]
   );
 
   const locationShort = `${listing.cidade}, ${listing.uf}`;
@@ -107,7 +94,7 @@ export function ListingCardMobile({
           )}
 
           <MotionPressButton
-            onClick={toggleFavorite}
+            onClick={handleFavorite}
             className={`absolute right-1.5 top-1.5 flex items-center justify-center rounded-full bg-card/95 shadow-md backdrop-blur-sm ${
               compact ? "h-7 w-7" : "right-2 top-2 h-9 w-9"
             }`}
@@ -156,7 +143,7 @@ export function ListingCardMobile({
               compact ? "text-[11px] leading-none" : "text-sm"
             }`}
           >
-            {formatPrice(listing.preco ?? null, listing.aCombinar)}
+            {formatListingPrice(listing)}
           </p>
           <p
             className={`line-clamp-1 text-muted-foreground ${

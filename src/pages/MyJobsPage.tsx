@@ -11,7 +11,7 @@ import { StatusBadge } from "../components/StatusBadge";
 import { useToast } from "../context/ToastContext";
 import { api } from "../lib/api";
 import type { Listing } from "../types";
-import { formatPrice, formatRelativeTime } from "../utils/format";
+import { formatListingPrice, formatRelativeTime } from "../utils/format";
 
 export function MyJobsPage() {
   const { showToast } = useToast();
@@ -133,7 +133,7 @@ export function MyJobsPage() {
                         {listing.titulo}
                       </Link>
                       <p className="text-sm font-semibold text-sky-700">
-                        {formatPrice(listing.preco ?? null, listing.aCombinar)}
+                        {formatListingPrice(listing)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {listing.categoria} · {listing.cidade}, {listing.uf}

@@ -256,6 +256,14 @@ export const api = {
         })
       ),
 
+    listFavorites: () =>
+      request<{ listingIds: string[] }>("/listings/favorites"),
+
+    toggleFavorite: (id: string) =>
+      request<{ favorited: boolean }>(`/listings/${id}/favorite`, {
+        method: "POST",
+      }),
+
     update: (
       id: string,
       body: {

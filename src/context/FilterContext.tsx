@@ -39,8 +39,6 @@ interface FilterContextValue {
   resetFilters: () => void;
 }
 
-const STORAGE_KEY = "papufy_filters";
-
 const DEFAULT_FILTERS: JobFilters = {
   search: "",
   category: null,
@@ -51,28 +49,10 @@ const DEFAULT_FILTERS: JobFilters = {
   uf: "PB",
 };
 
-function loadFilters(): JobFilters {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as Partial<JobFilters> & { tipo?: string };
-      return {
-        ...DEFAULT_FILTERS,
-        ...parsed,
-        // Pedidos/Profissionais não têm filtro de tipo; misturam nas categorias.
-        listingType: null,
-      };
-    }
-  } catch {
-    /* ignore */
-  }
-  return DEFAULT_FILTERS;
-}
-
 const FilterContext = createContext<FilterContextValue | null>(null);
 
 export function FilterProvider({ children }: { children: ReactNode }) {
-  const [filters, setFilters] = useState<JobFilters>(loadFilters);
+  const [filters, setFilters] = useState<JobFilters>(DEFAULT_FILTERS);
   const [locationDetecting, setLocationDetecting] = useState(
     () => !isLocationManual()
   );
@@ -112,26 +92,15 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [runAutoLocation]);
 
+  // Limpa preferências antigas de anúncio no localStorage.
   useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        cidade: filters.cidade,
-        uf: filters.uf,
-        category: filters.category,
-        listingType: filters.listingType,
-        minPrice: filters.minPrice,
-        maxPrice: filters.maxPrice,
-      })
-    );
-  }, [
-    filters.cidade,
-    filters.uf,
-    filters.category,
-    filters.listingType,
-    filters.minPrice,
-    filters.maxPrice,
-  ]);
+    try {
+      localStorage.removeItem("papufy_filters");
+      localStorage.removeItem("papufy_favorites");
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const locationLabel = `${filters.cidade}, ${filters.uf}`;
 

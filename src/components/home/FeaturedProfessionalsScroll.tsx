@@ -3,7 +3,7 @@ import { FadeContent } from "@/components/effects/FadeContent";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCategoryMeta } from "../../constants/categories";
 import type { Listing } from "../../types";
-import { formatPrice, formatRelativeTime } from "../../utils/format";
+import { formatListingPrice, formatRelativeTime } from "../../utils/format";
 
 interface FeaturedProfessionalsScrollProps {
   listings: Listing[];
@@ -77,7 +77,7 @@ export function FeaturedProfessionalsScroll({
                       {listing.titulo}
                     </p>
                     <p className="mt-1 text-xs font-bold text-sky-600">
-                      {formatPrice(listing.preco ?? null, listing.aCombinar)}
+                      {formatListingPrice(listing)}
                     </p>
                     <p className="mt-1 line-clamp-1 text-[10px] text-papufy-muted">
                       {listing.categoria} · {formatRelativeTime(listing.createdAt)}

@@ -6,6 +6,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ToastContainer } from "./components/ToastContainer";
 import { AuthProvider } from "./context/AuthContext";
 import { ChatProvider } from "./context/ChatContext";
+import { FavoritesProvider } from "./context/FavoritesContext";
 import { FilterProvider } from "./context/FilterContext";
 import { ToastProvider } from "./context/ToastContext";
 import { lazyWithRetry } from "./lib/lazyWithRetry";
@@ -71,6 +72,7 @@ export default function App() {
         <AuthProvider>
           <ChatProvider>
             <FilterProvider>
+              <FavoritesProvider>
               <BrowserRouter>
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
@@ -155,6 +157,7 @@ export default function App() {
                 </Suspense>
                 <ToastContainer />
               </BrowserRouter>
+              </FavoritesProvider>
             </FilterProvider>
           </ChatProvider>
         </AuthProvider>

@@ -7,25 +7,6 @@ import { IconSearch } from "../icons/NavIcons";
 
 const RECENT_KEY = "papufy_recent_searches";
 
-function loadRecent(): string[] {
-  try {
-    const raw = localStorage.getItem(RECENT_KEY);
-    return raw ? (JSON.parse(raw) as string[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveRecent(term: string) {
-  const trimmed = term.trim();
-  if (!trimmed) return;
-  const list = [trimmed, ...loadRecent().filter((t) => t !== trimmed)].slice(
-    0,
-    8
-  );
-  localStorage.setItem(RECENT_KEY, JSON.stringify(list));
-}
-
 interface SearchBarProps {
   onSearch?: () => void;
   autoFocusFullscreen?: boolean;
@@ -49,8 +30,24 @@ export function SearchBar({
   const [cidade, setCidade] = useState(filters.cidade);
   const [uf, setUf] = useState(filters.uf);
   const [cities, setCities] = useState<string[]>([]);
-  const [recent, setRecent] = useState<string[]>(loadRecent);
+  const [recent, setRecent] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    try {
+      localStorage.removeItem(RECENT_KEY);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const pushRecent = (term: string) => {
+    const trimmed = term.trim();
+    if (!trimmed) return;
+    setRecent((prev) =>
+      [trimmed, ...prev.filter((t) => t !== trimmed)].slice(0, 8)
+    );
+  };
 
   useEffect(() => {
     setCidade(filters.cidade);
@@ -113,8 +110,7 @@ export function SearchBar({
 
   const commitSearch = (term: string) => {
     applySearch(term);
-    saveRecent(term);
-    setRecent(loadRecent());
+    pushRecent(term);
     setFullscreen(false);
     if (window.location.pathname !== "/") {
       navigate("/");

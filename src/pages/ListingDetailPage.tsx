@@ -17,7 +17,7 @@ import type { Listing } from "../types";
 import { digitsOnly } from "../utils/masks";
 import {
   formatLocation,
-  formatPrice,
+  formatListingPrice,
   formatRelativeTime,
 } from "../utils/format";
 
@@ -434,8 +434,16 @@ export function ListingDetailPage() {
             <Card className="py-0 shadow-sm">
               <CardContent className="p-5">
               <p className="text-3xl font-extrabold text-slate-900">
-                {formatPrice(listing.preco ?? null, listing.aCombinar)}
+                {formatListingPrice(listing)}
               </p>
+              {listing.listingType === "PROFESSIONAL_PROFILE" &&
+                listing.precoMin != null &&
+                listing.precoMax != null &&
+                listing.precoMin !== listing.precoMax && (
+                  <p className="mt-1 text-xs font-medium text-slate-500">
+                    Valor mínimo e máximo do serviço
+                  </p>
+                )}
 
               {!isOwner && (
                 <MotionPressButton
