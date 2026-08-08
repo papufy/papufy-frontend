@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MobileShell } from "../components/mobile/MobileShell";
 import { AutoAnimateList } from "../components/motion/AutoAnimateList";
 import { MotionEnter } from "../components/motion/MotionPrimitives";
-import { bankLabel, BRAZIL_BANKS } from "../constants/banks";
+import { BankCombobox } from "../components/BankCombobox";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { api } from "../lib/api";
@@ -336,6 +336,97 @@ export function WalletPage() {
           </header>
         </MotionEnter>
 
+        <MotionEnter delay={40}>
+          <ShineBorder borderRadius="1rem">
+            <Card className="border-0 bg-gradient-to-br from-sky-50 to-blue-50 py-0 shadow-sm ring-0">
+              <CardContent className="p-5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
+                  Saldo disponível
+                </p>
+                {loading ? (
+                  <div className="mt-3 flex items-center gap-2 text-sm text-sky-600">
+                    <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-sky-200 border-t-sky-600" />
+                    Consultando saldo…
+                  </div>
+                ) : needsOnboarding ? (
+                  <p className="mt-2 text-sm text-sky-800">
+                    Cadastre a conta bancária abaixo para ativar recebimentos e saques.
+                  </p>
+                ) : balanceUnavailable ? (
+                  <p className="mt-2 text-sm text-sky-800">
+                    Não foi possível consultar o saldo. Tente novamente em instantes.
+                  </p>
+                ) : (
+                  <p className="mt-1 text-3xl font-black text-sky-700">
+                    {formatPrice(availableBalance ?? 0, false)}
+                  </p>
+                )}
+                <p className="mt-4 rounded-xl border border-sky-100 bg-white/80 px-3 py-2.5 text-xs leading-relaxed text-slate-600">
+                  O saque envia o valor para a{" "}
+                  <strong className="text-sky-800">conta bancária cadastrada</strong>.
+                  Valores ficam disponíveis após a confirmação mútua do serviço.
+                </p>
+
+                {!loading && !needsOnboarding && (
+                  <p className="mt-3 text-sm font-semibold text-sky-800">
+                    Máximo para sacar agora: {formatPrice(maxWithdraw, false)}
+                  </p>
+                )}
+
+                <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
+                  <div className="rounded-xl bg-white/70 px-3 py-2">
+                    <p className="text-slate-500">Liberado para saque</p>
+                    <p className="font-semibold text-slate-800">
+                      {formatPrice(
+                        needsOnboarding
+                          ? summary?.availableBalance ?? 0
+                          : papufyWithdrawable,
+                        false
+                      )}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-white/70 px-3 py-2">
+                    <p className="text-slate-500">Em processamento</p>
+                    <p className="font-semibold text-slate-800">
+                      {formatPrice(waitingFunds, false)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-white/70 px-3 py-2">
+                    <p className="text-slate-500">A receber (pendente)</p>
+                    <p className="font-semibold text-slate-800">
+                      {formatPrice(summary?.pendingReceive ?? 0, false)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-white/70 px-3 py-2">
+                    <p className="text-slate-500">Já sacado</p>
+                    <p className="font-semibold text-slate-800">
+                      {formatPrice(summary?.totalWithdrawn ?? 0, false)}
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="papufy"
+                  size="cta"
+                  disabled={loading || needsOnboarding || balanceUnavailable || !canWithdraw}
+                  onClick={() => setShowWithdrawForm((v) => !v)}
+                  className="mt-4 w-full"
+                >
+                  {showWithdrawForm ? "Fechar formulário de saque" : "Solicitar saque"}
+                </Button>
+                {!loading && !needsOnboarding && !canWithdraw && (
+                  <p className="mt-2 text-center text-xs text-sky-700">
+                    {papufyWithdrawable < 1
+                      ? "Confirme a conclusão dos serviços no chat para liberar o saque."
+                      : "Aguarde a liberação do saldo para sacar este valor."}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </ShineBorder>
+        </MotionEnter>
+
         {needsOnboarding && (
           <MotionEnter>
             <form onSubmit={handleOnboard}>
@@ -399,21 +490,12 @@ export function WalletPage() {
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="sm:col-span-2">
                       <Label htmlFor="ob-bank">Banco</Label>
-                      <select
+                      <BankCombobox
                         id="ob-bank"
-                        className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                         value={obBank}
-                        onChange={(e) => setObBank(e.target.value)}
+                        onChange={setObBank}
                         disabled={onboardingSaving}
-                        required
-                      >
-                        <option value="">Selecione seu banco</option>
-                        {BRAZIL_BANKS.map((bank) => (
-                          <option key={bank.code} value={bank.code}>
-                            {bankLabel(bank.code, bank.name)}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     </div>
                     <div>
                       <Label htmlFor="ob-type">Tipo</Label>
@@ -560,97 +642,6 @@ export function WalletPage() {
             </form>
           </MotionEnter>
         )}
-
-        <MotionEnter delay={40}>
-          <ShineBorder borderRadius="1rem">
-            <Card className="border-0 bg-gradient-to-br from-sky-50 to-blue-50 py-0 shadow-sm ring-0">
-              <CardContent className="p-5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
-                  Saldo disponível
-                </p>
-                {loading ? (
-                  <div className="mt-3 flex items-center gap-2 text-sm text-sky-600">
-                    <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-sky-200 border-t-sky-600" />
-                    Consultando saldo…
-                  </div>
-                ) : needsOnboarding ? (
-                  <p className="mt-2 text-sm text-sky-800">
-                    Cadastre a conta bancária acima para ativar recebimentos e saques.
-                  </p>
-                ) : balanceUnavailable ? (
-                  <p className="mt-2 text-sm text-sky-800">
-                    Não foi possível consultar o saldo. Tente novamente em instantes.
-                  </p>
-                ) : (
-                  <p className="mt-1 text-3xl font-black text-sky-700">
-                    {formatPrice(availableBalance ?? 0, false)}
-                  </p>
-                )}
-                <p className="mt-4 rounded-xl border border-sky-100 bg-white/80 px-3 py-2.5 text-xs leading-relaxed text-slate-600">
-                  O saque envia o valor para a{" "}
-                  <strong className="text-sky-800">conta bancária cadastrada</strong>.
-                  Valores ficam disponíveis após a confirmação mútua do serviço.
-                </p>
-
-                {!loading && !needsOnboarding && (
-                  <p className="mt-3 text-sm font-semibold text-sky-800">
-                    Máximo para sacar agora: {formatPrice(maxWithdraw, false)}
-                  </p>
-                )}
-
-                <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-                  <div className="rounded-xl bg-white/70 px-3 py-2">
-                    <p className="text-slate-500">Liberado para saque</p>
-                    <p className="font-semibold text-slate-800">
-                      {formatPrice(
-                        needsOnboarding
-                          ? summary?.availableBalance ?? 0
-                          : papufyWithdrawable,
-                        false
-                      )}
-                    </p>
-                  </div>
-                  <div className="rounded-xl bg-white/70 px-3 py-2">
-                    <p className="text-slate-500">Em processamento</p>
-                    <p className="font-semibold text-slate-800">
-                      {formatPrice(waitingFunds, false)}
-                    </p>
-                  </div>
-                  <div className="rounded-xl bg-white/70 px-3 py-2">
-                    <p className="text-slate-500">A receber (pendente)</p>
-                    <p className="font-semibold text-slate-800">
-                      {formatPrice(summary?.pendingReceive ?? 0, false)}
-                    </p>
-                  </div>
-                  <div className="rounded-xl bg-white/70 px-3 py-2">
-                    <p className="text-slate-500">Já sacado</p>
-                    <p className="font-semibold text-slate-800">
-                      {formatPrice(summary?.totalWithdrawn ?? 0, false)}
-                    </p>
-                  </div>
-                </div>
-
-                <Button
-                  type="button"
-                  variant="papufy"
-                  size="cta"
-                  disabled={loading || needsOnboarding || balanceUnavailable || !canWithdraw}
-                  onClick={() => setShowWithdrawForm((v) => !v)}
-                  className="mt-4 w-full"
-                >
-                  {showWithdrawForm ? "Fechar formulário de saque" : "Solicitar saque"}
-                </Button>
-                {!loading && !needsOnboarding && !canWithdraw && (
-                  <p className="mt-2 text-center text-xs text-sky-700">
-                    {papufyWithdrawable < 1
-                      ? "Confirme a conclusão dos serviços no chat para liberar o saque."
-                      : "Aguarde a liberação do saldo para sacar este valor."}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </ShineBorder>
-        </MotionEnter>
 
         {showWithdrawForm && (
           <MotionEnter>
