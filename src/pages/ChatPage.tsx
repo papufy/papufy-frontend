@@ -45,6 +45,28 @@ function formatPaymentError(err: unknown): string {
   return e instanceof Error ? e.message : "Erro ao processar pagamento.";
 }
 
+/** Destaca "Carteira" com link para /carteira. */
+function TextWithWalletLink({ text }: { text: string }) {
+  const parts = text.split(/(Carteira)/g);
+  return (
+    <>
+      {parts.map((part, index) =>
+        part === "Carteira" ? (
+          <Link
+            key={`wallet-${index}`}
+            to="/carteira"
+            className="font-bold text-sky-700 underline decoration-2 underline-offset-2 hover:text-sky-800"
+          >
+            Carteira
+          </Link>
+        ) : (
+          <span key={`t-${index}`}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
 export function ChatPage() {
   const { id: activeId } = useParams<{ id?: string }>();
   const navigate = useNavigate();
@@ -625,7 +647,13 @@ export function ChatPage() {
               <p className="p-4 text-sm text-papufy-muted">Carregando...</p>
             )}
             {error && !loadingList && (
-              <p className="p-4 text-sm text-red-600">{error}</p>
+              <p className="p-4 text-sm text-red-600">
+                {error.includes("Carteira") ? (
+                  <TextWithWalletLink text={error} />
+                ) : (
+                  error
+                )}
+              </p>
             )}
             {!loadingList &&
               conversations.map((c) => (
@@ -1007,6 +1035,11 @@ export function ChatPage() {
                     className="mt-2 w-full rounded-xl border border-sky-200 px-3 py-2.5 text-sm outline-none focus:border-sky-400"
                   />
                 </>
+              )}
+              {error?.includes("Carteira") && (
+                <p className="mt-3 rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700">
+                  <TextWithWalletLink text={error} />
+                </p>
               )}
               <div className="mt-4 flex gap-2">
                 <Button
