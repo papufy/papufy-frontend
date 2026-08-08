@@ -552,12 +552,59 @@ export const api = {
     balance: () =>
       request<{
         balance: number;
-        walletId: string;
+        walletId: string | null;
         papufyWithdrawable: number;
         maxWithdraw: number;
+        waitingFunds?: number;
+        needsOnboarding?: boolean;
       }>("/payments/balance"),
 
-    withdrawSubaccount: (payload: { value: number; pixAddressKey: string }) =>
+    onboardAccount: (payload: {
+      name: string;
+      cpfCnpj: string;
+      email: string;
+      mobilePhone: string;
+      dataNascimento: string;
+      motherName?: string;
+      professionalOccupation?: string;
+      incomeValue?: number;
+      bankAccount: {
+        holderName: string;
+        holderType: "individual" | "company";
+        holderDocument: string;
+        bank: string;
+        branchNumber: string;
+        branchCheckDigit?: string;
+        accountNumber: string;
+        accountCheckDigit: string;
+        type: "checking" | "savings";
+      };
+      recipientAddress: {
+        street: string;
+        streetNumber: string;
+        complementary?: string;
+        neighborhood: string;
+        city: string;
+        state: string;
+        zipCode: string;
+        referencePoint?: string;
+      };
+    }) =>
+      request<{
+        recipientId: string;
+        walletId: string;
+        status?: string | null;
+        provider: "pagarme";
+        user: User;
+      }>("/payments/onboarding-account", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    withdrawSubaccount: (payload: {
+      value: number;
+      pixAddressKey?: string;
+    }) =>
       request<{
         transferId: string;
         value: number;

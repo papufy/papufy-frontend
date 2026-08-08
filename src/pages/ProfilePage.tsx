@@ -208,7 +208,7 @@ export function ProfilePage() {
           <CardContent className="p-4 sm:p-5">
           <h2 className="font-bold text-foreground">Carteira e saque</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Consulte o saldo da sua subconta Asaas e solicite transferência Pix.
+            Consulte o saldo e solicite saque para a conta bancária cadastrada.
           </p>
           <Button variant="papufy" size="cta" className="mt-4 w-full sm:w-auto" asChild>
             <Link to="/carteira">Abrir carteira e sacar</Link>

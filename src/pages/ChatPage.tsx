@@ -32,7 +32,10 @@ function formatPaymentError(err: unknown): string {
   };
   if (e.code === "PAYMENT_PROFILE_INCOMPLETE") {
     if (e.role === "receiver") {
-      return "O profissional precisa cadastrar CPF e telefone no perfil para receber pagamentos.";
+      if (e.missingFields?.includes("bankAccount")) {
+        return "O profissional precisa cadastrar a conta bancária na Carteira para receber.";
+      }
+      return "O profissional precisa completar o cadastro de recebimento (conta bancária) na Carteira.";
     }
     if (e.missingFields?.includes("cpfCnpj")) {
       return "Informe seu CPF ou CNPJ para concluir o pagamento.";
@@ -383,7 +386,9 @@ export function ChatPage() {
     } catch (err) {
       const e = err as Error & { missingFields?: string[] };
       const msg =
-        e.missingFields?.includes("dataNascimento")
+        e.missingFields?.includes("bankAccount")
+          ? "Cadastre sua conta bancária na Carteira antes de enviar propostas."
+          : e.missingFields?.includes("dataNascimento")
           ? "Informe sua data de nascimento para receber pagamentos."
           : e.missingFields?.includes("telefone")
           ? "Informe seu telefone para receber pagamentos."
@@ -992,7 +997,7 @@ export function ChatPage() {
               {needsReceiverBirthDate && (
                 <>
                   <p className="mt-3 text-xs text-sky-700">
-                    Informe sua data de nascimento (exigência do Asaas para receber
+                    Informe sua data de nascimento (exigência do pagamento para receber
                     pagamentos).
                   </p>
                   <input

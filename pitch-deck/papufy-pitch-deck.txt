@@ -13,7 +13,7 @@ seguro no app.
 
 • Taxa: 7% só em pagamentos feitos pelo app
 • Dois lados: pedidos + profissionais
-• Pagamento: Pix + cartão (Asaas)
+• Pagamento: Pix + cartão (Pagar.me)
 
 
 --------------------------------
@@ -62,7 +62,7 @@ Do anúncio ao saque, no mesmo app.
 • Dois funis: Pedido (preciso) e Perfil profissional (ofereço)
   Categorias: reformas, assistência, domésticos, aulas e mais
 • Chat + proposta: negociação em tempo real, imagens e valor
-• Pagamento & carteira: Asaas (Pix/cartão), split 93/7, dupla
+• Pagamento & carteira: Pagar.me (Pix/cartão), split 93/7, dupla
   confirmação e saque Pix controlado pela plataforma
 
 Anunciar é grátis. Monetização só na transação.
@@ -138,7 +138,7 @@ Produto vivo, receita em escala.
 Já construído
 • App web mobile-first (React)
 • Backend + chat em tempo real
-• Pagamentos Asaas (Pix/cartão, carteira, saque)
+• Pagamentos Pagar.me (Pix/cartão, carteira, saque)
 • Dupla confirmação e disputa
 
 Foco operacional

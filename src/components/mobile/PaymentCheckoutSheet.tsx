@@ -32,7 +32,7 @@ interface PaymentCheckoutSheetProps {
   statusLabel?: string;
   loading?: boolean;
   errorMessage?: string | null;
-  /** Exibe CPF do pagador quando ainda não há cadastro no Asaas */
+  /** Exibe CPF do pagador quando ainda não há cadastro no PSP */
   needsPayerCpf?: boolean;
   onGeneratePix?: (payerProfile?: PayerProfilePayload) => void;
   onPayCard?: (

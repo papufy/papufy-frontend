@@ -26,8 +26,8 @@ export interface User {
   telefone?: string | null;
   cidade?: string | null;
   uf?: string | null;
-  asaasWalletId?: string | null;
-  asaasCustomerId?: string | null;
+  pagarmeRecipientId?: string | null;
+  pagarmeCustomerId?: string | null;
   curriculoUrl?: string | null;
   createdAt?: string;
 }
@@ -217,7 +217,9 @@ export interface Transaction {
   listingId: string;
   contractorId: string;
   professionalId: string;
-  asaasPaymentId?: string | null;
+  pagarmeChargeId?: string | null;
+  pagarmeOrderId?: string | null;
+  paymentProvider?: string | null;
   amountGross: number;
   platformFee: number;
   professionalNet: number;
