@@ -8,7 +8,6 @@ import { resolveListingCategories } from "../../constants/categories";
 import { useFilters } from "../../context/FilterContext";
 import { useDebounce } from "../../hooks/useDebounce";
 import { useInfiniteListings } from "../../hooks/useInfiniteListings";
-import { getApiBase } from "../../lib/api";
 import { FeaturedProfessionalsScroll } from "./FeaturedProfessionalsScroll";
 import { HomeHeroCarousel } from "./HomeHeroCarousel";
 import { RecentJobsGrid } from "./RecentJobsGrid";
@@ -177,10 +176,6 @@ export function AppPageHome() {
             {error && !loading && listings.length === 0 && (
               <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-center text-sm text-red-700">
                 <p>{error}</p>
-                <p className="mt-2 text-xs">
-                  API:{" "}
-                  <code className="rounded bg-red-100 px-1">{getApiBase()}</code>
-                </p>
                 <Button
                   type="button"
                   variant="papufy"

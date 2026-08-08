@@ -43,7 +43,7 @@ export class ErrorBoundary extends Component<Props, State> {
               <p className="mt-2 max-w-sm text-sm text-muted-foreground">
                 {chunkError
                   ? "Há uma versão nova do site. Toque em recarregar para continuar."
-                  : this.state.error.message}
+                  : "Tente recarregar. Se o problema continuar, volte mais tarde."}
               </p>
               <Button
                 type="button"

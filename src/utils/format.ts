@@ -35,6 +35,30 @@ export function formatLocation(cidade: string, uf: string, bairro?: string | nul
   return bairro ? `${bairro} · ${base}` : base;
 }
 
+/** Rótulo de validade do anúncio (dono). */
+export function formatListingValidity(expiresAt?: string | null): {
+  label: string;
+  expired: boolean;
+} {
+  if (!expiresAt) {
+    return { label: "Prazo a confirmar", expired: false };
+  }
+  const end = new Date(expiresAt);
+  if (Number.isNaN(end.getTime())) {
+    return { label: "Prazo a confirmar", expired: false };
+  }
+  const expired = end.getTime() <= Date.now();
+  const dateLabel = end.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+  return {
+    label: expired ? `Expirado em ${dateLabel}` : `Válido até ${dateLabel}`,
+    expired,
+  };
+}
+
 export function formatRelativeTime(dateIso: string): string {
   const date = new Date(dateIso);
   const now = new Date();

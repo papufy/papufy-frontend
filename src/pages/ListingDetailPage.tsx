@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,6 +6,10 @@ import { ListingImageGallery } from "../components/ListingImageGallery";
 import { ListingSellerCard } from "../components/ListingSellerCard";
 import { SafeText } from "../components/SafeText";
 import { MobileShell } from "../components/mobile/MobileShell";
+import {
+  PaymentCheckoutSheet,
+  type PayerProfilePayload,
+} from "../components/mobile/PaymentCheckoutSheet";
 import { StatusBadge } from "../components/StatusBadge";
 import { AnimatedLordIcon, useLordPlay } from "../components/icons/AnimatedLordIcon";
 import { MotionPressButton } from "../components/motion/MotionPrimitives";
@@ -18,6 +22,7 @@ import { digitsOnly } from "../utils/masks";
 import {
   formatLocation,
   formatListingPrice,
+  formatListingValidity,
   formatRelativeTime,
 } from "../utils/format";
 
@@ -47,7 +52,18 @@ export function ListingDetailPage() {
   const [editUf, setEditUf] = useState("PB");
   const [editTelefone, setEditTelefone] = useState("");
   const [editSemQualificacao, setEditSemQualificacao] = useState(false);
+  const [renewOpen, setRenewOpen] = useState(false);
+  const [renewalId, setRenewalId] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [pixPayload, setPixPayload] = useState("");
+  const [pixImage, setPixImage] = useState<string | null>(null);
+  const [statusLabel, setStatusLabel] = useState<string | undefined>();
   const { playToken: chatPlay, trigger: triggerChat } = useLordPlay();
+  const needsPayerCpf = useMemo(() => {
+    const doc = user?.cpfCnpj?.replace(/\D/g, "") ?? "";
+    return doc.length < 11;
+  }, [user?.cpfCnpj]);
 
   const loadListing = async (listingId: string) => {
     const { listing: data } = await api.listings.getById(listingId);
@@ -187,23 +203,92 @@ export function ListingDetailPage() {
     }
   };
 
+  const openRenew = () => {
+    setRenewOpen(true);
+    setRenewalId(null);
+    setPixPayload("");
+    setPixImage(null);
+    setCheckoutError(null);
+    setStatusLabel(undefined);
+  };
+
   const handleReopen = async () => {
     if (!listing) return;
+    const { expired } = formatListingValidity(listing.expiresAt);
+    if (expired) {
+      openRenew();
+      return;
+    }
     try {
       const { listing: updated } = await api.listings.reopen(listing.id);
       setListing(updated);
       showToast("Anúncio reaberto.", "success");
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Erro.", "error");
+      const msg = err instanceof Error ? err.message : "Erro.";
+      if (/expirado|renove/i.test(msg)) {
+        openRenew();
+        return;
+      }
+      showToast(msg, "error");
     }
   };
 
+  const handleGenerateRenewPix = async (payerProfile?: PayerProfilePayload) => {
+    if (!listing) return;
+    setCheckoutLoading(true);
+    setCheckoutError(null);
+    try {
+      const { renewal, pix } = await api.payments.renewListing(
+        listing.id,
+        payerProfile
+      );
+      setRenewalId(renewal.id);
+      setPixPayload(pix.payload ?? renewal.pixCopyPaste ?? "");
+      setPixImage(pix.encodedImage ?? renewal.pixQrCodeImage ?? null);
+      setStatusLabel(
+        renewal.status === "PAID" ? "Pagamento confirmado!" : "Aguardando Pix…"
+      );
+      if (renewal.status === "PAID") {
+        const { listing: updated } = await api.listings.getById(listing.id);
+        setListing(updated);
+        showToast("Anúncio renovado por +15 dias.", "success");
+        setRenewOpen(false);
+      }
+    } catch (err) {
+      setCheckoutError(
+        err instanceof Error ? err.message : "Não foi possível gerar o Pix."
+      );
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!renewalId || !renewOpen || !listing) return;
+    const timer = window.setInterval(async () => {
+      try {
+        const { renewal } = await api.payments.listingRenewalStatus(renewalId);
+        if (renewal.status === "PAID") {
+          setStatusLabel("Pagamento confirmado!");
+          const { listing: updated } = await api.listings.getById(listing.id);
+          setListing(updated);
+          showToast("Anúncio renovado por +15 dias.", "success");
+          setRenewOpen(false);
+          setRenewalId(null);
+        }
+      } catch {
+        /* ignore */
+      }
+    }, 4000);
+    return () => window.clearInterval(timer);
+  }, [renewalId, renewOpen, listing, showToast]);
+
   const handleDelete = async () => {
     if (!listing) return;
-    if (!confirm("Excluir este anúncio permanentemente?")) return;
+    if (!confirm("Excluir este anúncio?")) return;
     try {
       await api.listings.remove(listing.id);
-      showToast("Anúncio excluído.", "success");
+      showToast("Anúncio removido.", "success");
       navigate("/minhas-publicacoes", { replace: true });
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Erro.", "error");
@@ -239,6 +324,7 @@ export function ListingDetailPage() {
 
   const isBico = listing.listingType === "JOB_VACANCY";
   const isOwner = listing.userId === user?.id;
+  const validity = formatListingValidity(listing.expiresAt);
   const ctaLabel = isOwner
     ? editing
       ? "Editando anúncio"
@@ -280,6 +366,15 @@ export function ListingDetailPage() {
               {isBico && listing.semQualificacao && (
                 <span className="inline-block rounded-lg bg-sky-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-sky-800">
                   Sem qualificação exigida
+                </span>
+              )}
+              {isOwner && (
+                <span
+                  className={`text-xs font-medium ${
+                    validity.expired ? "text-amber-700" : "text-slate-600"
+                  }`}
+                >
+                  {validity.label}
                 </span>
               )}
             </div>
@@ -492,7 +587,22 @@ export function ListingDetailPage() {
               <Card className="py-0 shadow-sm">
               <CardContent className="p-5">
                 <p className="text-sm font-bold text-foreground">Gerenciar anúncio</p>
+                <p
+                  className={`mt-1 text-xs font-medium ${
+                    validity.expired ? "text-amber-700" : "text-slate-600"
+                  }`}
+                >
+                  {validity.label}
+                </p>
                 <div className="mt-3 flex flex-col gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-sky-300 text-sky-800"
+                    onClick={openRenew}
+                  >
+                    Renovar por R$ 15 (+15 dias)
+                  </Button>
                   {listing.status === "OPEN" ? (
                     <Button
                       type="button"
@@ -509,7 +619,9 @@ export function ListingDetailPage() {
                       className="border-green-300 text-green-800"
                       onClick={() => void handleReopen()}
                     >
-                      Reabrir anúncio
+                      {validity.expired
+                        ? "Renovar e reabrir"
+                        : "Reabrir anúncio"}
                     </Button>
                   )}
                   <Button
@@ -552,6 +664,28 @@ export function ListingDetailPage() {
           </MotionPressButton>
         </div>
       )}
+
+      <PaymentCheckoutSheet
+        open={renewOpen}
+        onClose={() => {
+          if (checkoutLoading) return;
+          setRenewOpen(false);
+          setRenewalId(null);
+          setPixPayload("");
+          setPixImage(null);
+          setCheckoutError(null);
+        }}
+        title="Renovar anúncio"
+        amountLabel="R$ 15,00 · +15 dias de validade"
+        pixCopyPaste={pixPayload}
+        pixQrCodeImage={pixImage}
+        statusLabel={statusLabel}
+        loading={checkoutLoading}
+        errorMessage={checkoutError}
+        needsPayerCpf={needsPayerCpf}
+        pixOnly
+        onGeneratePix={(profile) => void handleGenerateRenewPix(profile)}
+      />
     </MobileShell>
   );
 }

@@ -40,7 +40,7 @@ function formatPaymentError(err: unknown): string {
     if (e.missingFields?.includes("cpfCnpj")) {
       return "Informe seu CPF ou CNPJ para concluir o pagamento.";
     }
-    return e.message || "Complete seus dados de pagamento no checkout.";
+    return e.message || "Complete seus dados de pagamento para continuar.";
   }
   return e instanceof Error ? e.message : "Erro ao processar pagamento.";
 }

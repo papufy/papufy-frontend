@@ -79,7 +79,7 @@ export function ContactModal({
             <p className="font-bold">Contatos protegidos</p>
             <p className="mt-1 text-muted-foreground">
               Para sua segurança, telefone e endereço não ficam disponíveis no
-              chat. Use o chat interno para combinar detalhes.
+              chat. Combine os detalhes pelo próprio chat do Papufy.
             </p>
           </div>
 

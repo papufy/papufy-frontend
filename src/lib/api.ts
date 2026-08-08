@@ -1,4 +1,5 @@
 import type {
+  AppNotification,
   AuthResponse,
   Certificate,
   ChatMessage,
@@ -9,6 +10,7 @@ import type {
   JobInterestItem,
   Listing,
   ListingPublisher,
+  ListingRenewal,
   ListingsPage,
   SupportTicket,
   Transaction,
@@ -75,7 +77,7 @@ async function request<T>(
     response = await fetch(url, { ...options, headers });
   } catch {
     throw new Error(
-      `Não foi possível conectar à API (${API_BASE}). Verifique o deploy no Render.`
+      "Não foi possível conectar ao Papufy. Verifique sua internet e tente de novo."
     );
   }
 
@@ -549,6 +551,23 @@ export const api = {
         `/payments/transactions/${transactionId}/status`
       ),
 
+    renewListing: (
+      listingId: string,
+      payerProfile?: { cpfCnpj?: string; telefone?: string }
+    ) =>
+      request<{
+        renewal: ListingRenewal;
+        pix: { encodedImage?: string; payload?: string };
+      }>(`/payments/listings/${listingId}/renew`, {
+        method: "POST",
+        body: JSON.stringify({ payerProfile }),
+      }),
+
+    listingRenewalStatus: (renewalId: string) =>
+      request<{ renewal: ListingRenewal }>(
+        `/payments/listing-renewals/${renewalId}/status`
+      ),
+
     reportProblem: (
       transactionId: string,
       descricao: string,
@@ -655,6 +674,24 @@ export const api = {
         `/payments/transactions/${transactionId}/confirm-completion`,
         { method: "POST" }
       ),
+  },
+
+  notifications: {
+    list: () =>
+      request<{ notifications: AppNotification[] }>("/notifications"),
+
+    unreadCount: () =>
+      request<{ count: number }>("/notifications/unread-count"),
+
+    markRead: (id: string) =>
+      request<{ notification: AppNotification }>(`/notifications/${id}/read`, {
+        method: "PATCH",
+      }),
+
+    markAllRead: () =>
+      request<{ updated: number }>("/notifications/read-all", {
+        method: "PATCH",
+      }),
   },
 };
 

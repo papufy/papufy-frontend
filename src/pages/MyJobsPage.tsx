@@ -1,22 +1,44 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MobileShell } from "../components/mobile/MobileShell";
+import {
+  PaymentCheckoutSheet,
+  type PayerProfilePayload,
+} from "../components/mobile/PaymentCheckoutSheet";
 import { AutoAnimateList } from "../components/motion/AutoAnimateList";
 import { MotionEnter } from "../components/motion/MotionPrimitives";
 import { StatusBadge } from "../components/StatusBadge";
+import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { api } from "../lib/api";
 import type { Listing } from "../types";
-import { formatListingPrice, formatRelativeTime } from "../utils/format";
+import {
+  formatListingPrice,
+  formatListingValidity,
+  formatRelativeTime,
+} from "../utils/format";
 
 export function MyJobsPage() {
+  const { user } = useAuth();
   const { showToast } = useToast();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [renewListing, setRenewListing] = useState<Listing | null>(null);
+  const [renewalId, setRenewalId] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [pixPayload, setPixPayload] = useState("");
+  const [pixImage, setPixImage] = useState<string | null>(null);
+  const [statusLabel, setStatusLabel] = useState<string | undefined>();
+
+  const needsPayerCpf = useMemo(() => {
+    const doc = user?.cpfCnpj?.replace(/\D/g, "") ?? "";
+    return doc.length < 11;
+  }, [user?.cpfCnpj]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -37,6 +59,27 @@ export function MyJobsPage() {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    if (!renewalId || !renewListing) return;
+    const timer = window.setInterval(async () => {
+      try {
+        const { renewal } = await api.payments.listingRenewalStatus(renewalId);
+        if (renewal.status === "PAID") {
+          setStatusLabel("Pagamento confirmado!");
+          showToast("Anúncio renovado por +15 dias.", "success");
+          setRenewListing(null);
+          setRenewalId(null);
+          setPixPayload("");
+          setPixImage(null);
+          void load();
+        }
+      } catch {
+        /* ignore poll errors */
+      }
+    }, 4000);
+    return () => window.clearInterval(timer);
+  }, [renewalId, renewListing, load, showToast]);
+
   const handleClose = async (id: string) => {
     try {
       await api.listings.close(id);
@@ -47,21 +90,69 @@ export function MyJobsPage() {
     }
   };
 
-  const handleReopen = async (id: string) => {
+  const handleReopen = async (listing: Listing) => {
+    const { expired } = formatListingValidity(listing.expiresAt);
+    if (expired) {
+      openRenew(listing);
+      return;
+    }
     try {
-      await api.listings.reopen(id);
+      await api.listings.reopen(listing.id);
       showToast("Anúncio reaberto.", "success");
       load();
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Erro.", "error");
+      const msg = err instanceof Error ? err.message : "Erro.";
+      if (/expirado|renove/i.test(msg)) {
+        openRenew(listing);
+        return;
+      }
+      showToast(msg, "error");
+    }
+  };
+
+  const openRenew = (listing: Listing) => {
+    setRenewListing(listing);
+    setRenewalId(null);
+    setPixPayload("");
+    setPixImage(null);
+    setCheckoutError(null);
+    setStatusLabel(undefined);
+  };
+
+  const handleGenerateRenewPix = async (payerProfile?: PayerProfilePayload) => {
+    if (!renewListing) return;
+    setCheckoutLoading(true);
+    setCheckoutError(null);
+    try {
+      const { renewal, pix } = await api.payments.renewListing(
+        renewListing.id,
+        payerProfile
+      );
+      setRenewalId(renewal.id);
+      setPixPayload(pix.payload ?? renewal.pixCopyPaste ?? "");
+      setPixImage(pix.encodedImage ?? renewal.pixQrCodeImage ?? null);
+      setStatusLabel(
+        renewal.status === "PAID" ? "Pagamento confirmado!" : "Aguardando Pix…"
+      );
+      if (renewal.status === "PAID") {
+        showToast("Anúncio renovado por +15 dias.", "success");
+        setRenewListing(null);
+        void load();
+      }
+    } catch (err) {
+      setCheckoutError(
+        err instanceof Error ? err.message : "Não foi possível gerar o Pix."
+      );
+    } finally {
+      setCheckoutLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Excluir este anúncio permanentemente?")) return;
+    if (!confirm("Excluir este anúncio?")) return;
     try {
       await api.listings.remove(id);
-      showToast("Anúncio excluído.", "success");
+      showToast("Anúncio removido.", "success");
       load();
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Erro.", "error");
@@ -111,6 +202,7 @@ export function MyJobsPage() {
         <AutoAnimateList className="space-y-3">
           {listings.map((listing) => {
             const isBico = listing.listingType === "JOB_VACANCY";
+            const validity = formatListingValidity(listing.expiresAt);
 
             return (
               <Card key={listing.id} size="sm" className="py-0 shadow-sm">
@@ -138,6 +230,13 @@ export function MyJobsPage() {
                       <p className="text-xs text-muted-foreground">
                         {listing.categoria} · {listing.cidade}, {listing.uf}
                       </p>
+                      <p
+                        className={`mt-1 text-xs font-medium ${
+                          validity.expired ? "text-amber-700" : "text-slate-600"
+                        }`}
+                      >
+                        {validity.label}
+                      </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <Button variant="outline" size="sm" asChild>
@@ -147,6 +246,15 @@ export function MyJobsPage() {
                         <Link to={`/anuncio/${listing.id}?edit=1`}>
                           Alterar
                         </Link>
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="border-sky-300 text-sky-800"
+                        onClick={() => openRenew(listing)}
+                      >
+                        Renovar por R$ 15
                       </Button>
                       {listing.status === "OPEN" ? (
                         <Button
@@ -164,9 +272,9 @@ export function MyJobsPage() {
                           variant="outline"
                           size="sm"
                           className="border-green-300 text-green-800"
-                          onClick={() => handleReopen(listing.id)}
+                          onClick={() => void handleReopen(listing)}
                         >
-                          Reabrir
+                          {validity.expired ? "Renovar e reabrir" : "Reabrir"}
                         </Button>
                       )}
                       <Button
@@ -186,6 +294,28 @@ export function MyJobsPage() {
           })}
         </AutoAnimateList>
       </div>
+
+      <PaymentCheckoutSheet
+        open={Boolean(renewListing)}
+        onClose={() => {
+          if (checkoutLoading) return;
+          setRenewListing(null);
+          setRenewalId(null);
+          setPixPayload("");
+          setPixImage(null);
+          setCheckoutError(null);
+        }}
+        title="Renovar anúncio"
+        amountLabel="R$ 15,00 · +15 dias de validade"
+        pixCopyPaste={pixPayload}
+        pixQrCodeImage={pixImage}
+        statusLabel={statusLabel}
+        loading={checkoutLoading}
+        errorMessage={checkoutError}
+        needsPayerCpf={needsPayerCpf}
+        pixOnly
+        onGeneratePix={(profile) => void handleGenerateRenewPix(profile)}
+      />
     </MobileShell>
   );
 }

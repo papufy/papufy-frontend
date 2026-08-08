@@ -329,7 +329,10 @@ export function CreateJobPage() {
       }
       imagens.forEach((img) => formData.append("imagens", img));
       const { listing } = await api.listings.create(formData);
-      showToast("Publicado com sucesso!", "success");
+      showToast(
+        "Publicado! Seu anúncio fica no ar por 15 dias. Depois você pode renovar se quiser.",
+        "success"
+      );
       // Full reload evita chunk antigo após deploy (Failed to fetch dynamically imported module).
       window.location.replace(`/anuncio/${listing.id}`);
     } catch (err) {

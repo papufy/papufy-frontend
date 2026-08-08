@@ -34,6 +34,8 @@ interface PaymentCheckoutSheetProps {
   errorMessage?: string | null;
   /** Exibe CPF do pagador quando ainda não há cadastro no PSP */
   needsPayerCpf?: boolean;
+  /** Só Pix (ex.: renovação de anúncio). */
+  pixOnly?: boolean;
   onGeneratePix?: (payerProfile?: PayerProfilePayload) => void;
   onPayCard?: (
     payload: PaymentCardPayload,
@@ -105,6 +107,7 @@ export function PaymentCheckoutSheet({
   loading = false,
   errorMessage = null,
   needsPayerCpf = false,
+  pixOnly = false,
   onGeneratePix,
   onPayCard,
 }: PaymentCheckoutSheetProps) {
@@ -138,6 +141,7 @@ export function PaymentCheckoutSheet({
     if (open) {
       setVisible(true);
       setLocalError(null);
+      if (pixOnly) setMethod("PIX");
       document.body.style.overflow = "hidden";
     } else {
       const t = setTimeout(() => setVisible(false), 300);
@@ -147,7 +151,7 @@ export function PaymentCheckoutSheet({
     return () => {
       document.body.style.overflow = "";
     };
-  }, [open]);
+  }, [open, pixOnly]);
 
   useEffect(() => {
     if (!errorMessage) return;
@@ -253,7 +257,9 @@ export function PaymentCheckoutSheet({
               {statusLabel}
             </p>
           )}
-          <p className="mt-1 text-xs text-slate-500">Escolha Pix ou Cartão</p>
+          <p className="mt-1 text-xs text-slate-500">
+            {pixOnly ? "Pagamento via Pix" : "Escolha Pix ou Cartão"}
+          </p>
         </header>
 
         {displayError && (
@@ -270,7 +276,7 @@ export function PaymentCheckoutSheet({
             <LoadingSpinner
               label={
                 method === "PIX"
-                  ? "Gerando cobrança Pix..."
+                  ? "Gerando Pix..."
                   : "Processando cartão..."
               }
             />
@@ -281,7 +287,7 @@ export function PaymentCheckoutSheet({
           {needsPayerCpf && (
             <div className="w-full rounded-xl border border-sky-100 bg-sky-50/50 p-3">
               <p className="mb-2 text-xs font-semibold text-sky-800">
-                Primeiro pagamento — confirme seus dados
+                Confirme seus dados para o pagamento
               </p>
               <input
                 value={payerCpf}
@@ -304,32 +310,34 @@ export function PaymentCheckoutSheet({
             </div>
           )}
 
-          <div className="grid w-full grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
-            <button
-              type="button"
-              disabled={busy}
-              className={`rounded-lg px-3 py-2 text-sm font-semibold disabled:opacity-50 ${
-                method === "PIX"
-                  ? "bg-white text-sky-700 shadow"
-                  : "text-slate-600"
-              }`}
-              onClick={() => setMethod("PIX")}
-            >
-              Pix
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              className={`rounded-lg px-3 py-2 text-sm font-semibold disabled:opacity-50 ${
-                method === "CREDIT_CARD"
-                  ? "bg-white text-sky-700 shadow"
-                  : "text-slate-600"
-              }`}
-              onClick={() => setMethod("CREDIT_CARD")}
-            >
-              Cartão
-            </button>
-          </div>
+          {!pixOnly && (
+            <div className="grid w-full grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
+              <button
+                type="button"
+                disabled={busy}
+                className={`rounded-lg px-3 py-2 text-sm font-semibold disabled:opacity-50 ${
+                  method === "PIX"
+                    ? "bg-white text-sky-700 shadow"
+                    : "text-slate-600"
+                }`}
+                onClick={() => setMethod("PIX")}
+              >
+                Pix
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                className={`rounded-lg px-3 py-2 text-sm font-semibold disabled:opacity-50 ${
+                  method === "CREDIT_CARD"
+                    ? "bg-white text-sky-700 shadow"
+                    : "text-slate-600"
+                }`}
+                onClick={() => setMethod("CREDIT_CARD")}
+              >
+                Cartão
+              </button>
+            </div>
+          )}
 
           {method === "PIX" ? (
             <>
@@ -347,7 +355,7 @@ export function PaymentCheckoutSheet({
                   ? "Gerando Pix..."
                   : hasPixData
                     ? "Atualizar QR Code Pix"
-                    : "Gerar cobrança Pix"}
+                    : "Gerar Pix"}
               </Button>
 
               <div className="flex w-full flex-col items-center rounded-2xl border border-sky-100 bg-sky-50/60 p-4 shadow-inner">
@@ -362,7 +370,7 @@ export function PaymentCheckoutSheet({
                 )}
                 {!hasPixData && (
                   <p className="mt-3 text-center text-xs text-slate-500">
-                    Toque em &quot;Gerar cobrança Pix&quot; para exibir o QR Code.
+                    Toque em Gerar Pix para exibir o QR Code.
                   </p>
                 )}
               </div>

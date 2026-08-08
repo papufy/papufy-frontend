@@ -4,12 +4,17 @@ function trimUrl(value: unknown): string | undefined {
   return trimmed.length > 0 ? trimmed.replace(/\/$/, "") : undefined;
 }
 
+const PUBLIC_CONFIG_ERROR =
+  "Não foi possível iniciar o Papufy. Tente recarregar a página.";
+
 function assertProductionApiUrl(url: string): string {
   if (!url.startsWith("https://")) {
-    throw new Error("VITE_API_URL deve ser HTTPS (URL do Render em produção).");
+    console.error("[env] VITE_API_URL deve ser HTTPS.");
+    throw new Error(PUBLIC_CONFIG_ERROR);
   }
   if (/localhost|127\.0\.0\.1/i.test(url)) {
-    throw new Error("URL local não permitida — configure a API do Render na Vercel.");
+    console.error("[env] VITE_API_URL não pode ser localhost.");
+    throw new Error(PUBLIC_CONFIG_ERROR);
   }
   return url;
 }
@@ -17,9 +22,8 @@ function assertProductionApiUrl(url: string): string {
 export function getApiBaseUrl(): string {
   const url = trimUrl(import.meta.env.VITE_API_URL);
   if (!url) {
-    throw new Error(
-      "VITE_API_URL não configurada. Defina a URL do backend Render na Vercel (Production + Preview)."
-    );
+    console.error("[env] VITE_API_URL não configurada.");
+    throw new Error(PUBLIC_CONFIG_ERROR);
   }
   return assertProductionApiUrl(url);
 }
@@ -28,7 +32,10 @@ export function getWebSocketBaseUrl(): string {
   const ws = trimUrl(import.meta.env.VITE_WS_URL);
   if (ws?.startsWith("wss://")) {
     if (/localhost|127\.0\.0\.1/i.test(ws)) {
-      throw new Error("VITE_WS_URL não pode apontar para localhost.");
+      console.error("[env] VITE_WS_URL não pode ser localhost.");
+      throw new Error(
+        "Não foi possível conectar ao chat. Tente recarregar a página."
+      );
     }
     return ws;
   }

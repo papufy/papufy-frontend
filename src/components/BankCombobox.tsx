@@ -131,7 +131,7 @@ export function BankCombobox({
         >
           {filtered.length === 0 ? (
             <li className="px-3 py-2.5 text-sm text-slate-500">
-              Nenhum banco na lista. Digite o código COMPE (ex.: 341).
+              Nenhum banco na lista. Digite o código do banco (ex.: 341).
             </li>
           ) : (
             filtered.map((bank) => (

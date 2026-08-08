@@ -65,6 +65,9 @@ export interface Listing {
   categoria: string;
   semQualificacao?: boolean;
   status: ListingStatus;
+  /** ISO — fim da validade (15 dias + renovações). */
+  expiresAt?: string | null;
+  expiredByTtl?: boolean;
   cep?: string | null;
   cidade: string;
   bairro?: string | null;
@@ -76,6 +79,36 @@ export interface Listing {
   imagemCapa?: string | null;
   isOwner?: boolean;
   contactUnlocked?: boolean;
+}
+
+export interface ListingRenewal {
+  id: string;
+  listingId: string;
+  userId: string;
+  amountGross: number;
+  status: string;
+  pixQrCodeImage?: string | null;
+  pixCopyPaste?: string | null;
+  paidAt?: string | null;
+  createdAt: string;
+}
+
+export type AppNotificationType =
+  | "LISTING_EXPIRES_TOMORROW"
+  | "LISTING_EXPIRES_TODAY"
+  | string;
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  listingId?: string | null;
+  type: AppNotificationType;
+  title: string;
+  body: string;
+  href?: string | null;
+  refExpiresAt?: string | null;
+  readAt?: string | null;
+  createdAt: string;
 }
 
 export interface Certificate {
