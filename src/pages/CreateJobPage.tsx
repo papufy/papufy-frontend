@@ -129,6 +129,7 @@ export function CreateJobPage() {
     setError(null);
     setCategoria("");
     setCategoriaCustom("");
+    setSemQualificacao(false);
     setTitulo(type === "PROFESSIONAL_PROFILE" ? `${user?.nome ?? ""} - ` : "");
     setSearchParams({ tipo: type }, { replace: true });
     window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
@@ -308,7 +309,7 @@ export function CreateJobPage() {
       if (isPro) {
         finalDescription += `\n\nFaixa de preço: R$ ${min.toFixed(2)} até R$ ${max.toFixed(2)}.`;
       }
-      if (semQualificacao) {
+      if (!isPro && semQualificacao) {
         finalDescription +=
           "\n\nNão é necessária qualificação para realizar este serviço.";
       }
@@ -320,7 +321,7 @@ export function CreateJobPage() {
       formData.append("uf", uf);
       formData.append("telefone", telefone.trim());
       formData.append("aCombinar", "false");
-      formData.append("semQualificacao", String(semQualificacao));
+      formData.append("semQualificacao", String(!isPro && semQualificacao));
       if (isPro) {
         formData.append("preco", String((min + max) / 2));
         formData.append("precoMin", String(min));
@@ -608,33 +609,35 @@ export function CreateJobPage() {
                     </p>
                   </div>
 
-                  <MotionPressButton
-                    type="button"
-                    onClick={() => setSemQualificacao((v) => !v)}
-                    className={`flex w-full items-start gap-3 rounded-2xl border px-3.5 py-3.5 text-left ${
-                      semQualificacao
-                        ? `${theme.soft} border-transparent ring-2 ${theme.ring}`
-                        : "border-slate-200 bg-white"
-                    }`}
-                  >
-                    <span
-                      className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md ${
+                  {!isPro && (
+                    <MotionPressButton
+                      type="button"
+                      onClick={() => setSemQualificacao((v) => !v)}
+                      className={`flex w-full items-start gap-3 rounded-2xl border px-3.5 py-3.5 text-left ${
                         semQualificacao
-                          ? "bg-slate-900 text-white"
-                          : "border border-slate-300 bg-white"
+                          ? `${theme.soft} border-transparent ring-2 ${theme.ring}`
+                          : "border-slate-200 bg-white"
                       }`}
                     >
-                      {semQualificacao && <Check className="h-3.5 w-3.5" />}
-                    </span>
-                    <span>
-                      <span className="block text-sm font-bold text-slate-800">
-                        Sem qualificação obrigatória
+                      <span
+                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md ${
+                          semQualificacao
+                            ? "bg-slate-900 text-white"
+                            : "border border-slate-300 bg-white"
+                        }`}
+                      >
+                        {semQualificacao && <Check className="h-3.5 w-3.5" />}
                       </span>
-                      <span className="mt-0.5 block text-xs text-slate-500">
-                        Qualquer pessoa pode fazer, sem curso ou diploma.
+                      <span>
+                        <span className="block text-sm font-bold text-slate-800">
+                          Sem qualificação obrigatória
+                        </span>
+                        <span className="mt-0.5 block text-xs text-slate-500">
+                          Qualquer pessoa pode fazer, sem curso ou diploma.
+                        </span>
                       </span>
-                    </span>
-                  </MotionPressButton>
+                    </MotionPressButton>
+                  )}
 
                   {(titulo.trim() || descricao.trim()) && (
                     <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-3.5">
@@ -771,19 +774,41 @@ export function CreateJobPage() {
                       <span className="text-xs text-slate-500">Até 5 imagens</span>
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="image/jpeg,image/png,image/webp"
                         multiple
                         className="sr-only"
-                        onChange={(e) =>
-                          setImagens(Array.from(e.target.files ?? []).slice(0, 5))
-                        }
+                        onChange={(e) => {
+                          const picked = Array.from(e.target.files ?? []).filter(
+                            (f) => f.type.startsWith("image/")
+                          );
+                          if (!picked.length) {
+                            e.target.value = "";
+                            return;
+                          }
+                          setImagens((prev) => {
+                            const room = Math.max(0, 5 - prev.length);
+                            if (room === 0) {
+                              showToast("Limite de 5 imagens.", "info");
+                              return prev;
+                            }
+                            const next = [...prev, ...picked.slice(0, room)];
+                            if (picked.length > room) {
+                              showToast(
+                                `Só cabem mais ${room} foto(s).`,
+                                "info"
+                              );
+                            }
+                            return next;
+                          });
+                          e.target.value = "";
+                        }}
                       />
                     </label>
                     {imagePreviews.length > 0 && (
                       <div className="mt-2.5 grid grid-cols-3 gap-2">
                         {imagePreviews.map((src, i) => (
                           <button
-                            key={src}
+                            key={`${src}-${i}`}
                             type="button"
                             onClick={() =>
                               setImagens((prev) =>
@@ -803,6 +828,11 @@ export function CreateJobPage() {
                           </button>
                         ))}
                       </div>
+                    )}
+                    {imagens.length > 0 && imagens.length < 5 && (
+                      <p className="mt-2 text-center text-xs text-slate-500">
+                        {imagens.length} de 5 · toque em Adicionar fotos de novo
+                      </p>
                     )}
                   </div>
 
